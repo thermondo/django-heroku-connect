@@ -1,0 +1,8 @@
+-e .
+coverage
+isort
+pyenchant
+pytest
+pytest-django
+sphinxcontrib-spelling
+sphinx
