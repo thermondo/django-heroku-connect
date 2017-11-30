@@ -1,0 +1,46 @@
+language: python
+sudo: false
+cache:
+- pip
+- apt
+python:
+- '3.6'
+addons:
+  apt:
+    packages:
+    - python3-enchant
+    - graphviz
+env:
+  matrix:
+  - TOXENV=isort
+  - TOXENV=docs
+  - DJANGO=111
+  - DJANGO=20
+  - DJANGO=master
+matrix:
+  fast_finish: true
+  allow_failures:
+  - env: DJANGO=master
+install:
+- pip install --upgrade pip tox
+- pip install -U codecov
+before_script:
+- |
+  if [[ -z $TOXENV ]]; then
+    export TOXENV=py$(echo $TRAVIS_PYTHON_VERSION | sed -e 's/\.//g')-dj$DJANGO
+  fi
+- echo $TOXENV
+script:
+- tox -e $TOXENV
+after_success:
+- codecov
+deploy:
+  provider: pypi
+  user: codingjoe
+  password:
+    secure: jJSnEnmQgSJasFJkzvdf4SEC8l2FDHQGFp71lGdcbwx0jUEHQm2G13LDVrK31J8iQyk3jlnVJz9EA3MD3P2L06aOcj+71iG6/jtSLfECwRbc1FqltGy7Q746Wcgq+AaBpJq7qCzY/RK2WO1VDXgiyy1xr/2NpldlrGN43Ba9rs8E/ej6WpBeyBC+yCilRGQallLqHXYGHVD3Udsd+QAj0UsenXOtpw0Rz4UZHcphDLKmUIWiAqR+ibbcdyCbm8iLdXMNneDbGHdEWFiiO6hOLEuiG0FY06CTOH/DCqOV2spZTbG5TPk+iURjiI/x+K0AKFKe0Re9889lydQbe9mXjhQ9foU9dI9PS99MM4aTe7LPYWN9fCZV6CeSSlvV7ogwFuPIT51xU2VP9IA5Io103UmDbJcG/HxGwdL7/hEKJgdjxcwG8CpZrWwZl/Xsu6NoBE7CE8mbnwLkcjRs20oWapXUbwml4+5dA3XM41opzt3CXIDT2lo/kVZ/z+VlSpxqu3O3MOGgT6ywN+l+PXOjSTSbPaTmp6xjVBc8BMGRWabxpafXjBNoQfpN99TuX1iLKQXb1XNKxCCpKdUXt76RVdCpkgDMga/2rauxvfIU3URdH16uCxsMFXx+CsGums5esChZRaOFq1z80DrYyX/91wB5bxYRKyM34XplmvQ2JQo=
+  on:
+    tags: true
+    distributions: sdist bdist_wheel
+    repo: Thermondo/django-heroku-connect
+    branch: master
