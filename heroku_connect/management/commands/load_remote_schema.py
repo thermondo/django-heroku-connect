@@ -41,7 +41,6 @@ class Command(BaseCommand):
         schema_name = options['SCHEMA_NAME']
         url = self.get_database_url(heroku_app)
         credentials = self.parse_credentials(url)
-        credentials.update()
         schema = self.get_schema(**credentials, schema_name=schema_name)
         self.stdout.write(schema)
 
