@@ -12,16 +12,16 @@ class TestLoadRemoteSchema:
     pg_url = 'postgres://brucewayne:batman@secret.server.gov:1234/gotham'
 
     def test_get_database_url(self):
-        with heroku_cli('▸    No app specified'.encode('utf-8'), exit_code=1):
+        with heroku_cli('▸    No app specified', exit_code=1):
             with pytest.raises(CommandError) as e:
                 Command.get_database_url(None)
 
         assert 'Please provide the correct Heroku app name.' in str(e)
 
-        with heroku_cli(self.pg_url.encode('utf-8'), exit_code=0):
+        with heroku_cli(self.pg_url, exit_code=0):
             assert self.pg_url in Command.get_database_url(None)
 
-        with heroku_cli(self.pg_url.encode('utf-8'), exit_code=0):
+        with heroku_cli(self.pg_url, exit_code=0):
             assert self.pg_url in Command.get_database_url('ninja')
 
     def test_parse_url(self):
@@ -53,7 +53,7 @@ class TestLoadRemoteSchema:
     def test_call_command(self):
         os.system('echo \'CREATE SCHEMA IF NOT EXISTS "salesforce";\''
                   ' | psql -d heroku_connect_test -a')
-        with heroku_cli(b'postgres://:@localhost:5432/heroku_connect_test', exit_code=0):
+        with heroku_cli('postgres://:@localhost:5432/heroku_connect_test', exit_code=0):
             with StringIO() as sql:
                 call_command('load_remote_schema', stdout=sql)
                 sql.seek(0)
