@@ -27,6 +27,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'heroku_connect',
+
+    'tests.testapp',
 ]
 
 MIDDLEWARE = [
@@ -39,7 +41,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'testapp.urls'
+ROOT_URLCONF = 'tests.testapp.urls'
 
 TEMPLATES = [
     {
@@ -57,7 +59,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'testapp.wsgi.application'
+WSGI_APPLICATION = 'tests.testapp.wsgi.application'
 
 
 # Database
@@ -65,8 +67,10 @@ WSGI_APPLICATION = 'testapp.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': ':memory:',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'heroku_connect_test',
+        'HOST': '127.0.0.1',
+        'PORT': '5432',
     }
 }
 
