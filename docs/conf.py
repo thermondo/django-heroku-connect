@@ -20,6 +20,14 @@
 # import os
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
+import sys
+import os
+
+import django
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "tests.testapp.settings")
+sys.path.insert(0, os.path.abspath('..'))
+django.setup()
 
 
 # -- General configuration ------------------------------------------------
@@ -102,7 +110,7 @@ html_theme = 'alabaster'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+# html_static_path = ['_static']
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
@@ -183,3 +191,7 @@ intersphinx_mapping = {
 
 spelling_word_list_filename = 'spelling_wordlist.txt'
 spelling_show_suggestions = True
+
+
+inheritance_graph_attrs = dict(rankdir="TB", size='"6.0, 8.0"',
+                               fontsize=14, ratio='compress')
