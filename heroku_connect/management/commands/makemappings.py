@@ -7,7 +7,7 @@ from heroku_connect.utils import get_mapping
 
 class Command(BaseCommand):
     """
-    Return Heroku Connect mapping JSON.
+    Return Heroku Connect mapping JSON for the entire project
 
     Example::
 
@@ -15,7 +15,7 @@ class Command(BaseCommand):
         heroku connect:import hc_mappings.json
 
     Note:
-        We for the example to work you will need the
+        For the example to work you will need the
         `Heroku Connect CLI Plugin`_.
 
     .. _`Heroku Connect CLI Plugin`: https://github.com/heroku/heroku-connect-plugin

@@ -45,7 +45,7 @@ class HerokuConnectModel(models.Model, metaclass=HerokuConnectModelBase):
 
     Note:
 
-        Subclasses have :attr:`Meta.managed<django.db.models.Options.db_table>` set to ``True``.
+        Subclasses have :attr:`Meta.managed<django.db.models.Options.managed>` set to ``True``.
 
         A default value for :attr:`Meta.db_table<django.db.models.Options.db_table>` is set based
         on :attr:`settings.HEROKU_CONNECT_SCHEMA<.HerokuConnectAppConf.HEROKU_CONNECT_SCHEMA>`
@@ -59,7 +59,7 @@ class HerokuConnectModel(models.Model, metaclass=HerokuConnectModelBase):
     """
     Heroku Connect Object access level.
 
-    Access to Heroku Connect tables can be ether read or write.
+    Access to Heroku Connect tables can be either read or write.
     Read will only sync from Salesforce to PostgreSQL where
     write will sync both ways.
 
@@ -81,11 +81,11 @@ class HerokuConnectModel(models.Model, metaclass=HerokuConnectModelBase):
     is_deleted = fields.Checkbox(sf_field_name='IsDeleted')
     _hc_lastop = models.CharField(
         max_length=32, editable=False,
-        help_text='Indicates the last sync operation performed on the record',
+        help_text='Indicates the last sync operation Heroku Connect performed on the record',
     )
     _hc_err = models.TextField(
         max_length=1024, editable=False,
-        help_text='If the last sync operation resulted in an error then this'
+        help_text='If the last sync operation by Heroku Connect resulted in an error then this'
                   ' column will contain a JSON object containing more'
                   ' information about the error',
     )
@@ -94,7 +94,7 @@ class HerokuConnectModel(models.Model, metaclass=HerokuConnectModelBase):
         abstract = True
 
     @classmethod
-    def get_herkou_connect_fields(cls):
+    def get_heroku_connect_fields(cls):
         return [
             field for field in cls._meta.fields
             if isinstance(field, fields.HerokuConnectFieldMixin)
@@ -102,10 +102,10 @@ class HerokuConnectModel(models.Model, metaclass=HerokuConnectModelBase):
 
     @classmethod
     def get_heroku_connect_field_mapping(cls):
-        sf_fields = list(cls.get_herkou_connect_fields())
+        sf_fields = list(cls.get_heroku_connect_fields())
 
         sf_field_names = {
-            field.sf_field_name: {}
+            field.sf_field_name: {}  # dict for possible future options
             for field in sf_fields
         }
 
@@ -170,7 +170,7 @@ class HerokuConnectModel(models.Model, metaclass=HerokuConnectModelBase):
 
     @classmethod
     def _check_unique_sf_field_names(cls):
-        sf_field_names = [field.sf_field_name for field in cls.get_herkou_connect_fields()]
+        sf_field_names = [field.sf_field_name for field in cls.get_heroku_connect_fields()]
         duplicates = [x for n, x in enumerate(sf_field_names) if x in sf_field_names[:n]]
         if duplicates:
             return [checks.Error(
@@ -184,7 +184,7 @@ class HerokuConnectModel(models.Model, metaclass=HerokuConnectModelBase):
 
     @classmethod
     def _check_upsert_field(cls):
-        upsert_fields = [field for field in cls.get_herkou_connect_fields() if field.upsert]
+        upsert_fields = [field for field in cls.get_heroku_connect_fields() if field.upsert]
         if len(upsert_fields) > 1:
             return [checks.Error(
                 "%s.%s can only have a single upsert field." % (

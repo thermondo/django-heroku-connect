@@ -5,7 +5,7 @@ from .conf import settings
 
 def get_mapping(version=1, exported_at=None):
     """
-    Return Heroku Connect mapping.
+    Return Heroku Connect mapping for the entire project.
 
     Args:
         version (int): Version of the Heroku Connect mapping, default: ``1``.

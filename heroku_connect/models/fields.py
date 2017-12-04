@@ -76,7 +76,7 @@ class Number(HerokuConnectFieldMixin, models.DecimalField):
 
     Allows users to enter any number. Leading zeros are removed.
 
-    Numbers in Salesforce are constraint by length and decimal places.
+    Numbers in Salesforce are constrained by length and decimal places.
     Heroku Connect maps those decimal values to ``double precision``
     floats. To have the same accuracy and avoid Salesforce validation
     rule issues this field uses :obj:`.Decimal` values and casts them
@@ -97,7 +97,17 @@ class Number(HerokuConnectFieldMixin, models.DecimalField):
 
 
 class Currency(Number):
-    """Salesforce ``Currency`` field."""
+    """
+    Salesforce ``Currency`` field.
+
+    This is used for the money value. On the salesforce side, the actual
+    currency is specified in a ``CurrencyIsoCode`` field
+    (see `Currency Field Type`_), which is however (currently) not mapped by
+    Heroku Connect.
+
+    .. _`Currency Field Type`:
+        https://developer.salesforce.com/docs/atlas.en-us.api.meta/api/field_types.htm#i1435541
+    """
 
     pass
 
@@ -123,7 +133,24 @@ class Email(HerokuConnectFieldMixin, models.EmailField):
 
 
 class EncryptedString(HerokuConnectFieldMixin, models.CharField):
-    """Salesforce ``EncryptedString`` field."""
+    """
+    Salesforce ``EncryptedString`` field.
+
+    From the `Heroku Connect doc`_:
+
+        If the user credentials used to authorize Heroku Connect with
+        Salesforce don’t have View Encrypted Data permission, then encrypted
+        strings will be received from Salesforce in masked format.
+
+        It is possible to update the database with a new plain text value and
+        Salesforce will take care of encryption when the new data is pushed
+        from the database. The plain text value in the database will be
+        overwritten with the masked format when the record is next updated with
+        data from Salesforce.
+
+    .. _`Heroku Connect doc`:
+        https://devcenter.heroku.com/articles/heroku-connect-database-tables#encrypted-strings
+    """
 
     pass
 

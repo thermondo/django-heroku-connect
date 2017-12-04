@@ -8,7 +8,7 @@ __all__ = ('settings',)
 
 class HerokuConnectAppConf(AppConf):
     HEROKU_CONNECT_SCHEMA = 'salesforce'
-    """Database schema setup for the Heroku Connect add-on."""
+    """Database schema used by the Heroku Connect add-on."""
 
     HEROKU_CONNECT_ORGANIZATION_ID = os.environ.get('HEROKU_CONNECT_ORGANIZATION_ID', '')
     """
@@ -18,7 +18,7 @@ class HerokuConnectAppConf(AppConf):
     ``HEROKU_CONNECT_ORGANIZATION_ID``.
 
     Note:
-        This is not preset on your Heroku application. You will need to ether add a setting
+        This is not preset on your Heroku application. You will need to either add a setting
         or set the environment variable manually.
 
     """
