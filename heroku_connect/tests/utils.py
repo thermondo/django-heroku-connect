@@ -48,7 +48,6 @@ def heroku_cli(stdout='', stderr='', exit_code=0):
     with open(exec_name, 'wb+') as f:
         f.seek(0)
         f.write(script.encode('utf-8'))
-    os.system('cat %s' % exec_name)
     st = os.stat(exec_name)
     os.chmod(exec_name, st.st_mode | stat.S_IEXEC)
     yield
