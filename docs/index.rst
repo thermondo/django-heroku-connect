@@ -1,10 +1,13 @@
-.. Django Heroku Connect documentation master file, created by
-   sphinx-quickstart on Thu Nov 30 13:44:31 2017.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+Django Heroku Connect
+=====================
 
-Welcome to Django Heroku Connect's documentation!
-=================================================
+.. automodule:: heroku_connect
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+All Contents
+============
 
 .. toctree::
    :maxdepth: 1
@@ -12,8 +15,6 @@ Welcome to Django Heroku Connect's documentation!
    :glob:
 
    *
-
-
 
 Indices and tables
 ==================
