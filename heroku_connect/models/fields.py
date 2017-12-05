@@ -100,7 +100,7 @@ class Currency(Number):
     """
     Salesforce ``Currency`` field.
 
-    This is used for the money value. On the salesforce side, the actual
+    This is used for the money value. On the Salesforce side, the actual
     currency is specified in a ``CurrencyIsoCode`` field
     (see `Currency Field Type`_), which is however (currently) not mapped by
     Heroku Connect.
