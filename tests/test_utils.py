@@ -68,3 +68,25 @@ def test_get_mapping(settings):
         ],
         'version': 1,
     }
+
+    assert utils.get_mapping()['mappings'] == [
+        {
+            'config': {
+                'access': 'read_only',
+                'fields': {
+                    'A_Number__c': {},
+                    'ID': {},
+                    'IsDeleted': {},
+                    'SystemModstamp': {},
+                },
+                'indexes': {
+                    'ID': {'unique': True},
+                    'SystemModstamp': {'unique': False},
+                },
+                'sf_max_daily_api_calls': 30000,
+                'sf_notify_enabled': True,
+                'sf_polling_seconds': 120,
+            },
+            'object_name': 'Number_Object__c',
+        },
+    ]
