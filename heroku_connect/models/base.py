@@ -21,10 +21,10 @@ class HerokuConnectModelBase(models.base.ModelBase):
         org_meta_attr = getattr(fake_class, 'Meta', None)
         new_class = super_new(mcs, name, bases, attrs)
         if org_meta_attr is None or not hasattr(org_meta_attr, 'db_table'):
-            new_class._meta.db_table = '.'.join(map(lambda x: '"%s"' % x, [
-                settings.HEROKU_CONNECT_SCHEMA,
-                new_class.sf_object_name.lower(),
-            ]))
+            new_class._meta.db_table = '"{schema}"."{table}"'.format(
+                schema=settings.HEROKU_CONNECT_SCHEMA,
+                table=new_class.sf_object_name.lower(),
+            )
         new_class._meta.managed = False
         return new_class
 
