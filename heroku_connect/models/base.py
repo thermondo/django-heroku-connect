@@ -11,7 +11,7 @@ class HerokuConnectModelBase(models.base.ModelBase):
     """
     Custom model base class to set ``Meta`` attributes.
 
-    Sets :attr:`Meta.managed<django.db.models.Options.db_table>` to ``True``
+    Sets :attr:`Meta.managed<django.db.models.Options.managed>` to ``False``
     and sets a default value for :attr:`Meta.db_table<django.db.models.Options.db_table>`.
     """
 
