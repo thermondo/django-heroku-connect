@@ -14,7 +14,7 @@ def heroku_cli(stdout='', stderr='', exit_code=0):
     Example::
 
         import subprocess
-        from heroku_connect.tests.utils import heroku_cli
+        from heroku_connect.test.utils import heroku_cli
 
         with heroku_cli(stdout='success', stderr='warning', exit=0):
             process = subprocess.run(
