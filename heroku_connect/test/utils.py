@@ -8,7 +8,7 @@ from contextlib import contextmanager
 
 @contextmanager
 def heroku_cli(stdout='', stderr='', exit_code=0):
-    """
+    r"""
     Context manager to mock the Heroku CLI command.
 
     Example::
@@ -23,8 +23,8 @@ def heroku_cli(stdout='', stderr='', exit_code=0):
                 stderr=subprocess.PIPE,
             )
         assert process.returncode == 0
-        assert process.stdout == b'success\\n'
-        assert process.stderr == b'warning\\n'
+        assert process.stdout == b'success\n'
+        assert process.stderr == b'warning\n'
 
     Args:
         stdout (str): String the command writes to ``stdout``.

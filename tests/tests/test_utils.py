@@ -1,6 +1,6 @@
 import subprocess
 
-from heroku_connect.tests.utils import heroku_cli
+from heroku_connect.test.utils import heroku_cli
 
 
 class TestHerokuCLI:

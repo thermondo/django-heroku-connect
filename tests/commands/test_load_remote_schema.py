@@ -5,7 +5,7 @@ import pytest
 from django.core.management import CommandError, call_command
 
 from heroku_connect.management.commands.load_remote_schema import Command
-from heroku_connect.tests.utils import heroku_cli
+from heroku_connect.test.utils import heroku_cli
 
 
 class TestLoadRemoteSchema:

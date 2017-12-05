@@ -1,12 +1,12 @@
 Test Framework
 ==============
 
-.. automodule:: heroku_connect.tests
+.. automodule:: heroku_connect.test
     :members:
 
 
 Utilities
 ---------
 
-.. automodule:: heroku_connect.tests.utils
+.. automodule:: heroku_connect.test.utils
     :members:
