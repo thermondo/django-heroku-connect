@@ -45,7 +45,7 @@ class HerokuConnectModel(models.Model, metaclass=HerokuConnectModelBase):
 
     Note:
 
-        Subclasses have :attr:`Meta.managed<django.db.models.Options.managed>` set to ``True``.
+        Subclasses have :attr:`Meta.managed<django.db.models.Options.managed>` set to ``False``.
 
         A default value for :attr:`Meta.db_table<django.db.models.Options.db_table>` is set based
         on :attr:`settings.HEROKU_CONNECT_SCHEMA<.HerokuConnectAppConf.HEROKU_CONNECT_SCHEMA>`
