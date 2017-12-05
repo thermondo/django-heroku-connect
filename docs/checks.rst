@@ -12,7 +12,7 @@ The class attribute :attr:`HerokuConnectModel.sf_object_name<heroku_connect.mode
 ``heroku_connect.E002``
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-:attr:`HerokuConnectModel.sf_access<heroku_connect.models.HerokuConnectModel.sf_access>` must be ether ``read_only`` or ``read_write``.
+:attr:`HerokuConnectModel.sf_access<heroku_connect.models.HerokuConnectModel.sf_access>` must be either ``read_only`` or ``read_write``.
 
 ``heroku_connect.E003``
 ~~~~~~~~~~~~~~~~~~~~~~~
