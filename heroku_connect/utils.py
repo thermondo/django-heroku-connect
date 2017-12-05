@@ -42,7 +42,7 @@ def get_heroku_connect_models():
     Returns:
         (Iterator):
             All registered models that are subclasses of `.HerokuConnectModel`.
-            Abstract models are excluded, since the are not registered.
+            Abstract models are excluded, since they are not registered.
 
     """
     from django.apps.registry import apps
