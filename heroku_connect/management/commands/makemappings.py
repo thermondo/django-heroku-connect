@@ -7,7 +7,7 @@ from heroku_connect.utils import get_mapping
 
 class Command(BaseCommand):
     """
-    Return Heroku Connect mapping JSON for the entire project
+    Return Heroku Connect mapping JSON for the entire project.
 
     Example::
 

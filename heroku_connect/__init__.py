@@ -1,8 +1,9 @@
 """
 Django integration for Salesforce using Heroku Connect.
 
-Model classes inheriting from :cls:`heroku_connect.HerokuConnectModel` can easily be registered with
-`Heroku Connect`_, which then keeps their tables in the Heroku database in sync with Salesforce.
+Model classes inheriting from :cls:`heroku_connect.HerokuConnectModel` can easily be registered
+with `Heroku Connect`_, which then keeps their tables in the Heroku database in sync with
+Salesforce.
 
 .. _`Heroku Connect`: https://devcenter.heroku.com/categories/heroku-connect
 """
