@@ -38,6 +38,8 @@ def test_get_mapping(settings):
     settings.HEROKU_CONNECT_APP_NAME = 'ninja'
     settings.HEROKU_CONNECT_ORGANIZATION_ID = '1234567890'
     exported_at = timezone.datetime(2001, 5, 24)
+    from pprint import pprint
+    pprint(utils.get_mapping(exported_at=exported_at))
 
     assert utils.get_mapping(exported_at=exported_at) == {
         'connection': {
@@ -51,6 +53,7 @@ def test_get_mapping(settings):
                     'access': 'read_only',
                     'fields': {
                         'A_Number__c': {},
+                        'External_ID': {},
                         'ID': {},
                         'IsDeleted': {},
                         'SystemModstamp': {},
@@ -58,10 +61,12 @@ def test_get_mapping(settings):
                     'indexes': {
                         'ID': {'unique': True},
                         'SystemModstamp': {'unique': False},
+                        'External_ID': {'unique': True},
                     },
                     'sf_max_daily_api_calls': 30000,
                     'sf_notify_enabled': True,
                     'sf_polling_seconds': 120,
+                    'upsert_field': 'External_ID',
                 },
                 'object_name': 'Number_Object__c',
             },
@@ -75,6 +80,7 @@ def test_get_mapping(settings):
                 'access': 'read_only',
                 'fields': {
                     'A_Number__c': {},
+                    'External_ID': {},
                     'ID': {},
                     'IsDeleted': {},
                     'SystemModstamp': {},
@@ -82,10 +88,12 @@ def test_get_mapping(settings):
                 'indexes': {
                     'ID': {'unique': True},
                     'SystemModstamp': {'unique': False},
+                    'External_ID': {'unique': True},
                 },
                 'sf_max_daily_api_calls': 30000,
                 'sf_notify_enabled': True,
                 'sf_polling_seconds': 120,
+                'upsert_field': 'External_ID',
             },
             'object_name': 'Number_Object__c',
         },

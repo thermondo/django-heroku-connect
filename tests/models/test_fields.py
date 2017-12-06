@@ -1,3 +1,4 @@
+import uuid
 from decimal import Decimal
 
 import pytest
@@ -71,18 +72,48 @@ class TestID:
 
 
 class TestNumber:
+    def test_null(self, db):
+        with heroku_connect_schema():
+            n = NumberModel()
+            n.save()
+            obj = NumberModel.objects.get()
+            assert obj.a_number is None
+
     def test_decimal(self, db):
         with heroku_connect_schema():
             n = NumberModel(a_number=Decimal('100.00'))
             n.save()
             with connection.cursor() as c:
                 c.execute("SELECT * FROM number_object__c;")
-                assert c.fetchone() == (1, '', None, None, 100.0, '', '')
+                assert c.fetchone() == (
+                    1, '', None, None, 100.0, '653d1c6863404b9689b75fa930c9d0a0', '', '')
 
             obj = NumberModel.objects.get()
             assert obj.a_number == Decimal('100.00')
             obj = NumberModel.objects.filter(a_number__gt=Decimal('99')).first()
             assert isinstance(obj.a_number, Decimal)
+
+
+class TestExternalID:
+    def test_null(self, db):
+        with heroku_connect_schema():
+            n = NumberModel(external_id=None)
+            n.save()
+            obj = NumberModel.objects.get()
+            assert obj.external_id is None
+
+    def test_uuid(self, db):
+        with heroku_connect_schema():
+            n = NumberModel()
+            n.save()
+            with connection.cursor() as c:
+                c.execute("SELECT * FROM number_object__c;")
+                assert c.fetchone() == (
+                    1, '', None, None, None, '653d1c6863404b9689b75fa930c9d0a0', '', '')
+
+            obj = NumberModel.objects.get()
+            assert isinstance(obj.external_id, uuid.UUID)
+            assert obj.external_id == uuid.UUID(hex='653d1c6863404b9689b75fa930c9d0a0')
 
 
 class TestEmail:

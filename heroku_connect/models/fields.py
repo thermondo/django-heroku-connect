@@ -8,12 +8,14 @@ See Heroku Connect's `mapped data types`_.
     https://devcenter.heroku.com/articles/heroku-connect-database-tables#mapped-data-types
 
 """
+import uuid
+
 from django.db import models
 
 __all__ = (
     'HerokuConnectFieldMixin', 'AnyType', 'ID', 'Checkbox', 'Currency',
     'Date', 'DateTime', 'Email', 'EncryptedString', 'Number', 'Percent',
-    'Phone', 'Picklist', 'Text', 'TextArea', 'Time', 'URL',
+    'Phone', 'Picklist', 'Text', 'TextArea', 'Time', 'URL', 'ExternalID',
 )
 
 
@@ -64,6 +66,32 @@ class ID(HerokuConnectFieldMixin, models.CharField):
         super().__init__(*args, **kwargs)
 
 
+class ExternalID(HerokuConnectFieldMixin, models.UUIDField):
+    """
+    External ID field for Salesforce objects.
+
+    This field has uses `uuid.uuid4` as a default UUID function.
+    """
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('upsert', True)
+        kwargs.setdefault('default', uuid.uuid4)
+        super().__init__(*args, **kwargs)
+
+    def get_internal_type(self):
+        return 'CharField'
+
+    def get_db_prep_value(self, value, connection, prepared=False):
+        if value is None:
+            return None
+        if not isinstance(value, uuid.UUID):
+            value = self.to_python(value)
+        return value.hex
+
+    def from_db_value(self, value, expression, connection, context):
+        return self.to_python(value)
+
+
 class Checkbox(HerokuConnectFieldMixin, models.NullBooleanField):
     """Salesforce ``Checkbox`` field."""
 
@@ -87,10 +115,14 @@ class Number(HerokuConnectFieldMixin, models.DecimalField):
         return 'FloatField'
 
     def get_db_prep_save(self, value, connection):
-        return float(self.to_python(value))
+        if value is not None:
+            value = float(self.to_python(value))
+        return value
 
     def get_db_prep_value(self, value, connection, prepared=False):
-        return float(self.to_python(value))
+        if value is not None:
+            value = float(self.to_python(value))
+        return value
 
     def from_db_value(self, value, expression, connection, context):
         return self.to_python(value)

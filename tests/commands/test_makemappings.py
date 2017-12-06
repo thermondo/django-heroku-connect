@@ -3,33 +3,18 @@ import os
 import tempfile
 
 from django.core.management import call_command
+from django.utils import dateparse
+
+from heroku_connect.utils import get_mapping
 
 
 class TestMakeMappings:
 
     @staticmethod
     def assert_mapping(mapping):
-        assert mapping['mappings'] == [
-            {
-                'config': {
-                    'access': 'read_only',
-                    'fields': {
-                        'A_Number__c': {},
-                        'ID': {},
-                        'IsDeleted': {},
-                        'SystemModstamp': {},
-                    },
-                    'indexes': {
-                        'ID': {'unique': True},
-                        'SystemModstamp': {'unique': False},
-                    },
-                    'sf_max_daily_api_calls': 30000,
-                    'sf_notify_enabled': True,
-                    'sf_polling_seconds': 120,
-                },
-                'object_name': 'Number_Object__c',
-            },
-        ]
+        exported_at = mapping['connection']['exported_at']
+        exported_at = dateparse.parse_datetime(exported_at)
+        assert mapping == get_mapping(exported_at=exported_at)
 
         assert mapping['connection']['app_name'] == 'ninja'
         assert mapping['connection']['organization_id'] == '1234567890'
