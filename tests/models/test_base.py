@@ -176,6 +176,25 @@ class TestHerokuConnectModelMixin:
             'object_name': 'My_Object__c'
         }
 
+    def test_user(self):
+        """
+        Test ``User`` object edge case.
+
+        See: https://help.heroku.com/sharing/5295ce37-d767-4355-aef7-95f3cde95915
+        """
+        class User(hc_models.HerokuConnectModel):
+            sf_object_name = 'User'
+
+            class Meta:
+                abstract = True
+
+        assert not [f for f in User._meta.fields if f.name == 'is_deleted']
+        assert User.get_heroku_connect_field_mapping() == (
+            {'ID': {}, 'SystemModstamp': {}},
+            {'ID': {'unique': True}, 'SystemModstamp': {'unique': False}},
+            None
+        )
+
     def test_check_sf_object_name(self):
         class MyModel(hc_models.HerokuConnectModel):
             class Meta:

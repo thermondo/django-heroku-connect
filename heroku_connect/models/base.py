@@ -17,6 +17,8 @@ class HerokuConnectModelBase(models.base.ModelBase):
 
     def __new__(mcs, name, bases, attrs):
         super_new = super(HerokuConnectModelBase, mcs).__new__
+        # We need t create a temporary fake model class to access
+        # the original Meta class since ModelBase will remove it.
         fake_class = type.__new__(mcs, name, bases, attrs)
         org_meta_attr = getattr(fake_class, 'Meta', None)
         new_class = super_new(mcs, name, bases, attrs)
@@ -25,6 +27,12 @@ class HerokuConnectModelBase(models.base.ModelBase):
                 schema=settings.HEROKU_CONNECT_SCHEMA,
                 table=new_class.sf_object_name.lower(),
             )
+
+        # User object in Heroku Connect has no is_deleted field.
+        if new_class.sf_object_name == 'User':
+            is_deleted = [x for x in new_class._meta.local_fields if x.name == 'is_deleted'][0]
+            new_class._meta.local_fields.remove(is_deleted)
+
         new_class._meta.managed = False
         return new_class
 
@@ -50,6 +58,16 @@ class HerokuConnectModel(models.Model, metaclass=HerokuConnectModelBase):
         A default value for :attr:`Meta.db_table<django.db.models.Options.db_table>` is set based
         on :attr:`settings.HEROKU_CONNECT_SCHEMA<.HerokuConnectAppConf.HEROKU_CONNECT_SCHEMA>`
         and :attr:`.sf_object_name`.
+
+    Warning:
+
+        The Salesforce object `User`_ object ``IsDeleted`` field. Therefore
+        if :attr:`.sf_object_name` is set to ``User`` the Django ORM representation
+        does not have this field either. You can add the ``IsActive`` field to your
+        user object, but it is not required by Heroku Connect.
+
+    .. _User:
+        https://developer.salesforce.com/docs/atlas.en-us.object_reference.meta/object_reference/sforce_api_objects_user.htm
 
     """
 

@@ -114,7 +114,8 @@ class TestExternalID:
             obj = NumberModel.objects.get(external_id='653d1c6863404b9689b75fa930c9d0a0')
             assert isinstance(obj.external_id, uuid.UUID)
             assert obj.external_id == uuid.UUID(hex='653d1c6863404b9689b75fa930c9d0a0')
-            obj = NumberModel.objects.get(external_id=uuid.UUID(hex='653d1c6863404b9689b75fa930c9d0a0'))
+            obj = NumberModel.objects.get(
+                external_id=uuid.UUID(hex='653d1c6863404b9689b75fa930c9d0a0'))
             assert isinstance(obj.external_id, uuid.UUID)
             assert obj.external_id == uuid.UUID(hex='653d1c6863404b9689b75fa930c9d0a0')
 
@@ -123,7 +124,8 @@ class TestExternalID:
             n = NumberModel(external_id='653d1c6863404b9689b75fa930c9d0a0')
             n.save()
 
-            obj = NumberModel.objects.get(external_id=uuid.UUID(hex='653d1c6863404b9689b75fa930c9d0a0'))
+            obj = NumberModel.objects.get(
+                external_id=uuid.UUID(hex='653d1c6863404b9689b75fa930c9d0a0'))
             assert isinstance(obj.external_id, uuid.UUID)
             assert obj.external_id == uuid.UUID(hex='653d1c6863404b9689b75fa930c9d0a0')
 
