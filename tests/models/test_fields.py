@@ -111,7 +111,19 @@ class TestExternalID:
                 assert c.fetchone() == (
                     1, '', None, None, None, '653d1c6863404b9689b75fa930c9d0a0', '', '')
 
-            obj = NumberModel.objects.get()
+            obj = NumberModel.objects.get(external_id='653d1c6863404b9689b75fa930c9d0a0')
+            assert isinstance(obj.external_id, uuid.UUID)
+            assert obj.external_id == uuid.UUID(hex='653d1c6863404b9689b75fa930c9d0a0')
+            obj = NumberModel.objects.get(external_id=uuid.UUID(hex='653d1c6863404b9689b75fa930c9d0a0'))
+            assert isinstance(obj.external_id, uuid.UUID)
+            assert obj.external_id == uuid.UUID(hex='653d1c6863404b9689b75fa930c9d0a0')
+
+    def test_uuid_hex(self, db):
+        with heroku_connect_schema():
+            n = NumberModel(external_id='653d1c6863404b9689b75fa930c9d0a0')
+            n.save()
+
+            obj = NumberModel.objects.get(external_id=uuid.UUID(hex='653d1c6863404b9689b75fa930c9d0a0'))
             assert isinstance(obj.external_id, uuid.UUID)
             assert obj.external_id == uuid.UUID(hex='653d1c6863404b9689b75fa930c9d0a0')
 
