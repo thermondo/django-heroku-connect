@@ -112,3 +112,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
 STATIC_URL = '/static/'
+
+
+HEROKU_CONNECT_APP_NAME = 'ninja'
+HEROKU_CONNECT_ORGANIZATION_ID = '1234567890'

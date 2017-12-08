@@ -1,6 +1,12 @@
 Management Commands
 ===================
 
+``makemappings``
+----------------
+
+.. automodule:: heroku_connect.management.commands.makemappings
+    :members:
+
 ``load_remote_schema``
 ----------------------
 

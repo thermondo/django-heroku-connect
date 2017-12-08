@@ -20,6 +20,14 @@
 # import os
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
+import sys
+import os
+
+import django
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "tests.testapp.settings")
+sys.path.insert(0, os.path.abspath('..'))
+django.setup()
 
 
 # -- General configuration ------------------------------------------------
@@ -175,3 +183,7 @@ intersphinx_mapping = {
 
 spelling_word_list_filename = 'spelling_wordlist.txt'
 spelling_show_suggestions = True
+
+
+inheritance_graph_attrs = dict(rankdir="TB", size='"6.0, 8.0"',
+                               fontsize=14, ratio='compress')

@@ -38,7 +38,7 @@ class TestLoadRemoteSchema:
         assert 'Could not parse DATABASE_URL.' in str(e)
 
     def test_get_schema(self):
-        os.system('echo \'DROP SCHEMA IF EXISTS "salesforce";\''
+        os.system('echo \'DROP SCHEMA IF EXISTS "salesforce" CASCADE;\''
                   ' | psql -d heroku_connect_test -a')
         with pytest.raises(CommandError) as e:
             Command.get_schema('', 'localhost', '5432',
