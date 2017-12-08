@@ -188,7 +188,7 @@ class TestHerokuConnectModelMixin:
             class Meta:
                 abstract = True
 
-        assert not [f for f in User._meta.fields if f.name == 'is_deleted']
+        assert not any(f.name == 'is_deleted' for f in User._meta.fields)
         assert User.get_heroku_connect_field_mapping() == (
             {'ID': {}, 'SystemModstamp': {}},
             {'ID': {'unique': True}, 'SystemModstamp': {'unique': False}},

@@ -39,7 +39,7 @@ class HerokuConnectFieldMixin:
             })
         super().__init__(*args, **kwargs)
         if self.unique:
-            # unique fields must be index in Heroku Connect
+            # unique fields must be indexed in Heroku Connect
             self.db_index = True
 
     def deconstruct(self):
@@ -70,7 +70,7 @@ class ExternalID(HerokuConnectFieldMixin, models.UUIDField):
     """
     External ID field for Salesforce objects.
 
-    This field has uses `uuid.uuid4` as a default UUID function.
+    This field uses `uuid.uuid4` as a default UUID function.
     """
 
     def __init__(self, *args, **kwargs):

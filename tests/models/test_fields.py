@@ -95,6 +95,8 @@ class TestNumber:
 
 
 class TestExternalID:
+    uuid_hex = '653d1c6863404b9689b75fa930c9d0a0'
+
     def test_null(self, db):
         with heroku_connect_schema():
             n = NumberModel(external_id=None)
@@ -109,25 +111,25 @@ class TestExternalID:
             with connection.cursor() as c:
                 c.execute("SELECT * FROM number_object__c;")
                 assert c.fetchone() == (
-                    1, '', None, None, None, '653d1c6863404b9689b75fa930c9d0a0', '', '')
+                    1, '', None, None, None, self.uuid_hex, '', '')
 
-            obj = NumberModel.objects.get(external_id='653d1c6863404b9689b75fa930c9d0a0')
+            obj = NumberModel.objects.get(external_id=self.uuid_hex)
             assert isinstance(obj.external_id, uuid.UUID)
-            assert obj.external_id == uuid.UUID(hex='653d1c6863404b9689b75fa930c9d0a0')
+            assert obj.external_id == uuid.UUID(hex=self.uuid_hex)
             obj = NumberModel.objects.get(
-                external_id=uuid.UUID(hex='653d1c6863404b9689b75fa930c9d0a0'))
+                external_id=uuid.UUID(hex=self.uuid_hex))
             assert isinstance(obj.external_id, uuid.UUID)
-            assert obj.external_id == uuid.UUID(hex='653d1c6863404b9689b75fa930c9d0a0')
+            assert obj.external_id == uuid.UUID(hex=self.uuid_hex)
 
     def test_uuid_hex(self, db):
         with heroku_connect_schema():
-            n = NumberModel(external_id='653d1c6863404b9689b75fa930c9d0a0')
+            n = NumberModel(external_id=self.uuid_hex)
             n.save()
 
             obj = NumberModel.objects.get(
-                external_id=uuid.UUID(hex='653d1c6863404b9689b75fa930c9d0a0'))
+                external_id=uuid.UUID(hex=self.uuid_hex))
             assert isinstance(obj.external_id, uuid.UUID)
-            assert obj.external_id == uuid.UUID(hex='653d1c6863404b9689b75fa930c9d0a0')
+            assert obj.external_id == uuid.UUID(hex=self.uuid_hex)
 
 
 class TestEmail:
