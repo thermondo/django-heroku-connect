@@ -1,1 +1,2 @@
 django-appconf
+django>=1.11.0
