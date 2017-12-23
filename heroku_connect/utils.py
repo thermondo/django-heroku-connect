@@ -1,3 +1,4 @@
+from django.db import DEFAULT_DB_ALIAS, connections
 from django.utils import timezone
 
 from .conf import settings
@@ -55,3 +56,44 @@ def get_heroku_connect_models():
         for model in models.values()
         if issubclass(model, HerokuConnectModel)
     )
+
+
+_SCHEMA_EXISTS_QUERY = """
+SELECT exists(
+  SELECT schema_name
+   FROM information_schema.schemata
+    WHERE schema_name = %s
+    );
+"""
+
+
+def create_heroku_connect_schema(using=DEFAULT_DB_ALIAS, **kwargs):
+    """
+    Create Heroku Connect schema.
+
+    Note:
+        This function is only meant to be used for local development.
+        In a production environment the schema will be created by
+        Heroku Connect.
+
+    Args:
+        using (str): Alias for database connection.
+
+    Returns:
+        bool: ``True`` if the schema was created, ``False`` if the
+            schema already exists.
+
+    """
+    connection = connections[using]
+
+    with connection.cursor() as cursor:
+        cursor.execute(_SCHEMA_EXISTS_QUERY, [settings.HEROKU_CONNECT_SCHEMA])
+        schema_exists = cursor.fetchone()[0]
+        if schema_exists:
+            return False
+
+        cursor.execute("CREATE SCHEMA %s;" % settings.HEROKU_CONNECT_SCHEMA)
+
+        with connection.schema_editor() as editor:
+            for model in get_heroku_connect_models():
+                editor.create_model(model)
