@@ -2,7 +2,7 @@ from django.db import models
 from django.utils import timezone
 
 from heroku_connect import utils
-from heroku_connect.models import HerokuConnectModel
+from heroku_connect.db.models import HerokuConnectModel
 
 
 def test_get_heroku_connect_models():

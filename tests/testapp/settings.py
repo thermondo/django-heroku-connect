@@ -67,7 +67,7 @@ WSGI_APPLICATION = 'tests.testapp.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
+        'ENGINE': 'heroku_connect.db.backends.postgresql',
         'NAME': 'heroku_connect_test',
         'HOST': '127.0.0.1',
         'PORT': '5432',

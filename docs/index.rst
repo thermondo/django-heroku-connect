@@ -14,6 +14,7 @@ All Contents
    :caption: Contents:
    :glob:
 
+   quick_start
    *
 
 Indices and tables

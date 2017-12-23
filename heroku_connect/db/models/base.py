@@ -2,7 +2,7 @@ from django.core import checks
 from django.db import models
 
 from . import fields
-from ..conf import settings
+from ...conf import settings
 
 __all__ = ('HerokuConnectModel',)
 
@@ -23,7 +23,7 @@ class HerokuConnectModelBase(models.base.ModelBase):
         org_meta_attr = getattr(fake_class, 'Meta', None)
         new_class = super_new(mcs, name, bases, attrs)
         if org_meta_attr is None or not hasattr(org_meta_attr, 'db_table'):
-            new_class._meta.db_table = '"{schema}"."{table}"'.format(
+            new_class._meta.db_table = '{schema}"."{table}'.format(
                 schema=settings.HEROKU_CONNECT_SCHEMA,
                 table=new_class.sf_object_name.lower(),
             )
@@ -43,7 +43,7 @@ class HerokuConnectModel(models.Model, metaclass=HerokuConnectModelBase):
 
     Example::
 
-        from heroku_connect import models as hc_models
+        from heroku_connect.db import models as hc_models
 
 
         class MyCustomObject(hc_models.HerokuConnectModel):
@@ -73,6 +73,7 @@ class HerokuConnectModel(models.Model, metaclass=HerokuConnectModelBase):
 
     sf_object_name = ''
     """Salesforce object API name."""
+
     sf_access = 'read_only'
     """
     Heroku Connect Object access level.
@@ -90,6 +91,7 @@ class HerokuConnectModel(models.Model, metaclass=HerokuConnectModelBase):
             Synchronize both ways between Salesforce and PostgreSQL.
 
     """
+
     sf_notify_enabled = True
     sf_polling_seconds = 120
     sf_max_daily_api_calls = 30000

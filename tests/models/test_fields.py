@@ -4,8 +4,8 @@ from decimal import Decimal
 import pytest
 from django.db import connection, models
 
-from heroku_connect import models as hc_models
-from tests.testapp.models import NumberModel, heroku_connect_schema
+from heroku_connect.db import models as hc_models
+from tests.testapp.models import NumberModel
 
 
 def field_factory(field_class, **kwargs):
@@ -73,63 +73,56 @@ class TestID:
 
 class TestNumber:
     def test_null(self, db):
-        with heroku_connect_schema():
-            n = NumberModel()
-            n.save()
-            obj = NumberModel.objects.get()
-            assert obj.a_number is None
+        n = NumberModel()
+        n.save()
+        obj = NumberModel.objects.get()
+        assert obj.a_number is None
 
     def test_decimal(self, db):
-        with heroku_connect_schema():
-            n = NumberModel(a_number=Decimal('100.00'))
-            n.save()
-            with connection.cursor() as c:
-                c.execute("SELECT * FROM number_object__c;")
-                assert c.fetchone() == (
-                    1, '', None, None, 100.0, '653d1c6863404b9689b75fa930c9d0a0', '', '')
+        n = NumberModel(a_number=Decimal('100.00'))
+        n.save()
+        with connection.cursor() as c:
+            c.execute("SELECT a_number__c FROM number_object__c;")
+            assert c.fetchone()[0] == 100.0
 
-            obj = NumberModel.objects.get()
-            assert obj.a_number == Decimal('100.00')
-            obj = NumberModel.objects.filter(a_number__gt=Decimal('99')).first()
-            assert isinstance(obj.a_number, Decimal)
+        obj = NumberModel.objects.get()
+        assert obj.a_number == Decimal('100.00')
+        obj = NumberModel.objects.filter(a_number__gt=Decimal('99')).first()
+        assert isinstance(obj.a_number, Decimal)
 
 
 class TestExternalID:
     uuid_hex = '653d1c6863404b9689b75fa930c9d0a0'
 
     def test_null(self, db):
-        with heroku_connect_schema():
-            n = NumberModel(external_id=None)
-            n.save()
-            obj = NumberModel.objects.get()
-            assert obj.external_id is None
+        n = NumberModel(external_id=None)
+        n.save()
+        obj = NumberModel.objects.get()
+        assert obj.external_id is None
 
     def test_uuid(self, db):
-        with heroku_connect_schema():
-            n = NumberModel()
-            n.save()
-            with connection.cursor() as c:
-                c.execute("SELECT * FROM number_object__c;")
-                assert c.fetchone() == (
-                    1, '', None, None, None, self.uuid_hex, '', '')
+        n = NumberModel()
+        n.save()
+        with connection.cursor() as c:
+            c.execute("SELECT external_id FROM number_object__c;")
+            assert c.fetchone()[0] == self.uuid_hex
 
-            obj = NumberModel.objects.get(external_id=self.uuid_hex)
-            assert isinstance(obj.external_id, uuid.UUID)
-            assert obj.external_id == uuid.UUID(hex=self.uuid_hex)
-            obj = NumberModel.objects.get(
-                external_id=uuid.UUID(hex=self.uuid_hex))
-            assert isinstance(obj.external_id, uuid.UUID)
-            assert obj.external_id == uuid.UUID(hex=self.uuid_hex)
+        obj = NumberModel.objects.get(external_id=self.uuid_hex)
+        assert isinstance(obj.external_id, uuid.UUID)
+        assert obj.external_id == uuid.UUID(hex=self.uuid_hex)
+        obj = NumberModel.objects.get(
+            external_id=uuid.UUID(hex=self.uuid_hex))
+        assert isinstance(obj.external_id, uuid.UUID)
+        assert obj.external_id == uuid.UUID(hex=self.uuid_hex)
 
     def test_uuid_hex(self, db):
-        with heroku_connect_schema():
-            n = NumberModel(external_id=self.uuid_hex)
-            n.save()
+        n = NumberModel(external_id=self.uuid_hex)
+        n.save()
 
-            obj = NumberModel.objects.get(
-                external_id=uuid.UUID(hex=self.uuid_hex))
-            assert isinstance(obj.external_id, uuid.UUID)
-            assert obj.external_id == uuid.UUID(hex=self.uuid_hex)
+        obj = NumberModel.objects.get(
+            external_id=uuid.UUID(hex=self.uuid_hex))
+        assert isinstance(obj.external_id, uuid.UUID)
+        assert obj.external_id == uuid.UUID(hex=self.uuid_hex)
 
 
 class TestEmail:
