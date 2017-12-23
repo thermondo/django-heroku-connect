@@ -12,7 +12,7 @@ class HerokuConnectAppConf(AppConf):
 
     HEROKU_CONNECT_ORGANIZATION_ID = os.environ.get('HEROKU_CONNECT_ORGANIZATION_ID', '')
     """
-    Salesforce organization ID.
+    `Salesforce Organization ID`_.
 
     This setting will have default based on the environment variable
     ``HEROKU_CONNECT_ORGANIZATION_ID``.
@@ -20,6 +20,8 @@ class HerokuConnectAppConf(AppConf):
     Note:
         This is not preset on your Heroku application. You will need to either add a setting
         or set the environment variable manually.
+
+    .. _`Salesforce Organization ID`: https://help.salesforce.com/articleView?id=000006019
 
     """
 

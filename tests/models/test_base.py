@@ -1,7 +1,7 @@
 from django.core import checks
 from django.db import models
 
-from heroku_connect import models as hc_models
+from heroku_connect.db import models as hc_models
 
 
 class TestHerokuConnectModelMixin:
@@ -13,7 +13,7 @@ class TestHerokuConnectModelMixin:
             class Meta:
                 abstract = True
 
-        assert MyModel._meta.db_table == '"salesforce"."my_object__c"'
+        assert MyModel._meta.db_table == 'salesforce"."my_object__c'
         assert MyModel._meta.managed is False
 
         settings.HEROKU_CONNECT_SCHEMA = 'other_schema'
@@ -24,7 +24,7 @@ class TestHerokuConnectModelMixin:
             class Meta:
                 abstract = True
 
-        assert MyModel._meta.db_table == '"other_schema"."my_object__c"'
+        assert MyModel._meta.db_table == 'other_schema"."my_object__c'
 
         class MyModel(hc_models.HerokuConnectModel):
             sf_object_name = 'My_Object__c'

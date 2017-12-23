@@ -1,9 +1,8 @@
 Models
 ======
 
-.. automodule:: heroku_connect.models
+.. automodule:: heroku_connect.db.models
     :members:
 
-.. autoclass:: heroku_connect.models.HerokuConnectModel
+.. autoclass:: heroku_connect.db.models.HerokuConnectModel
     :members:
-

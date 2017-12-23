@@ -45,9 +45,9 @@ def get_heroku_connect_models():
             Abstract models are excluded, since they are not registered.
 
     """
-    from django.apps.registry import apps
+    from django.apps import apps
     apps.check_models_ready()
-    from heroku_connect.models import HerokuConnectModel
+    from heroku_connect.db.models import HerokuConnectModel
 
     return (
         model
