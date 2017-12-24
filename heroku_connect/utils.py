@@ -97,3 +97,4 @@ def create_heroku_connect_schema(using=DEFAULT_DB_ALIAS, **kwargs):
         with connection.schema_editor() as editor:
             for model in get_heroku_connect_models():
                 editor.create_model(model)
+    return True
