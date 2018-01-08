@@ -12,7 +12,7 @@ Simply install the PyPi package…
 
 …and add ``heroku_connect`` to the ``INSTALLED_APP`` settings.
 
-Last but not least make sure change the database engine, e.g.:
+Last but not least make sure to change the database engine, e.g.:
 
 .. code:: python
 
