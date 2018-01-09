@@ -1,4 +1,8 @@
+import os
+import shutil
+
 from django.core import checks
+from django.core.management import call_command
 from django.db import models
 
 from heroku_connect.db import models as hc_models
@@ -15,6 +19,7 @@ class TestHerokuConnectModelMixin:
 
         assert MyModel._meta.db_table == 'salesforce"."my_object__c'
         assert MyModel._meta.managed is False
+        assert MyModel.Meta.managed is False
 
         settings.HEROKU_CONNECT_SCHEMA = 'other_schema'
 
@@ -43,6 +48,15 @@ class TestHerokuConnectModelMixin:
                 managed = True
 
         assert MyModel._meta.managed is False
+        assert MyModel.Meta.managed is False
+
+    def test_migrations(self, db, settings):
+        settings.MIGRATION_MODULES = {'testapp': 'tests.testapp.migrations'}
+        call_command('makemigrations', 'testapp')
+        with open(os.path.join(settings.BASE_DIR, 'testapp/migrations/0001_initial.py')) as f:
+            migration = f.read()
+        shutil.rmtree(os.path.join(settings.BASE_DIR, 'testapp/migrations'))
+        assert "'managed': False," in migration
 
     def test_empty_mapping(self):
         class MyModel(hc_models.HerokuConnectModel):
