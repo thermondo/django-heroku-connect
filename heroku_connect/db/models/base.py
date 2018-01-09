@@ -17,12 +17,12 @@ class HerokuConnectModelBase(models.base.ModelBase):
 
     def __new__(mcs, name, bases, attrs):
         super_new = super(HerokuConnectModelBase, mcs).__new__
-        # We need t create a temporary fake model class to access
-        # the original Meta class since ModelBase will remove it.
-        fake_class = type.__new__(mcs, name, bases, attrs)
-        org_meta_attr = getattr(fake_class, 'Meta', None)
+        _meta = attrs.get('Meta', None)
+        if _meta is not None:
+            attrs['Meta'].managed = False
+
         new_class = super_new(mcs, name, bases, attrs)
-        if org_meta_attr is None or not hasattr(org_meta_attr, 'db_table'):
+        if _meta is None or not hasattr(_meta, 'db_table'):
             new_class._meta.db_table = '{schema}"."{table}'.format(
                 schema=settings.HEROKU_CONNECT_SCHEMA,
                 table=new_class.sf_object_name.lower(),
@@ -34,6 +34,7 @@ class HerokuConnectModelBase(models.base.ModelBase):
             new_class._meta.local_fields.remove(is_deleted)
 
         new_class._meta.managed = False
+
         return new_class
 
 
@@ -112,6 +113,7 @@ class HerokuConnectModel(models.Model, metaclass=HerokuConnectModelBase):
 
     class Meta:
         abstract = True
+        managed = False
 
     @classmethod
     def get_heroku_connect_fields(cls):
