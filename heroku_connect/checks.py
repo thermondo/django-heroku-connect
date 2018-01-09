@@ -1,9 +1,10 @@
+from django.apps import apps
 from django.core.checks import Error
 
 from .db.models import HerokuConnectModel
 
 
-def _check_foreign_key_target(apps, **kwargs):
+def _check_foreign_key_target(app_configs, **kwargs):
     errors = []
     all_models = (
         model
