@@ -155,7 +155,7 @@ class DateTime(HerokuConnectFieldMixin, models.DateTimeField):
     """
     Salesforce ``DateTime`` field.
 
-    Heroku connect create tables with timestamp fields but without timezones, and when it syncs
+    Heroku connect create tables with time stamp fields but without time zones, and when it syncs
     to Salesforce it treats them as UTC. This field will be always making sure that the dates are
     aware and UTC.
     """
