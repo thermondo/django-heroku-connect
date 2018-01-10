@@ -75,12 +75,12 @@ def test_get_mapping(settings):
                     'access': 'read_only',
                     'fields': {
                         'A_DateTime__c': {},
-                        'ID': {},
+                        'Id': {},
                         'IsDeleted': {},
                         'SystemModstamp': {}
                     },
                     'indexes': {
-                        'ID': {'unique': True},
+                        'Id': {'unique': True},
                         'SystemModstamp': {'unique': False}
                     },
                     'sf_max_daily_api_calls': 30000,
@@ -121,12 +121,12 @@ def test_get_mapping(settings):
                 'access': 'read_only',
                 'fields': {
                     'A_DateTime__c': {},
-                    'ID': {},
+                    'Id': {},
                     'IsDeleted': {},
                     'SystemModstamp': {}
                 },
                 'indexes': {
-                    'ID': {'unique': True},
+                    'Id': {'unique': True},
                     'SystemModstamp': {'unique': False}
                 },
                 'sf_max_daily_api_calls': 30000,
