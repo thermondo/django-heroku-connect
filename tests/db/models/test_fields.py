@@ -54,7 +54,7 @@ class TestID:
         assert field.unique is True
 
         field = field_factory(hc_models.ID, unique=False)
-        assert field.unique is True
+        assert field.unique is False
 
     def test_editable(self):
         field = field_factory(hc_models.ID)
@@ -65,10 +65,10 @@ class TestID:
 
     def test_null(self):
         field = field_factory(hc_models.ID)
-        assert field.editable is False
+        assert field.null is True
 
-        field = field_factory(hc_models.ID, null=True)
-        assert field.editable is False
+        field = field_factory(hc_models.ID, null=False)
+        assert field.null is True
 
 
 class TestNumber:
