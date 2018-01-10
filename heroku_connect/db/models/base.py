@@ -97,7 +97,7 @@ class HerokuConnectModel(models.Model, metaclass=HerokuConnectModelBase):
     sf_polling_seconds = 120
     sf_max_daily_api_calls = 30000
 
-    sf_id = fields.ID(sf_field_name='ID', db_column='sfid')
+    sf_id = fields.ID(sf_field_name='Id', db_column='sfid')
     system_mod_stamp = fields.DateTime(sf_field_name='SystemModstamp', db_index=True)
     is_deleted = fields.Checkbox(sf_field_name='IsDeleted')
     _hc_lastop = models.CharField(

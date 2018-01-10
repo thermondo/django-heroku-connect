@@ -54,12 +54,12 @@ def test_get_mapping(settings):
                     'fields': {
                         'A_Number__c': {},
                         'External_ID': {},
-                        'ID': {},
+                        'Id': {},
                         'IsDeleted': {},
                         'SystemModstamp': {},
                     },
                     'indexes': {
-                        'ID': {'unique': True},
+                        'Id': {'unique': True},
                         'SystemModstamp': {'unique': False},
                         'External_ID': {'unique': True},
                     },
@@ -81,12 +81,12 @@ def test_get_mapping(settings):
                 'fields': {
                     'A_Number__c': {},
                     'External_ID': {},
-                    'ID': {},
+                    'Id': {},
                     'IsDeleted': {},
                     'SystemModstamp': {},
                 },
                 'indexes': {
-                    'ID': {'unique': True},
+                    'Id': {'unique': True},
                     'SystemModstamp': {'unique': False},
                     'External_ID': {'unique': True},
                 },
