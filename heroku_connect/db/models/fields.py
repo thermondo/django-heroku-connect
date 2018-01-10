@@ -11,6 +11,7 @@ See Heroku Connect's `mapped data types`_.
 import uuid
 
 from django.db import models
+from django.utils import timezone
 
 __all__ = (
     'HerokuConnectFieldMixin', 'AnyType', 'ID', 'Checkbox', 'Currency',
@@ -151,9 +152,20 @@ class Date(HerokuConnectFieldMixin, models.DateField):
 
 
 class DateTime(HerokuConnectFieldMixin, models.DateTimeField):
-    """Salesforce ``DateTime`` field."""
+    """
+    Salesforce ``DateTime`` field.
 
-    pass
+    Heroku connect create tables with timestamp fields but without timezones, and when it syncs
+    to Salesforce it treats them as UTC. This field will be always making sure that the dates are
+    aware and UTC.
+    """
+    def from_db_value(self, value, *args, **kwargs):
+        if value is None:
+            return value
+        elif timezone.is_aware(value):
+            return value
+        else:
+            return timezone.utc.localize(value)
 
 
 class Email(HerokuConnectFieldMixin, models.EmailField):
