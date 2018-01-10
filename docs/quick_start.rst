@@ -51,7 +51,7 @@ This is what your ``models.py`` might look like:
 
 
     class UserComment(models.Model):
-        user = models.ForeignKey(User, to_field='sfid',
+        user = models.ForeignKey(User, to_field='sf_id',
                                  on_delete=models.SET_NULL, null=True)
         comment = models.TextField()
 
