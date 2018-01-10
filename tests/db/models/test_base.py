@@ -81,8 +81,8 @@ class TestHerokuConnectModelMixin:
                         'SystemModstamp': {'unique': False},
                     },
                     'sf_max_daily_api_calls': 30000,
-                    'sf_notify_enabled': True,
-                    'sf_polling_seconds': 120,
+                    'sf_notify_enabled': False,
+                    'sf_polling_seconds': 600,
                 },
             'object_name': 'My_Object__c'
         }
@@ -120,8 +120,8 @@ class TestHerokuConnectModelMixin:
                         'Date3__c': {'unique': True},
                     },
                     'sf_max_daily_api_calls': 30000,
-                    'sf_notify_enabled': True,
-                    'sf_polling_seconds': 120,
+                    'sf_notify_enabled': False,
+                    'sf_polling_seconds': 600,
                 },
             'object_name': 'My_Object__c'
         }
@@ -153,8 +153,8 @@ class TestHerokuConnectModelMixin:
                         'Date__c': {'unique': True},
                     },
                     'sf_max_daily_api_calls': 30000,
-                    'sf_notify_enabled': True,
-                    'sf_polling_seconds': 120,
+                    'sf_notify_enabled': False,
+                    'sf_polling_seconds': 600,
                     'upsert_field': 'Date__c',
                 },
             'object_name': 'My_Object__c',
@@ -184,8 +184,8 @@ class TestHerokuConnectModelMixin:
                         'SystemModstamp': {'unique': False},
                     },
                     'sf_max_daily_api_calls': 30000,
-                    'sf_notify_enabled': True,
-                    'sf_polling_seconds': 120,
+                    'sf_notify_enabled': False,
+                    'sf_polling_seconds': 600,
                 },
             'object_name': 'My_Object__c'
         }
