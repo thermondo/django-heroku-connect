@@ -159,6 +159,7 @@ class DateTime(HerokuConnectFieldMixin, models.DateTimeField):
     to Salesforce it treats them as UTC. This field will be always making sure that the dates are
     aware and UTC.
     """
+
     def from_db_value(self, value, *args, **kwargs):
         if value is None:
             return value
