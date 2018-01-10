@@ -61,8 +61,8 @@ class ID(HerokuConnectFieldMixin, models.CharField):
     def __init__(self, *args, **kwargs):
         kwargs['max_length'] = 18
         kwargs['editable'] = False
+        kwargs['null'] = True
         kwargs.setdefault('unique', True)
-        kwargs.setdefault('null', False)
         super().__init__(*args, **kwargs)
 
 

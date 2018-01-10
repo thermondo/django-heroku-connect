@@ -65,9 +65,9 @@ class TestID:
 
     def test_null(self):
         field = field_factory(hc_models.ID)
-        assert field.null is False
+        assert field.null is True
 
-        field = field_factory(hc_models.ID, null=True)
+        field = field_factory(hc_models.ID, null=False)
         assert field.null is True
 
 
