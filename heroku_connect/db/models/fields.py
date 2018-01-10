@@ -166,8 +166,6 @@ class DateTime(HerokuConnectFieldMixin, models.DateTimeField):
     def from_db_value(self, value, *args, **kwargs):
         if value is None:
             return value
-        elif timezone.is_aware(value):
-            return value
         else:
             return timezone.utc.localize(value)
 
