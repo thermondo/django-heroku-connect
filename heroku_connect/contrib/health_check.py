@@ -1,9 +1,10 @@
-from health_check.backends import BaseHealthCheckBackend
-from health_check.exceptions import ServiceReturnedUnexpectedResult
 import logging
 import subprocess
 
 from health_check.backends import BaseHealthCheckBackend
+from health_check.exceptions import ServiceReturnedUnexpectedResult
+from health_check.backends import BaseHealthCheckBackend
+
 from ..conf import settings
 
 logger = logging.getLogger('heroku-health-check')
@@ -23,9 +24,12 @@ class HerokuConnectHealthCheck(BaseHealthCheckBackend):
             return self.get_status_from_heroku_output(output.decode('utf-8'))
 
     def get_status_from_heroku_output(self, output):
-        """Parse status to fetch Connection and Sync Status
+        """Parse status to fetch Connection and sync Status.
 
         Sample output:
-           Connection [7976d2d4-2483-4a75-9a97-7d7f0e879b21 / herokuconnect-asymmetrical-36239] (IDLE)
+           Connection [7976d2d4-2483 / herokuconnect-asymmetrical] (IDLE)
            --> Contact (DATA_SYNCED)
         """
+        parsed_output = output[0].strip().split()[-1].strip('()')
+        if parsed_output == 'IDLE':
+            return True 
