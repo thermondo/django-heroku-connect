@@ -7,7 +7,7 @@ from django.db import connection, models
 from django.utils import timezone
 
 from heroku_connect.db import models as hc_models
-from tests.testapp.models import NumberModel, DateTimeModel
+from tests.testapp.models import DateTimeModel, NumberModel
 
 
 def field_factory(field_class, **kwargs):
