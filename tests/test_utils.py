@@ -70,6 +70,25 @@ def test_get_mapping(settings):
                 },
                 'object_name': 'Number_Object__c',
             },
+            {
+                'config': {
+                    'access': 'read_only',
+                    'fields': {
+                        'A_DateTime__c': {},
+                        'Id': {},
+                        'IsDeleted': {},
+                        'SystemModstamp': {}
+                    },
+                    'indexes': {
+                        'Id': {'unique': True},
+                        'SystemModstamp': {'unique': False}
+                    },
+                    'sf_max_daily_api_calls': 30000,
+                    'sf_notify_enabled': False,
+                    'sf_polling_seconds': 600,
+                },
+                'object_name': 'DateTime_Object__c'
+            },
         ],
         'version': 1,
     }
@@ -96,5 +115,24 @@ def test_get_mapping(settings):
                 'upsert_field': 'External_ID',
             },
             'object_name': 'Number_Object__c',
+        },
+        {
+            'config': {
+                'access': 'read_only',
+                'fields': {
+                    'A_DateTime__c': {},
+                    'Id': {},
+                    'IsDeleted': {},
+                    'SystemModstamp': {}
+                },
+                'indexes': {
+                    'Id': {'unique': True},
+                    'SystemModstamp': {'unique': False}
+                },
+                'sf_max_daily_api_calls': 30000,
+                'sf_notify_enabled': False,
+                'sf_polling_seconds': 600,
+            },
+            'object_name': 'DateTime_Object__c'
         },
     ]

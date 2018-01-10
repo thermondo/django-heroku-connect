@@ -2,10 +2,12 @@ import uuid
 from decimal import Decimal
 
 import pytest
+import pytz
 from django.db import connection, models
+from django.utils import timezone
 
 from heroku_connect.db import models as hc_models
-from tests.testapp.models import NumberModel
+from tests.testapp.models import DateTimeModel, NumberModel
 
 
 def field_factory(field_class, **kwargs):
@@ -89,6 +91,22 @@ class TestNumber:
         assert obj.a_number == Decimal('100.00')
         obj = NumberModel.objects.filter(a_number__gt=Decimal('99')).first()
         assert isinstance(obj.a_number, Decimal)
+
+
+class TestDateTime:
+    def test_utc_datetime(self, db):
+        datetime_model = DateTimeModel()
+        datetime_model.save()
+
+        assert datetime_model.a_datetime is None
+        new_york_tz = pytz.timezone("America/New_York")
+        now_in_new_york_tz = timezone.now().replace(tzinfo=new_york_tz)
+        datetime_model.a_datetime = now_in_new_york_tz
+        datetime_model.save()
+
+        datetime_model.refresh_from_db()
+        assert timezone.is_aware(datetime_model.a_datetime)
+        assert datetime_model.a_datetime == now_in_new_york_tz
 
 
 class TestExternalID:
