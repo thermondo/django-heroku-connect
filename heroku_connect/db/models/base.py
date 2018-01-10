@@ -93,8 +93,21 @@ class HerokuConnectModel(models.Model, metaclass=HerokuConnectModelBase):
 
     """
 
-    sf_notify_enabled = True
-    sf_polling_seconds = 120
+    sf_notify_enabled = False
+    """
+    Use the Salesforce Streaming API to trigger polls when data changes.
+
+    With event-based polling enabled, Heroku Connect will continue to poll at
+    the set polling frequency.
+    """
+
+    sf_polling_seconds = 600
+    """
+    Poll frequency in seconds.
+
+    Default: 10 minutes
+    """
+
     sf_max_daily_api_calls = 30000
 
     sf_id = fields.ID(sf_field_name='ID', db_column='sfid')
