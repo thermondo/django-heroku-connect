@@ -160,6 +160,9 @@ class DateTime(HerokuConnectFieldMixin, models.DateTimeField):
     aware and UTC.
     """
 
+    def db_type(self, connection):
+        return 'timestamp without time zone'
+
     def from_db_value(self, value, *args, **kwargs):
         if value is None:
             return value
