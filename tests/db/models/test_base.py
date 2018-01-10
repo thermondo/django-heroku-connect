@@ -72,12 +72,12 @@ class TestHerokuConnectModelMixin:
                 {
                     'access': 'read_only',
                     'fields': {
-                        'ID': {},
+                        'Id': {},
                         'IsDeleted': {},
                         'SystemModstamp': {},
                     },
                     'indexes': {
-                        'ID': {'unique': True},
+                        'Id': {'unique': True},
                         'SystemModstamp': {'unique': False},
                     },
                     'sf_max_daily_api_calls': 30000,
@@ -105,7 +105,7 @@ class TestHerokuConnectModelMixin:
                 {
                     'access': 'read_only',
                     'fields': {
-                        'ID': {},
+                        'Id': {},
                         'IsDeleted': {},
                         'SystemModstamp': {},
                         'Date1__c': {},
@@ -113,7 +113,7 @@ class TestHerokuConnectModelMixin:
                         'Date3__c': {},
                     },
                     'indexes': {
-                        'ID': {'unique': True},
+                        'Id': {'unique': True},
                         'SystemModstamp': {'unique': False},
                         'Date1__c': {'unique': False},
                         'Date2__c': {'unique': True},
@@ -142,13 +142,13 @@ class TestHerokuConnectModelMixin:
                 {
                     'access': 'read_only',
                     'fields': {
-                        'ID': {},
+                        'Id': {},
                         'IsDeleted': {},
                         'SystemModstamp': {},
                         'Date__c': {},
                     },
                     'indexes': {
-                        'ID': {'unique': True},
+                        'Id': {'unique': True},
                         'SystemModstamp': {'unique': False},
                         'Date__c': {'unique': True},
                     },
@@ -175,12 +175,12 @@ class TestHerokuConnectModelMixin:
                 {
                     'access': 'read_write',
                     'fields': {
-                        'ID': {},
+                        'Id': {},
                         'IsDeleted': {},
                         'SystemModstamp': {},
                     },
                     'indexes': {
-                        'ID': {'unique': True},
+                        'Id': {'unique': True},
                         'SystemModstamp': {'unique': False},
                     },
                     'sf_max_daily_api_calls': 30000,
@@ -204,8 +204,8 @@ class TestHerokuConnectModelMixin:
 
         assert not any(f.name == 'is_deleted' for f in User._meta.fields)
         assert User.get_heroku_connect_field_mapping() == (
-            {'ID': {}, 'SystemModstamp': {}},
-            {'ID': {'unique': True}, 'SystemModstamp': {'unique': False}},
+            {'Id': {}, 'SystemModstamp': {}},
+            {'Id': {'unique': True}, 'SystemModstamp': {'unique': False}},
             None
         )
 
@@ -255,15 +255,15 @@ class TestHerokuConnectModelMixin:
         )]
 
     def test_check_upsert_field(self):
-        class ExternalID(hc_models.HerokuConnectFieldMixin, models.CharField):
+        class ExternalId(hc_models.HerokuConnectFieldMixin, models.CharField):
             def __init__(self, *args, **kwargs):
                 kwargs['max_length'] = 18
                 super().__init__(*args, **kwargs)
 
         class MyModel(hc_models.HerokuConnectModel):
             sf_object_name = 'My_Object__c'
-            extID1 = ExternalID(sf_field_name='extID1', upsert=True)
-            extID2 = ExternalID(sf_field_name='extID2', upsert=True)
+            extId1 = ExternalId(sf_field_name='extId1', upsert=True)
+            extId2 = ExternalId(sf_field_name='extId2', upsert=True)
 
             class Meta:
                 app_label = 'test'
@@ -273,8 +273,8 @@ class TestHerokuConnectModelMixin:
         assert errors == [checks.Error(
             "test.MyModel can only have a single upsert field.",
             hint=[
-                MyModel._meta.get_field('extID1'),
-                MyModel._meta.get_field('extID2'),
+                MyModel._meta.get_field('extId1'),
+                MyModel._meta.get_field('extId2'),
             ],
             id='heroku_connect.E004',
         )]
