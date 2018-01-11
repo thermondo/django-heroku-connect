@@ -4,8 +4,8 @@ import json
 
 from health_check.backends import BaseHealthCheckBackend
 from health_check.exceptions import ServiceReturnedUnexpectedResult, ServiceUnavailable
+from django.conf import settings
 
-from ..conf import settings
 
 logger = logging.getLogger('heroku-health-check')
 
@@ -59,10 +59,9 @@ class HerokuConnectHealthCheck(BaseHealthCheckBackend):
         json_output = json.loads(output)
         return json_output['results'][0]['id']
 
-    def get_status_from_heroku_output(self, connection_id):
+    def get_connection_status(self, connection_id):
         """
-        Get Connection Status from the JSON response of the connection detail
-        api call.
+        Get Connection Status from the JSON response of the connection detail api call.
 
         For more details https://devcenter.heroku.com/articles/heroku-connect-api#step-8-monitor-the-connection-and-mapping-status
 

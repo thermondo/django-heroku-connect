@@ -2,10 +2,7 @@ from heroku_connect.contrib.health_check import HerokuConnectHealthCheck
 
 from unittest import mock
 
-
-@mock.patch('subprocess.check_output')
-def test_all_connections_api(mock_get):
-    all_connections_api_call_output = """{
+ALL_CONNECTIONS_API_CALL_OUTPUT = """{
         "count": 1,
         "results": [
             {
@@ -16,13 +13,7 @@ def test_all_connections_api(mock_get):
         ]
     }"""
 
-    mock_get.return_value = all_connections_api_call_output
-    assert(HerokuConnectHealthCheck().get_connection_id() == '1')
-
-
-@mock.patch('subprocess.check_output')
-def test_connection_detail_api(mock_get):
-    connection_details_api_call_output = """{
+CONNECTION_DETAILS_API_CALL_OUTPUT = """{
         "id": "1",
         "name": "sample name",
         "resource_name": "resource name",
@@ -38,5 +29,21 @@ def test_connection_detail_api(mock_get):
         ]
     }"""
 
-    mock_get.return_value = connection_details_api_call_output
-    assert(HerokuConnectHealthCheck().get_status_from_heroku_output(1))
+
+@mock.patch('subprocess.check_output')
+def test_all_connections_api(mock_get):
+    mock_get.return_value = ALL_CONNECTIONS_API_CALL_OUTPUT
+    assert(HerokuConnectHealthCheck().get_connection_id() == '1')
+
+
+@mock.patch('subprocess.check_output')
+def test_connection_detail_api(mock_get):
+    mock_get.return_value = CONNECTION_DETAILS_API_CALL_OUTPUT
+    assert(HerokuConnectHealthCheck().get_connection_status(1))
+
+
+@mock.patch('subprocess.check_output')
+def test_check_status(mock_get):
+    mock_get.side_effect = [ALL_CONNECTIONS_API_CALL_OUTPUT,
+                            CONNECTION_DETAILS_API_CALL_OUTPUT]
+    assert(HerokuConnectHealthCheck().check_status())
