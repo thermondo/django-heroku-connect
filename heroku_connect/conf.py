@@ -36,3 +36,24 @@ class HerokuConnectAppConf(AppConf):
         https://devcenter.heroku.com/articles/dyno-metadata
 
     """
+
+    HEROKU_AUTH_TOKEN = os.environ.get('HEROKU_AUTH_TOKEN', '')
+    """
+    Heroku Authenication Token.
+
+    This setting is OPTIONAL. Used only if using health-check.
+    For more details go to 'https://devcenter.heroku.com/articles/heroku-connect-api#authentication'
+
+    """
+
+    HEROKU_CONNECT_API_ENDPOINT = os.environ.get('HEROKU_CONNECT_API_ENDPOINT',
+                                                 'https://connect-eu.heroku.com/api/v3')
+    """
+    Heroku Connect API Endpoint.
+
+    This setting is OPTIONAL. Used only if using health-check.
+    Default is 'https://connect-eu.heroku.com/api/v3'
+
+    Check your endpoints at 'https://devcenter.heroku.com/articles/heroku-connect-api#endpoints'.
+
+    """
