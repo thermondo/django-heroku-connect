@@ -1,10 +1,24 @@
 from django.core import checks
-from django.db import models
+from django.db import NotSupportedError, models
 
 from . import fields
 from ...conf import settings
 
 __all__ = ('HerokuConnectModel',)
+
+
+class HerokuConnectModelManager(models.Manager):
+    def update(self, **kwargs):
+        if self.model.sf_access == 'read_only':
+            raise NotSupportedError(
+                'Save/Update operation is not allowed for ReadOnly model')
+        return super(HerokuConnectModelManager, self).update(**kwargs)
+
+    def delete(self):
+        if self.model.sf_access == 'read_only':
+            raise NotSupportedError(
+                'Save/Update operation is not allowed for ReadOnly model')
+        return super(HerokuConnectModelManager, self).delete()
 
 
 class HerokuConnectModelBase(models.base.ModelBase):
@@ -34,6 +48,7 @@ class HerokuConnectModelBase(models.base.ModelBase):
             new_class._meta.local_fields.remove(is_deleted)
 
         new_class._meta.managed = False
+        new_class.add_to_class('objects', HerokuConnectModelManager())
 
         return new_class
 
@@ -238,3 +253,19 @@ class HerokuConnectModel(models.Model, metaclass=HerokuConnectModelBase):
         errors.extend(cls._check_unique_sf_field_names())
         errors.extend(cls._check_upsert_field())
         return errors
+
+    def delete(self, using=None, keep_parents=False):
+        if self.sf_access == 'read_only':
+            raise NotSupportedError(
+                'Delete operation is not allowed for ReadOnly model')
+        return super(HerokuConnectModel, self).delete(
+            using=using, keep_parents=keep_parents)
+
+    def save(self, force_insert=False, force_update=False,
+             using=None, update_fields=None):
+        if self.sf_access == 'read_only':
+            raise NotSupportedError(
+                'Save/Update operation is not allowed for ReadOnly model')
+        return super(HerokuConnectModel, self).save(
+            force_insert=force_insert, force_update=force_update,
+            using=using, update_fields=update_fields)
