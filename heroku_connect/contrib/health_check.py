@@ -18,6 +18,7 @@ class HerokuConnectHealthCheck(BaseHealthCheckBackend):
 
     .. _`django-health-check`: https://github.com/KristianOellegaard/django-health-check
     """
+
     def check_status(self):
         if not (settings.HEROKU_AUTH_TOKEN and settings.HEROKU_CONNECT_APP_NAME):
             raise ServiceUnavailable('Both App Name and Auth Token are required')
@@ -28,7 +29,8 @@ class HerokuConnectHealthCheck(BaseHealthCheckBackend):
     def get_connection_id(self):
         """
         Return ConnectionId from the JSON response of the connections api call.
-        For more details check 'https://devcenter.heroku.com/articles/heroku-connect-api#step-4-retrieve-the-new-connection-s-id'
+
+        For more details check https://devcenter.heroku.com/articles/heroku-connect-api#step-4-retrieve-the-new-connection-s-id
 
         Sample response from the api call is below::
 
@@ -59,10 +61,12 @@ class HerokuConnectHealthCheck(BaseHealthCheckBackend):
 
     def get_status_from_heroku_output(self, connection_id):
         """
-        Get Connection Status from the JSON response of the connection detail call.
-        For more details go to 'https://devcenter.heroku.com/articles/heroku-connect-api#step-8-monitor-the-connection-and-mapping-status'
+        Get Connection Status from the JSON response of the connection detail
+        api call.
 
-        Sample output::
+        For more details https://devcenter.heroku.com/articles/heroku-connect-api#step-8-monitor-the-connection-and-mapping-status
+
+        Sample response from api call is below::
 
           {
             "id": "<connection_id>",

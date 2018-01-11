@@ -42,7 +42,7 @@ class HerokuConnectAppConf(AppConf):
     Heroku Authenication Token.
 
     This setting is OPTIONAL. Used only if using health-check.
-    For more details go to 'https://devcenter.heroku.com/articles/heroku-connect-api#authentication'
+    For more details - https://devcenter.heroku.com/articles/heroku-connect-api#authentication
 
     """
 
@@ -52,8 +52,8 @@ class HerokuConnectAppConf(AppConf):
     Heroku Connect API Endpoint.
 
     This setting is OPTIONAL. Used only if using health-check.
-    Default is 'https://connect-eu.heroku.com/api/v3'
+    Default is https://connect-eu.heroku.com/api/v3
 
-    Check your endpoints at 'https://devcenter.heroku.com/articles/heroku-connect-api#endpoints'.
+    Check your endpoints at https://devcenter.heroku.com/articles/heroku-connect-api#endpoints.
 
     """
