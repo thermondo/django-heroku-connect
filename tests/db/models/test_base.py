@@ -3,7 +3,8 @@ import shutil
 
 from django.core import checks
 from django.core.management import call_command
-from django.db import models
+from django.db import NotSupportedError, models
+from django.utils import timezone
 
 from heroku_connect.db import models as hc_models
 
@@ -287,7 +288,7 @@ class TestHerokuConnectModelMixin:
             class Meta:
                 app_label = 'test'
                 abstract = True
-
+        
         class NameMixin(models.Model):
             name = hc_models.Text(sf_field_name='Name')
 
@@ -332,3 +333,66 @@ class TestHerokuConnectModelMixin:
                 },
             'object_name': 'My_Object__c',
         }
+    
+    def test_fail_on_save_read_only_model(self):
+        class MyModel(hc_models.HerokuConnectModel):
+            sf_object_name = 'My_Object__c'
+            date = hc_models.DateTime(sf_field_name='Date1__c')
+
+            class Meta:
+                app_label = 'test'
+                abstract = True
+
+        data_instance = MyModel(date=timezone.now())
+        try:
+            data_instance.save()
+        except NotSupportedError as e:
+            assert(
+                e.args[0] == 'Save/Update operation is not allowed for ReadOnly model')
+        else:
+            assert False
+    
+    def test_fail_on_delete_read_only_model(self):
+        class MyModel(hc_models.HerokuConnectModel):
+            sf_object_name = 'My_Object__c'
+            date = hc_models.DateTime(sf_field_name='Date1__c')
+
+            class Meta:
+                app_label = 'test'
+                abstract = True
+
+        data_instance = MyModel(date=timezone.now())
+        try:
+            data_instance.delete()
+        except NotSupportedError as e:
+            assert(e.args[0] == 'Delete operation is not allowed for ReadOnly model')
+        else:
+            assert False
+
+    def test_fail_on_update_read_only_model(self):
+        class MyModel(hc_models.HerokuConnectModel):
+            sf_object_name = 'My_Object__c'
+            date = hc_models.DateTime(sf_field_name='Date1__c')
+
+            class Meta:
+                app_label = 'test'
+        try:
+            MyModel.objects.update(date=timezone.now())
+        except NotSupportedError as e:
+            assert(e.args[0] == 'Save/Update operation is not allowed for ReadOnly model')
+        else:
+            assert False
+
+    def test_fail_on_qs_delete_read_only_model(self):
+        class MyNewModel(hc_models.HerokuConnectModel):
+            sf_object_name = 'My_Object__c'
+            date = hc_models.DateTime(sf_field_name='Date1__c')
+
+            class Meta:
+                app_label = 'test'
+        try:
+            MyNewModel.objects.delete()
+        except NotSupportedError as e:
+            assert(e.args[0] == 'Delete operation is not allowed on a ReadOnly model')
+        else:
+            assert False
