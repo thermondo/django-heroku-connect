@@ -3,6 +3,7 @@ from decimal import Decimal
 
 import pytest
 import pytz
+from django import forms
 from django.db import connection, models
 from django.utils import timezone
 
@@ -191,3 +192,24 @@ class TestPicklist:
 
         field = field_factory(hc_models.Picklist, max_length=42, choices=choices)
         assert field.max_length == 3
+
+
+class TestTextArea:
+    def test_max_length(self):
+        field = field_factory(hc_models.TextArea)
+        assert field.max_length == 255
+
+        field = field_factory(hc_models.URL, max_length=42)
+        assert field.max_length == 42
+
+    def test_formfield(self):
+        field = field_factory(hc_models.TextArea)
+        form_field = field.formfield()
+        assert type(form_field.widget) == forms.Textarea
+        assert form_field.max_length == 255
+
+        choice = (1, 1)
+        field = field_factory(hc_models.TextArea, choices=[choice])
+        form_field = field.formfield()
+        assert type(form_field.widget) == forms.Select
+        assert form_field.choices == [('', '---------'), choice]
