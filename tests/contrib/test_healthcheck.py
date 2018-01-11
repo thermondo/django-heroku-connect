@@ -1,6 +1,7 @@
+from unittest import mock
+
 from heroku_connect.contrib.health_check import HerokuConnectHealthCheck
 
-from unittest import mock
 
 ALL_CONNECTIONS_API_CALL_OUTPUT = """{
         "count": 1,

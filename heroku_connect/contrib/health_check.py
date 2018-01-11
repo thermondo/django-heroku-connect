@@ -1,11 +1,12 @@
+import json
 import logging
 import subprocess
-import json
 
-from health_check.backends import BaseHealthCheckBackend
-from health_check.exceptions import ServiceReturnedUnexpectedResult, ServiceUnavailable
 from django.conf import settings
-
+from health_check.backends import BaseHealthCheckBackend
+from health_check.exceptions import (
+    ServiceReturnedUnexpectedResult, ServiceUnavailable
+)
 
 logger = logging.getLogger('heroku-health-check')
 
