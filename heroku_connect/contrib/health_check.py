@@ -3,7 +3,7 @@ import subprocess
 import json
 
 from health_check.backends import BaseHealthCheckBackend
-from health_check.exceptions import ServiceReturnedUnexpectedResult
+from health_check.exceptions import ServiceReturnedUnexpectedResult, ServiceUnavailable
 
 from ..conf import settings
 
