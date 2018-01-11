@@ -251,6 +251,12 @@ class TextArea(HerokuConnectFieldMixin, models.CharField):
         return super().formfield(**defaults)
 
 
+class TextAreaLong(HerokuConnectFieldMixin, models.TextField):
+    """Salesforce ``Text Area (Long)`` and ``Text Area (Rich)`` field."""
+
+    pass
+
+
 class Time(HerokuConnectFieldMixin, models.TimeField):
     """Salesforce ``Time`` field."""
 
