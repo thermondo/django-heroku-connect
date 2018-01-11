@@ -39,7 +39,7 @@ class HerokuConnectAppConf(AppConf):
 
     HEROKU_AUTH_TOKEN = os.environ.get('HEROKU_AUTH_TOKEN', '')
     """
-    Heroku Authenication Token.
+    Heroku Authentication Token.
 
     This setting is OPTIONAL. Used only if using health-check.
     For more details - https://devcenter.heroku.com/articles/heroku-connect-api#authentication
