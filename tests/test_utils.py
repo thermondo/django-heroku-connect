@@ -58,7 +58,7 @@ def test_get_mapping(settings):
         'mappings': [
             {
                 'config': {
-                    'access': 'read_only',
+                    'access': 'read_write',
                     'fields': {
                         'A_Number__c': {},
                         'External_ID': {},
@@ -80,7 +80,7 @@ def test_get_mapping(settings):
             },
             {
                 'config': {
-                    'access': 'read_only',
+                    'access': 'read_write',
                     'fields': {
                         'A_DateTime__c': {},
                         'Id': {},
@@ -104,7 +104,7 @@ def test_get_mapping(settings):
     assert utils.get_mapping()['mappings'] == [
         {
             'config': {
-                'access': 'read_only',
+                'access': 'read_write',
                 'fields': {
                     'A_Number__c': {},
                     'External_ID': {},
@@ -126,7 +126,7 @@ def test_get_mapping(settings):
         },
         {
             'config': {
-                'access': 'read_only',
+                'access': 'read_write',
                 'fields': {
                     'A_DateTime__c': {},
                     'Id': {},
