@@ -199,7 +199,7 @@ class TestTextArea:
         field = field_factory(hc_models.TextArea)
         assert field.max_length == 255
 
-        field = field_factory(hc_models.URL, max_length=42)
+        field = field_factory(hc_models.TextArea, max_length=42)
         assert field.max_length == 42
 
     def test_formfield(self):
