@@ -13,6 +13,7 @@ def frozen_uuid_generator():
 
 
 class NumberModel(hc_models.HerokuConnectModel):
+    sf_access = 'read_write'
     sf_object_name = 'Number_Object__c'
 
     a_number = hc_models.Number(_('yet another number'), sf_field_name='A_Number__c',
@@ -26,6 +27,7 @@ class OtherModel(models.Model):
 
 
 class DateTimeModel(hc_models.HerokuConnectModel):
+    sf_access = 'read_write'
     sf_object_name = 'DateTime_Object__c'
 
     a_datetime = hc_models.DateTime(_('a date time field'), sf_field_name='A_DateTime__c')
