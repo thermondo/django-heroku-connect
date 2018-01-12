@@ -223,7 +223,8 @@ class Picklist(HerokuConnectFieldMixin, models.CharField):
         self.choices = kwargs['choices']
         longest_choice = max(self.flatchoices, key=lambda choice: len(choice[0]))
         max_length = len(longest_choice[0])
-        kwargs['max_length'] = max_length
+        max_length = max(255, max_length)
+        kwargs.setdefault('max_length', max_length)
         super().__init__(*args, **kwargs)
 
 
@@ -266,4 +267,6 @@ class Time(HerokuConnectFieldMixin, models.TimeField):
 class URL(HerokuConnectFieldMixin, models.URLField):
     """Salesforce ``URL`` field."""
 
-    pass
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('max_length', 255)
+        super().__init__(*args, **kwargs)

@@ -5,6 +5,14 @@ Django Heroku Connect
 
 **Django integration Salesforce using Heroku Connect.**
 
+Quick Start
+-----------
+
+We have a `Deploy to Heroku sample`_ that gets you started in less than a
+minute.
+
+.. _`Deploy to Heroku sample`: https://github.com/Thermondo/django-heroku-connect-sample
+
 Documentation
 -------------
 
