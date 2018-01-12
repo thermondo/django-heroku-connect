@@ -195,3 +195,13 @@ class TestPicklist:
         field = field_factory(hc_models.Picklist,
                               choices=[(''.join(str(i) for i in range(1000)), 'long option')])
         assert field.max_length == 2890
+
+
+class TestURL:
+
+    def test_max_length(self):
+        field = field_factory(hc_models.URL)
+        assert field.max_length == 255
+
+        field = field_factory(hc_models.URL, max_length=42)
+        assert field.max_length == 42

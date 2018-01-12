@@ -248,4 +248,6 @@ class Time(HerokuConnectFieldMixin, models.TimeField):
 class URL(HerokuConnectFieldMixin, models.URLField):
     """Salesforce ``URL`` field."""
 
-    pass
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('max_length', 255)
+        super().__init__(*args, **kwargs)
