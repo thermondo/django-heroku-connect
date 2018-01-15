@@ -3,7 +3,9 @@ from django.core import checks
 from django.core.management import call_command
 from django.core.management.base import SystemCheckError
 
-from heroku_connect.checks import _check_foreign_key_target, _check_unique_sf_object_name
+from heroku_connect.checks import (
+    _check_foreign_key_target, _check_unique_sf_object_name
+)
 from heroku_connect.db.models import HerokuConnectModel
 
 
