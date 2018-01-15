@@ -292,7 +292,7 @@ class TestHerokuConnectModelMixin:
         try:
             data_instance.save()
         except NotSupportedError as e:
-            assert(e.args[0] == 'Save/Update operation is not allowed for ReadOnly model')
+            assert(e.args[0] == 'Save/Update operation is not allowed on a ReadOnly model')
         else:
             assert False
 
@@ -308,7 +308,7 @@ class TestHerokuConnectModelMixin:
         try:
             data_instance.delete()
         except NotSupportedError as e:
-            assert(e.args[0] == 'Delete operation is not allowed for ReadOnly model')
+            assert(e.args[0] == 'Delete operation is not allowed on a ReadOnly model')
         else:
             assert False
 
@@ -322,7 +322,7 @@ class TestHerokuConnectModelMixin:
         try:
             MyModel.objects.update(date=timezone.now())
         except NotSupportedError as e:
-            assert(e.args[0] == 'Save/Update operation is not allowed for ReadOnly model')
+            assert(e.args[0] == 'Update operation is not allowed on a ReadOnly model')
         else:
             assert False
 
@@ -336,6 +336,6 @@ class TestHerokuConnectModelMixin:
         try:
             MyNewModel.objects.delete()
         except NotSupportedError as e:
-            assert(e.args[0] == 'Save/Update operation is not allowed for ReadOnly model')
+            assert(e.args[0] == 'Delete operation is not allowed on a ReadOnly model')
         else:
             assert False
