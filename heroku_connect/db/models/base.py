@@ -60,6 +60,12 @@ class HerokuConnectModel(models.Model, metaclass=HerokuConnectModelBase):
         on :attr:`settings.HEROKU_CONNECT_SCHEMA<.HerokuConnectAppConf.HEROKU_CONNECT_SCHEMA>`
         and :attr:`.sf_object_name`.
 
+    Note:
+
+        A model mixin must inherit from :class:`Meta.managed<django.db.models.Model>`
+        not `.HerokuConnectModel`. Only the final (not abstract) models should inherit
+        from `.HerokuConnectModel` otherwise build in fields will clash.
+
     Warning:
 
         The Salesforce object `User`_ object has no ``IsDeleted`` field. Therefore
