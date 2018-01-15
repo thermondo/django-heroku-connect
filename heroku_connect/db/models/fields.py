@@ -73,6 +73,19 @@ class ExternalID(HerokuConnectFieldMixin, models.UUIDField):
     External ID field for Salesforce objects.
 
     This field uses `uuid.uuid4` as a default UUID function.
+
+    The corresponding field in Salesforce must be type ``Text(32)``.
+    In Salesforce it will display the UUID as a HEX. It should be set
+    as ``External ID`` as well as ``unique`` (case insensitive).
+
+    The field should only be required on Salesforce if you want to insert
+    new records only your Backend.
+
+    Note:
+        Django does not use Database defaults, should you create new records
+        on Salesforce, you need to make sure Salesforce inserts UUIDs or
+        handle empty External ID fields in your Django application.
+
     """
 
     def __init__(self, *args, **kwargs):
