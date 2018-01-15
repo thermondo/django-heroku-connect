@@ -278,3 +278,56 @@ class TestHerokuConnectModelMixin:
             ],
             id='heroku_connect.E004',
         )]
+
+    def test_inheritance(self):
+        class DateMixin(models.Model):
+            date = hc_models.DateTime(sf_field_name='Date__c')
+
+            class Meta:
+                app_label = 'test'
+                abstract = True
+
+        class NameMixin(models.Model):
+            name = hc_models.Text(sf_field_name='Name')
+
+            class Meta:
+                app_label = 'test'
+                abstract = True
+
+        class NameDateMixin(DateMixin, NameMixin):
+            class Meta:
+                app_label = 'test'
+                abstract = True
+
+        class ChildModel(NameDateMixin, hc_models.HerokuConnectModel):
+            sf_object_name = 'My_Object__c'
+            number = hc_models.Number(sf_field_name='Number__c', upsert=True)
+
+            class Meta:
+                app_label = 'test'
+
+        mapping = ChildModel.get_heroku_connect_mapping()
+        assert mapping == {
+            'config':
+                {
+                    'access': 'read_only',
+                    'fields': {
+                        'Id': {},
+                        'IsDeleted': {},
+                        'SystemModstamp': {},
+                        'Date__c': {},
+                        'Name': {},
+                        'Number__c': {},
+                    },
+                    'indexes': {
+                        'Id': {'unique': True},
+                        'SystemModstamp': {'unique': False},
+                        'Number__c': {'unique': True},
+                    },
+                    'sf_max_daily_api_calls': 30000,
+                    'sf_notify_enabled': False,
+                    'sf_polling_seconds': 600,
+                    'upsert_field': 'Number__c',
+                },
+            'object_name': 'My_Object__c',
+        }
