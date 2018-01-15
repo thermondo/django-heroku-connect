@@ -38,3 +38,9 @@ the Salesforce ID ``sfid``.
 .. note::
     Always use an External ID, if you want to write to Heroku Connect,
     see: https://devcenter.heroku.com/articles/writing-data-to-salesforce-with-heroku-connect#simple-relationships-between-two-objects-and-relationship-external-ids
+
+``heroku_connect.E006``
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The Salesforce object name must be unique since an object can only mapped to a
+PostgreSQL table once.
