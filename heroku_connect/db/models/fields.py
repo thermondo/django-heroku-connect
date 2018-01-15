@@ -79,7 +79,7 @@ class ExternalID(HerokuConnectFieldMixin, models.UUIDField):
     as ``External ID`` as well as ``unique`` (case insensitive).
 
     The field should only be required on Salesforce if you want to insert
-    new records only your Backend.
+    new records only in your application.
 
     Note:
         Django does not use Database defaults, should you create new records
