@@ -1,24 +1,34 @@
 from django.core import checks
 from django.db import NotSupportedError, models
+from django.db.models import QuerySet
 
 from . import fields
 from ...conf import settings
 
-__all__ = ('HerokuConnectModel',)
+__all__ = ('HerokuConnectModel', 'HerokuConnectQuerySet')
 
 
-class HerokuConnectModelManager(models.Manager):
+OPERATION_UNAVAILABLE_ERROR_MESSAGE = '%s operation is not allowed on a ReadOnly model'
+
+
+class HerokuConnectQuerySet(QuerySet):
     def update(self, **kwargs):
-        if self.model.sf_access == 'read_only':
+        if self.model.is_readonly:
             raise NotSupportedError(
-                'Save/Update operation is not allowed for ReadOnly model')
-        return super(HerokuConnectModelManager, self).update(**kwargs)
+                OPERATION_UNAVAILABLE_ERROR_MESSAGE % 'Update')
+        return super().update(**kwargs)
 
     def delete(self):
-        if self.model.sf_access == 'read_only':
+        if self.model.is_readonly:
             raise NotSupportedError(
-                'Save/Update operation is not allowed for ReadOnly model')
-        return super(HerokuConnectModelManager, self).delete()
+                OPERATION_UNAVAILABLE_ERROR_MESSAGE % 'Delete')
+        return super().delete()
+
+    def bulk_create(self, **kwargs):
+        if self.model.is_readonly:
+            raise NotSupportedError(
+                OPERATION_UNAVAILABLE_ERROR_MESSAGE % 'Bulk Create')
+        return super().bulk_create(**kwargs)
 
 
 class HerokuConnectModelBase(models.base.ModelBase):
@@ -51,7 +61,7 @@ class HerokuConnectModelBase(models.base.ModelBase):
             new_class._meta.local_fields.remove(is_deleted)
 
         new_class._meta.managed = False
-        new_class.add_to_class('objects', HerokuConnectModelManager())
+        new_class.add_to_class('objects', HerokuConnectQuerySet.as_manager())
 
         return new_class
 
@@ -96,10 +106,13 @@ class HerokuConnectModel(models.Model, metaclass=HerokuConnectModelBase):
 
     """
 
+    READ_ONLY = 'read_only'
+    READ_WRITE = 'read_write'
+
     sf_object_name = ''
     """Salesforce object API name."""
 
-    sf_access = 'read_only'
+    sf_access = READ_ONLY
     """
     Heroku Connect Object access level.
 
@@ -216,7 +229,7 @@ class HerokuConnectModel(models.Model, metaclass=HerokuConnectModelBase):
 
     @classmethod
     def _check_sf_access(cls):
-        allowed_access_types = ['read_only', 'read_write']
+        allowed_access_types = [cls.READ_ONLY, cls.READ_WRITE]
         if cls.sf_access not in allowed_access_types:
             return [checks.Error(
                 "%s.%s.sf_access must be one of %s" % (
@@ -263,18 +276,18 @@ class HerokuConnectModel(models.Model, metaclass=HerokuConnectModelBase):
         errors.extend(cls._check_upsert_field())
         return errors
 
-    def delete(self, using=None, keep_parents=False):
-        if self.sf_access == 'read_only':
-            raise NotSupportedError(
-                'Delete operation is not allowed for ReadOnly model')
-        return super(HerokuConnectModel, self).delete(
-            using=using, keep_parents=keep_parents)
+    @classmethod
+    def is_readonly(cls):
+        return cls.sf_access == cls.READ_ONLY
 
-    def save(self, force_insert=False, force_update=False,
-             using=None, update_fields=None):
-        if self.sf_access == 'read_only':
+    def delete(self, *kwargs):
+        if self.is_readonly():
             raise NotSupportedError(
-                'Save/Update operation is not allowed for ReadOnly model')
-        return super(HerokuConnectModel, self).save(
-            force_insert=force_insert, force_update=force_update,
-            using=using, update_fields=update_fields)
+                OPERATION_UNAVAILABLE_ERROR_MESSAGE % 'Delete')
+        return super().delete(**kwargs)
+
+    def save(self, **kwargs):
+        if self.is_readonly():
+            raise NotSupportedError(
+                OPERATION_UNAVAILABLE_ERROR_MESSAGE % 'Save/Update')
+        return super().save(**kwargs)
