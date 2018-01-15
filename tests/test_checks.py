@@ -37,9 +37,16 @@ def test_check_unique_sf_object_name(monkeypatch):
                         lambda: [ModelA, ModelB])
     errors = _check_unique_sf_object_name(None)
     assert checks.Error(
-        "test.ModelB.sf_object_name clashes with another model.",
-        hint="Specify a unique 'sf_object_name' argument.",
+        "test.ModelA.sf_object_name clashes with another model.",
+        hint="Make sure your 'sf_object_name' is correct.",
         id='heroku_connect.E006',
+        obj=ModelA,
+    ) in errors
+    assert checks.Error(
+        "test.ModelB.sf_object_name clashes with another model.",
+        hint="Make sure your 'sf_object_name' is correct.",
+        id='heroku_connect.E006',
+        obj=ModelB,
     ) in errors
 
 
