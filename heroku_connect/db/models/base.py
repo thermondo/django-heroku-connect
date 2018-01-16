@@ -64,7 +64,7 @@ class HerokuConnectModel(models.Model, metaclass=HerokuConnectModelBase):
 
         A model mixin must inherit from :class:`Meta.managed<django.db.models.Model>`
         not `.HerokuConnectModel`. Only the final (not abstract) models should inherit
-        from `.HerokuConnectModel` otherwise build in fields will clash.
+        from `.HerokuConnectModel` otherwise build-in fields will clash.
 
     Warning:
 
