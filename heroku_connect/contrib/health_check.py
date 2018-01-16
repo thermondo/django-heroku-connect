@@ -3,11 +3,12 @@ import logging
 import urllib.request
 from urllib.error import URLError
 
-from ..conf import settings
 from health_check.backends import BaseHealthCheckBackend
 from health_check.exceptions import (
     ServiceReturnedUnexpectedResult, ServiceUnavailable
 )
+
+from ..conf import settings
 
 logger = logging.getLogger('heroku-health-check')
 
@@ -34,7 +35,8 @@ class HerokuConnectHealthCheck(BaseHealthCheckBackend):
         """
         Return ConnectionId from the JSON response of the connections api call.
 
-        For more details check https://devcenter.heroku.com/articles/heroku-connect-api#step-4-retrieve-the-new-connection-s-id
+        For more details check the link -
+        https://devcenter.heroku.com/articles/heroku-connect-api#step-4-retrieve-the-new-connection-s-id
 
         Sample response from the api call is below::
 
@@ -66,7 +68,8 @@ class HerokuConnectHealthCheck(BaseHealthCheckBackend):
         """
         Get Connection Status from the JSON response of the connection detail api call.
 
-        For more details https://devcenter.heroku.com/articles/heroku-connect-api#step-8-monitor-the-connection-and-mapping-status
+        For more details check the link -
+        https://devcenter.heroku.com/articles/heroku-connect-api#step-8-monitor-the-connection-and-mapping-status
 
         Sample response from api call is below::
 
