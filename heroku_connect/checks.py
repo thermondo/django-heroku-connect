@@ -43,8 +43,8 @@ def _check_unique_sf_object_name(app_configs, **kwargs):
         if len(models) > 1:
             for model in models:
                 errors.append(Error(
-                    "%s.%s.sf_object_name clashes with another model." % (
-                        model._meta.app_label, model.__name__),
+                    "%s.%s.sf_object_name '%s' clashes with another model." % (
+                        model._meta.app_label, model.__name__, sf_object_name),
                     hint="Make sure your 'sf_object_name' is correct.",
                     id='heroku_connect.E006',
                     obj=model
