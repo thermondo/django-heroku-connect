@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from django.apps import apps
 from django.core.checks import Error
 
@@ -33,18 +35,19 @@ def _check_foreign_key_target(app_configs, **kwargs):
 
 def _check_unique_sf_object_name(app_configs, **kwargs):
     errors = []
-    models = set(get_heroku_connect_models())
-    unique_models = set({
-        model.sf_object_name: model
-        for model in models
-    }.values())
+    model_map = defaultdict(list)
+    for model in get_heroku_connect_models():
+        model_map[model.sf_object_name].append(model)
 
-    for model in models - unique_models:
-        errors.append(Error(
-            "%s.%s.sf_object_name clashes with another model." % (
-                model._meta.app_label, model.__name__),
-            hint="Specify a unique 'sf_object_name' argument.",
-            id='heroku_connect.E006',
-        ))
+    for sf_object_name, models in model_map.items():
+        if len(models) > 1:
+            for model in models:
+                errors.append(Error(
+                    "%s.%s.sf_object_name '%s' clashes with another model." % (
+                        model._meta.app_label, model.__name__, sf_object_name),
+                    hint="Make sure your 'sf_object_name' is correct.",
+                    id='heroku_connect.E006',
+                    obj=model
+                ))
 
     return errors
