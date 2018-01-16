@@ -39,11 +39,17 @@ class HerokuConnectAppConf(AppConf):
 
     HEROKU_AUTH_TOKEN = os.environ.get('HEROKU_AUTH_TOKEN', '')
     """
-    Heroku Authentication Token.
+    Heroku Platform API's Direct Authorization token.
 
-    This setting is OPTIONAL. Used only if using health-check.
-    For more details - https://devcenter.heroku.com/articles/heroku-connect-api#authentication
+    This setting is OPTIONAL. It is required only if you are using the :class:`health-check<.contrib.health_check.HerokuConnectHealthCheck>` app.
 
+    To obtain this token, first we need to have a Heroku API token.
+
+    API token can be fetched using heroku-cli command `heroku auth:token`.
+    More about Heroku API tokens here https://devcenter.heroku.com/articles/authentication#retrieving-the-api-token.
+
+    After we have our API token, we can fetch the Direct Authentication token by using a process called Token Exchange.
+    Complete details about this process here - https://devcenter.heroku.com/articles/oauth#direct-authorization-token-exchange.
     """
 
     HEROKU_CONNECT_API_ENDPOINT = os.environ.get('HEROKU_CONNECT_API_ENDPOINT',
@@ -51,8 +57,8 @@ class HerokuConnectAppConf(AppConf):
     """
     Heroku Connect API Endpoint.
 
-    This setting is OPTIONAL. Used only if using health-check.
-    Default is https://connect-eu.heroku.com/api/v3
+    This setting is OPTIONAL. It is required only if you are using the :class:`health-check<.contrib.health_check.HerokuConnectHealthCheck>` app.
+    Default is ``https://connect-eu.heroku.com/api/v3``.
 
     Check your endpoints at https://devcenter.heroku.com/articles/heroku-connect-api#endpoints.
 

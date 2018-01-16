@@ -1,8 +1,9 @@
 import json
 import logging
-import subprocess
+import urllib.request
+from urllib.error import URLError
 
-from django.conf import settings
+from ..conf import settings
 from health_check.backends import BaseHealthCheckBackend
 from health_check.exceptions import (
     ServiceReturnedUnexpectedResult, ServiceUnavailable
@@ -15,7 +16,9 @@ class HerokuConnectHealthCheck(BaseHealthCheckBackend):
     """
     Health Check for Heroku Connect.
 
-    This features requires `django-health-check`_ to be installed.
+    Note:
+
+        This features requires `django-health-check`_ to be installed.
 
     .. _`django-health-check`: https://github.com/KristianOellegaard/django-health-check
     """
@@ -35,29 +38,28 @@ class HerokuConnectHealthCheck(BaseHealthCheckBackend):
 
         Sample response from the api call is below::
 
-          {
-            "count": 1,
-            "results":[{
-                "id": "<connection_id>",
-                "name": "<app_name>",
-                "resource_name": "<resource_name>",
+            {
+                "count": 1,
+                "results":[{
+                    "id": "<connection_id>",
+                    "name": "<app_name>",
+                    "resource_name": "<resource_name>",
+                    …
+                }],
                 …
-            }],
-            …
-          }
+            }
 
         """
-        run_args = ['curl',
-                    '-H', '"Authorization: Bearer %s"' % settings.HEROKU_AUTH_TOKEN,
-                    '%s/v3/connections?app=%s' % (settings.HEROKU_CONNECT_API_ENDPOINT,
-                                                  settings.HEROKU_CONNECT_APP_NAME)
-                    ]
+        req = urllib.request.Request('%s/v3/connections?app=%s' % (
+            settings.HEROKU_CONNECT_API_ENDPOINT, settings.HEROKU_CONNECT_APP_NAME))
+        req.add_header('-H', '"Authorization: Bearer %s"' % settings.HEROKU_AUTH_TOKEN)
         try:
-            output = subprocess.check_output(run_args)
-        except subprocess.SubprocessError as e:
-            raise ServiceReturnedUnexpectedResult(e)
+            output = urllib.request.urlopen(req)
+        except URLError as e:
+            raise ServiceReturnedUnexpectedResult(
+                'Unable to fetch connectons') from e
 
-        json_output = json.loads(output)
+        json_output = json.loads(output.read().decode())
         return json_output['results'][0]['id']
 
     def get_connection_status(self, connection_id):
@@ -68,41 +70,42 @@ class HerokuConnectHealthCheck(BaseHealthCheckBackend):
 
         Sample response from api call is below::
 
-          {
-            "id": "<connection_id>",
-            "name": "<app_name>",
-            "resource_name": "<resource_name>",
-            "schema_name": "salesforce",
-            "db_key": "DATABASE_URL",
-            "state": "IDLE",
-            "mappings":[
-              {
-                "id": "<mapping_id>",
-                "object_name": "Account",
-                "state": "SCHEMA_CHANGED",
+            {
+                "id": "<connection_id>",
+                "name": "<app_name>",
+                "resource_name": "<resource_name>",
+                "schema_name": "salesforce",
+                "db_key": "DATABASE_URL",
+                "state": "IDLE",
+                "mappings":[
+                    {
+                        "id": "<mapping_id>",
+                        "object_name": "Account",
+                        "state": "SCHEMA_CHANGED",
+                        …
+                    },
+                    {
+                        "id": "<mapping_id>",
+                        "object_name": "Contact",
+                        "state": "SCHEMA_CHANGED",
+                        …
+                    },
+                    …
+                ]
                 …
-              },
-              {
-                "id": "<mapping_id>",
-                "object_name": "Contact",
-                "state": "SCHEMA_CHANGED",
-                …
-              },
-              …
-            ]
-            …
-          }
+            }
         """
-        run_args = ['curl',
-                    '-H', '"Authorization: Bearer %s"' % settings.HEROKU_AUTH_TOKEN,
-                    '%s/connections/%s?deep=true' % (settings.HEROKU_CONNECT_API_ENDPOINT, connection_id)
-                    ]
-        try:
-            output = subprocess.check_output(run_args)
-        except subprocess.SubprocessError as e:
-            raise ServiceReturnedUnexpectedResult(e)
+        req = urllib.request.Request('%s/connections/%s?deep=true' % (
+            settings.HEROKU_CONNECT_API_ENDPOINT, connection_id))
+        req.add_header('-H', '"Authorization: Bearer %s"' % settings.HEROKU_AUTH_TOKEN)
 
-        json_output = json.loads(output)
+        try:
+            output = urllib.request.urlopen(req)
+        except URLError as e:
+            raise ServiceReturnedUnexpectedResult(
+                'Unable to fetch connection details') from e
+
+        json_output = json.loads(output.read().decode())
         connection_state = json_output['state']
         if connection_state == 'IDLE':
             return True
