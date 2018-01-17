@@ -112,7 +112,7 @@ def get_connection_id():
     For more details check the link -
     https://devcenter.heroku.com/articles/heroku-connect-api#step-4-retrieve-the-new-connection-s-id
 
-    Sample response from the api call is below::
+    Sample response from the API call is below::
 
         {
             "count": 1,
@@ -129,7 +129,7 @@ def get_connection_id():
         String: The connection ID.
 
     Raises:
-        ServiceReturnedUnexpectedResult: An error occured when accessing the connections API.
+        ServiceReturnedUnexpectedResult: An error occurred when accessing the connections API.
 
     """
     req = urllib.request.Request('%s/v3/connections?app=%s' % (
@@ -152,7 +152,7 @@ def get_connection_status(connection_id):
     For more details check the link -
     https://devcenter.heroku.com/articles/heroku-connect-api#step-8-monitor-the-connection-and-mapping-status
 
-    Sample response from api call is below::
+    Sample response from API call is below::
 
         {
             "id": "<connection_id>",
@@ -186,7 +186,7 @@ def get_connection_status(connection_id):
         bool: ``True`` if connection state is 'IDLE' else ``False``
 
     Raises:
-        ServiceReturnedUnexpectedResult: An error occured when accessing the connection detail API.
+        ServiceReturnedUnexpectedResult: An error occurred when accessing the connection detail API.
 
     """
     req = urllib.request.Request('%s/connections/%s?deep=true' % (

@@ -46,7 +46,7 @@ class HerokuConnectAppConf(AppConf):
 
     To obtain this token, first we need to have a Heroku API token.
 
-    API token can be fetched using heroku-cli command `heroku auth:token`.
+    API token can be fetched using command `heroku auth:token`.
     More about Heroku API tokens here -
     https://devcenter.heroku.com/articles/authentication#retrieving-the-api-token.
 
