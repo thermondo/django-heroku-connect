@@ -130,6 +130,7 @@ def get_connection_id():
 
     Raises:
         ServiceReturnedUnexpectedResult: An error occured when accessing the connections API.
+
     """
     req = urllib.request.Request('%s/v3/connections?app=%s' % (
         settings.HEROKU_CONNECT_API_ENDPOINT, settings.HEROKU_CONNECT_APP_NAME))
@@ -186,6 +187,7 @@ def get_connection_status(connection_id):
 
     Raises:
         ServiceReturnedUnexpectedResult: An error occured when accessing the connection detail API.
+
     """
     req = urllib.request.Request('%s/connections/%s?deep=true' % (
         settings.HEROKU_CONNECT_API_ENDPOINT, connection_id))
