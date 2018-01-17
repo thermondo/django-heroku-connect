@@ -57,6 +57,7 @@ class TestHerokuConnectModelMixin:
             migration = f.read()
         shutil.rmtree(os.path.join(settings.BASE_DIR, 'testapp/migrations'))
         assert "'managed': False," in migration
+        assert "'db_table': 'salesforce\".\"number_object__c'," in migration
 
     def test_empty_mapping(self):
         class MyModel(hc_models.HerokuConnectModel):

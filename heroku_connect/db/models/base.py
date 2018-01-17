@@ -18,22 +18,23 @@ class HerokuConnectModelBase(models.base.ModelBase):
     def __new__(mcs, name, bases, attrs):
         super_new = super(HerokuConnectModelBase, mcs).__new__
         _meta = attrs.get('Meta', None)
-        if _meta is not None:
-            attrs['Meta'].managed = False
-
-        new_class = super_new(mcs, name, bases, attrs)
-        if _meta is None or not hasattr(_meta, 'db_table'):
-            new_class._meta.db_table = '{schema}"."{table}'.format(
+        if _meta is None:
+            class Meta:
+                pass
+            _meta = Meta
+            attrs['Meta'] = _meta
+        _meta.managed = False
+        if not hasattr(_meta, 'db_table') or not _meta.db_table:
+            _meta.db_table = '{schema}"."{table}'.format(
                 schema=settings.HEROKU_CONNECT_SCHEMA,
-                table=new_class.sf_object_name.lower(),
+                table=attrs.get('sf_object_name', '').lower(),
             )
+        new_class = super_new(mcs, name, bases, attrs)
 
         # User object in Heroku Connect has no is_deleted field.
         if new_class.sf_object_name == 'User':
             is_deleted = [x for x in new_class._meta.local_fields if x.name == 'is_deleted'][0]
             new_class._meta.local_fields.remove(is_deleted)
-
-        new_class._meta.managed = False
 
         return new_class
 
