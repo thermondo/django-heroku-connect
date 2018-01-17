@@ -6,7 +6,7 @@ from health_check.exceptions import ServiceUnavailable
 from ..conf import settings
 from ..utils import get_connection_id, get_connection_status
 
-logger = logging.getLogger('heroku-health-check')
+logger = logging.getLogger('heroku_connect')
 
 
 class HerokuConnectHealthCheck(BaseHealthCheckBackend):
