@@ -16,6 +16,11 @@ def test_check_foreign_key_target():
         hint="Specify the 'to_field' argument.",
         id='heroku_connect.E005',
     ) in errors
+    assert checks.Error(
+        "testapp.OtherModel.other_number should point to an External ID or the 'sf_id', not 'id'.",
+        hint="Specify the 'to_field' argument.",
+        id='heroku_connect.E005',
+    ) in errors
 
 
 def test_check_unique_sf_object_name(monkeypatch):

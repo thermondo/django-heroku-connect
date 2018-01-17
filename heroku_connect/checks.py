@@ -23,13 +23,20 @@ def _check_foreign_key_target(app_configs, **kwargs):
         )
 
         for field in relations_to_hc_models:
-            if 'id' in field.to_fields:
-                errors.append(Error(
-                    "%s should point to an External ID or the 'sf_id', not 'id'." % field,
-                    hint="Specify the 'to_field' argument.",
-                    id='heroku_connect.E005',
-                ))
-
+            try:
+                if field.target_field.name == 'id':
+                    errors.append(Error(
+                        "%s should point to an External ID or the 'sf_id', not 'id'." % field,
+                        hint="Specify the 'to_field' argument.",
+                        id='heroku_connect.E005',
+                    ))
+            except AttributeError:
+                if 'id' in field.to_fields:
+                    errors.append(Error(
+                        "%s should point to an External ID or the 'sf_id', not 'id'." % field,
+                        hint="Specify the 'to_field' argument.",
+                        id='heroku_connect.E005',
+                    ))
     return errors
 
 
