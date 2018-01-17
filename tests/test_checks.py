@@ -12,17 +12,20 @@ from heroku_connect.db.models import HerokuConnectModel
 def test_check_foreign_key_target():
     errors = _check_foreign_key(None)
     assert checks.Error(
-        "testapp.OtherModel.number should point to an External ID or the 'sf_id', not 'id'.",
+        "testapp.OtherModel.number should point to an External "
+        "ID or the 'sf_id', not 'id'.",
         hint="Specify the 'to_field' argument.",
         id='heroku_connect.E005',
     ) in errors
     assert checks.Error(
-        "testapp.OtherModel.other_number should point to an External ID or the 'sf_id', not 'id'.",
+        "testapp.OtherModel.other_number should point to "
+        "an External ID or the 'sf_id', not 'id'.",
         hint="Specify the 'to_field' argument.",
         id='heroku_connect.E005',
     ) in errors
     assert checks.Error(
-        "testapp.OtherModel_more_numbers.numbermodel should point to an External ID or the 'sf_id', not 'id'.",
+        "testapp.OtherModel_more_numbers.numbermodel should "
+        "point to an External ID or the 'sf_id', not 'id'.",
         hint="Specify the 'to_field' argument.",
         id='heroku_connect.E005',
     ) in errors
