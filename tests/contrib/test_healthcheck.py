@@ -1,5 +1,6 @@
 from unittest import mock
 
+from heroku_connect import utils
 from heroku_connect.contrib.health_check import HerokuConnectHealthCheck
 
 
@@ -42,13 +43,13 @@ CONNECTION_DETAILS_API_CALL_OUTPUT = """{
 @mock.patch('urllib.request.urlopen')
 def test_all_connections_api(mock_get):
     mock_get.return_value = MockUrlLibResponse(ALL_CONNECTIONS_API_CALL_OUTPUT)
-    assert(HerokuConnectHealthCheck().get_connection_id() == '1')
+    assert(utils.get_connection_id() == '1')
 
 
 @mock.patch('urllib.request.urlopen')
 def test_connection_detail_api(mock_get):
     mock_get.return_value = MockUrlLibResponse(CONNECTION_DETAILS_API_CALL_OUTPUT)
-    assert(HerokuConnectHealthCheck().get_connection_status(1))
+    assert(utils.get_connection_status(1))
 
 
 @mock.patch('urllib.request.urlopen')
