@@ -23,7 +23,8 @@ class NumberModel(hc_models.HerokuConnectModel):
 
 class OtherModel(models.Model):
     number = models.ForeignKey(NumberModel, on_delete=models.CASCADE)
-    other_number = models.ForeignKey('testapp.NumberModel', on_delete=models.CASCADE)
+    other_number = models.ForeignKey('testapp.NumberModel',
+                                     on_delete=models.CASCADE, db_constraint=False)
 
 
 class DateTimeModel(hc_models.HerokuConnectModel):

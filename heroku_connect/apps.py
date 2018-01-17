@@ -9,7 +9,7 @@ class HerokuConnectAppConfig(AppConfig):
     verbose_name = "Heroku Connect"
 
     def ready(self):
-        from .checks import _check_foreign_key_target, _check_unique_sf_object_name
+        from .checks import _check_foreign_key, _check_unique_sf_object_name
 
-        checks.register(_check_foreign_key_target, checks.Tags.models)
+        checks.register(_check_foreign_key, checks.Tags.models)
         checks.register(_check_unique_sf_object_name, checks.Tags.models)
