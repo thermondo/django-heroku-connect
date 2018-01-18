@@ -1,5 +1,7 @@
 from unittest import mock
+from urllib.error import URLError
 
+import pytest
 from django.db import models
 from django.utils import timezone
 
@@ -141,10 +143,18 @@ def test_get_mapping(settings):
 @mock.patch('urllib.request.urlopen')
 def test_all_connections_api(mock_get):
     mock_get.return_value = MockUrlLibResponse(ALL_CONNECTIONS_API_CALL_OUTPUT)
-    assert(utils.get_connection_id() == '1')
+    assert utils.get_connection_id() == '1'
+    mock_get.side_effect = URLError('not found')
+    with pytest.raises(URLError) as e:
+        utils.get_connection_id()
+    assert 'Unable to fetch connections' in str(e)
 
 
 @mock.patch('urllib.request.urlopen')
 def test_connection_detail_api(mock_get):
     mock_get.return_value = MockUrlLibResponse(CONNECTION_DETAILS_API_CALL_OUTPUT)
-    assert(utils.get_connection_status(1) == 'IDLE')
+    assert utils.get_connection_status('1') == 'IDLE'
+    mock_get.side_effect = URLError('not found')
+    with pytest.raises(URLError) as e:
+        utils.get_connection_status('1')
+    assert 'Unable to fetch connection details' in str(e)

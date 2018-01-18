@@ -138,8 +138,8 @@ def get_connection_id():
     req.add_header('-H', '"Authorization: Bearer %s"' % settings.HEROKU_AUTH_TOKEN)
     try:
         output = urllib.request.urlopen(req)
-    except URLError:
-        raise URLError('Unable to fetch connectons')
+    except URLError as e:
+        raise URLError('Unable to fetch connections') from e
 
     json_output = json.load(output)
     return json_output['results'][0]['id']
@@ -195,8 +195,8 @@ def get_connection_status(connection_id):
 
     try:
         output = urllib.request.urlopen(req)
-    except URLError:
-        raise URLError('Unable to fetch connection details')
+    except URLError as e:
+        raise URLError('Unable to fetch connection details') from e
 
     json_output = json.load(output)
     return json_output['state']
