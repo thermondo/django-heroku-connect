@@ -42,7 +42,7 @@ class HerokuConnectAppConf(AppConf):
     Heroku Platform API's Direct Authorization token.
 
     This setting is OPTIONAL. It is required only if you are using the
-    :class:`health-check<.contrib.health_check.HerokuConnectHealthCheck>` app.
+    :class:`health-check<.contrib.health_check.HerokuConnectHealthCheck>` application.
 
     To obtain this token, first we need to have a Heroku API token.
 
@@ -63,7 +63,7 @@ class HerokuConnectAppConf(AppConf):
     Heroku Connect API Endpoint.
 
     This setting is OPTIONAL. It is required only if you are using the
-    :class:`health-check<.contrib.health_check.HerokuConnectHealthCheck>` app.
+    :class:`health-check<.contrib.health_check.HerokuConnectHealthCheck>` application.
     Default is ``https://connect-eu.heroku.com/api/v3``.
 
     Check your endpoints at this link -

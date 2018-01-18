@@ -1,10 +1,11 @@
+"""Utility methods for Django Heroku Connect."""
+
 import json
 import urllib.request
 from urllib.error import URLError
 
 from django.db import DEFAULT_DB_ALIAS, connections
 from django.utils import timezone
-from health_check.exceptions import ServiceReturnedUnexpectedResult
 
 from .conf import settings
 
@@ -129,7 +130,7 @@ def get_connection_id():
         String: The connection ID.
 
     Raises:
-        ServiceReturnedUnexpectedResult: An error occurred when accessing the connections API.
+        URLError: An error occurred when accessing the connections API.
 
     """
     req = urllib.request.Request('%s/v3/connections?app=%s' % (
@@ -137,11 +138,10 @@ def get_connection_id():
     req.add_header('-H', '"Authorization: Bearer %s"' % settings.HEROKU_AUTH_TOKEN)
     try:
         output = urllib.request.urlopen(req)
-    except URLError as e:
-        raise ServiceReturnedUnexpectedResult(
-            'Unable to fetch connectons') from e
+    except URLError:
+        raise URLError('Unable to fetch connectons')
 
-    json_output = json.loads(output.read().decode())
+    json_output = json.load(output)
     return json_output['results'][0]['id']
 
 
@@ -183,10 +183,10 @@ def get_connection_status(connection_id):
         connection_id (str): ID for Heroku Connect's connection.
 
     Returns:
-        bool: ``True`` if connection state is 'IDLE' else ``False``
+        String: State for the Heroku Connect's connection.
 
     Raises:
-        ServiceReturnedUnexpectedResult: An error occurred when accessing the connection detail API.
+        URLError: An error occurred when accessing the connection detail API.
 
     """
     req = urllib.request.Request('%s/connections/%s?deep=true' % (
@@ -195,11 +195,8 @@ def get_connection_status(connection_id):
 
     try:
         output = urllib.request.urlopen(req)
-    except URLError as e:
-        raise ServiceReturnedUnexpectedResult(
-            'Unable to fetch connection details') from e
+    except URLError:
+        raise URLError('Unable to fetch connection details')
 
-    json_output = json.loads(output.read().decode())
-    connection_state = json_output['state']
-    if connection_state == 'IDLE':
-        return True
+    json_output = json.load(output)
+    return json_output['state']
