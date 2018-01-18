@@ -1,10 +1,11 @@
 -e .
 coverage
+django-health-check
 isort
 psycopg2
 pyenchant
 pytest
 pytest-django
-sphinxcontrib-spelling
 sphinx
-django-health-check
+sphinx_rtd_theme
+sphinxcontrib-spelling

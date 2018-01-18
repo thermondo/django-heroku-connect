@@ -20,6 +20,8 @@
 # import os
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
+import importlib
+import inspect
 import sys
 import os
 
@@ -47,7 +49,39 @@ extensions = [
     'sphinx.ext.intersphinx',
     'sphinx.ext.githubpages',
     'sphinxcontrib.spelling',
+    'sphinx.ext.linkcode',
 ]
+
+
+def linkcode_resolve(domain, info):
+    """Link source code to GitHub."""
+    project = 'django-heroku-connect'
+    github_user = 'Thermondo'
+    head = 'master'
+
+    if domain != 'py' or not info['module']:
+        return None
+    filename = info['module'].replace('.', '/')
+    mod = importlib.import_module(info['module'])
+    basename = os.path.splitext(mod.__file__)[0]
+    if basename.endswith('__init__'):
+        filename += '/__init__'
+    item = mod
+    lineno = ''
+
+    for piece in info['fullname'].split('.'):
+        try:
+            item = getattr(item, piece)
+        except AttributeError:
+            pass
+        try:
+            lines, first_line = inspect.getsourcelines(item)
+            lineno = '#L%d-L%s' % (first_line, first_line + len(lines) - 1)
+        except (TypeError, IOError):
+            pass
+    return ("https://github.com/%s/%s/blob/%s/%s.py%s" %
+            (github_user, project, head, filename, lineno))
+
 
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
@@ -96,28 +130,10 @@ todo_include_todos = False
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
+import sphinx_rtd_theme
 
-# Theme options are theme-specific and customize the look and feel of a theme
-# further.  For a list of options available for each theme, see the
-# documentation.
-#
-# html_theme_options = {}
-
-# Custom sidebar templates, must be a dictionary that maps document names
-# to template names.
-#
-# This is required for the alabaster theme
-# refs: http://alabaster.readthedocs.io/en/latest/installation.html#sidebars
-html_sidebars = {
-    '**': [
-        'about.html',
-        'navigation.html',
-        'relations.html',  # needs 'show_related': True theme option to display
-        'searchbox.html',
-    ]
-}
-
+html_theme = 'sphinx_rtd_theme'
+html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 # -- Options for HTMLHelp output ------------------------------------------
 
