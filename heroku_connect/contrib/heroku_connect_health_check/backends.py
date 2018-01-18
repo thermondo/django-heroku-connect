@@ -2,8 +2,8 @@
 
 import logging
 
-from ..conf import settings
-from ..utils import get_connection_id, get_connection_status
+from ...conf import settings
+from ...utils import get_connection_id, get_connection_status
 
 try:
     from health_check.backends import BaseHealthCheckBackend
@@ -17,15 +17,8 @@ logger = logging.getLogger('health-check')
 
 
 class HerokuConnectHealthCheck(BaseHealthCheckBackend):
-    """
-    Health Check for Heroku Connect.
-
-    Note:
-
-        This features requires `django-health-check`_ to be installed.
-
-    .. _`django-health-check`: https://github.com/KristianOellegaard/django-health-check
-    """
+    def identifier(self):
+        return "Heroku Connect"
 
     def check_status(self):
         if not (settings.HEROKU_AUTH_TOKEN and settings.HEROKU_CONNECT_APP_NAME):

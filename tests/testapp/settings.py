@@ -27,6 +27,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'heroku_connect',
+    'health_check',
+    'heroku_connect.contrib.heroku_connect_health_check',
 
     'tests.testapp',
 ]

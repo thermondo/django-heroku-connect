@@ -4,5 +4,5 @@ Contrib
 Health Check
 ------------
 
-.. autoclass:: heroku_connect.contrib.health_check.HerokuConnectHealthCheck
+.. automodule:: heroku_connect.contrib.heroku_connect_health_check
     :members:
