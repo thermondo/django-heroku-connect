@@ -4,7 +4,9 @@ from unittest import mock
 import pytest
 from health_check.exceptions import ServiceUnavailable
 
-from heroku_connect.contrib.heroku_connect_health_check.backends import HerokuConnectHealthCheck
+from heroku_connect.contrib.heroku_connect_health_check.backends import (
+    HerokuConnectHealthCheck
+)
 from tests.test_utils import (
     ALL_CONNECTIONS_API_CALL_OUTPUT, CONNECTION_DETAILS_API_CALL_OUTPUT,
     MockUrlLibResponse
