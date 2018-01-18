@@ -1,8 +1,48 @@
+from unittest import mock
+from urllib.error import URLError
+
+import pytest
 from django.db import models
 from django.utils import timezone
 
 from heroku_connect import utils
 from heroku_connect.db.models import HerokuConnectModel
+
+
+class MockUrlLibResponse:
+    def __init__(self, data):
+        self.data = data
+
+    def read(self):
+        return self.data.encode()
+
+
+ALL_CONNECTIONS_API_CALL_OUTPUT = """{
+        "count": 1,
+        "results": [
+            {
+              "id": "1",
+              "name": "sample name",
+              "resource_name": "resource name"
+            }
+        ]
+    }"""
+
+CONNECTION_DETAILS_API_CALL_OUTPUT = """{
+        "id": "1",
+        "name": "sample name",
+        "resource_name": "resource name",
+        "schema_name": "salesforce",
+        "db_key": "DATABASE_URL",
+        "state": "IDLE",
+        "mappings": [
+            {
+              "id": "XYZ",
+              "object_name": "Account",
+              "state": "SCHEMA_CHANGED"
+            }
+        ]
+    }"""
 
 
 def test_get_heroku_connect_models():
@@ -136,3 +176,23 @@ def test_get_mapping(settings):
             'object_name': 'DateTime_Object__c'
         },
     ]
+
+
+@mock.patch('urllib.request.urlopen')
+def test_all_connections_api(mock_get):
+    mock_get.return_value = MockUrlLibResponse(ALL_CONNECTIONS_API_CALL_OUTPUT)
+    assert utils.get_connection_id() == '1'
+    mock_get.side_effect = URLError('not found')
+    with pytest.raises(URLError) as e:
+        utils.get_connection_id()
+    assert 'Unable to fetch connections' in str(e)
+
+
+@mock.patch('urllib.request.urlopen')
+def test_connection_detail_api(mock_get):
+    mock_get.return_value = MockUrlLibResponse(CONNECTION_DETAILS_API_CALL_OUTPUT)
+    assert utils.get_connection_status('1') == 'IDLE'
+    mock_get.side_effect = URLError('not found')
+    with pytest.raises(URLError) as e:
+        utils.get_connection_status('1')
+    assert 'Unable to fetch connection details' in str(e)

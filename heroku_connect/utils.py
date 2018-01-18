@@ -1,3 +1,9 @@
+"""Utility methods for Django Heroku Connect."""
+
+import json
+import urllib.request
+from urllib.error import URLError
+
 from django.db import DEFAULT_DB_ALIAS, connections
 from django.utils import timezone
 
@@ -98,3 +104,99 @@ def create_heroku_connect_schema(using=DEFAULT_DB_ALIAS, **kwargs):
         for model in get_heroku_connect_models():
             editor.create_model(model)
     return True
+
+
+def get_connection_id():
+    """
+    Get the first Heroku Connect's Connection ID from the connections API response.
+
+    For more details check the link -
+    https://devcenter.heroku.com/articles/heroku-connect-api#step-4-retrieve-the-new-connection-s-id
+
+    Sample response from the API call is below::
+
+        {
+            "count": 1,
+            "results":[{
+                "id": "<connection_id>",
+                "name": "<app_name>",
+                "resource_name": "<resource_name>",
+                …
+            }],
+            …
+        }
+
+    Returns:
+        String: The connection ID.
+
+    Raises:
+        URLError: An error occurred when accessing the connections API.
+
+    """
+    req = urllib.request.Request('%s/v3/connections?app=%s' % (
+        settings.HEROKU_CONNECT_API_ENDPOINT, settings.HEROKU_CONNECT_APP_NAME))
+    req.add_header('-H', '"Authorization: Bearer %s"' % settings.HEROKU_AUTH_TOKEN)
+    try:
+        output = urllib.request.urlopen(req)
+    except URLError as e:
+        raise URLError('Unable to fetch connections') from e
+
+    json_output = json.load(output)
+    return json_output['results'][0]['id']
+
+
+def get_connection_status(connection_id):
+    """
+    Get Connection Status from the connection detail API response.
+
+    For more details check the link -
+    https://devcenter.heroku.com/articles/heroku-connect-api#step-8-monitor-the-connection-and-mapping-status
+
+    Sample response from API call is below::
+
+        {
+            "id": "<connection_id>",
+            "name": "<app_name>",
+            "resource_name": "<resource_name>",
+            "schema_name": "salesforce",
+            "db_key": "DATABASE_URL",
+            "state": "IDLE",
+            "mappings":[
+                {
+                    "id": "<mapping_id>",
+                    "object_name": "Account",
+                    "state": "SCHEMA_CHANGED",
+                    …
+                },
+                {
+                    "id": "<mapping_id>",
+                    "object_name": "Contact",
+                    "state": "SCHEMA_CHANGED",
+                    …
+                },
+                …
+            ]
+            …
+        }
+
+    Args:
+        connection_id (str): ID for Heroku Connect's connection.
+
+    Returns:
+        String: State for the Heroku Connect's connection.
+
+    Raises:
+        URLError: An error occurred when accessing the connection detail API.
+
+    """
+    req = urllib.request.Request('%s/connections/%s?deep=true' % (
+        settings.HEROKU_CONNECT_API_ENDPOINT, connection_id))
+    req.add_header('-H', '"Authorization: Bearer %s"' % settings.HEROKU_AUTH_TOKEN)
+
+    try:
+        output = urllib.request.urlopen(req)
+    except URLError as e:
+        raise URLError('Unable to fetch connection details') from e
+
+    json_output = json.load(output)
+    return json_output['state']

@@ -16,6 +16,14 @@ Including another URLconf
 from django.conf.urls import url
 from django.contrib import admin
 
+try:
+    from django.urls import include
+except ImportError:
+    # Django 1.11
+    from django.conf.urls import include
+
+
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
+    url(r'^ht/', include('health_check.urls')),
 ]

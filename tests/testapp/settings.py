@@ -27,6 +27,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'heroku_connect',
+    'health_check',
+    'heroku_connect.contrib.heroku_connect_health_check',
 
     'tests.testapp',
 ]
@@ -116,3 +118,5 @@ STATIC_URL = '/static/'
 
 HEROKU_CONNECT_APP_NAME = 'ninja'
 HEROKU_CONNECT_ORGANIZATION_ID = '1234567890'
+HEROKU_AUTH_TOKEN = '1111111'
+HEROKU_CONNECT_API_ENDPOINT = 'https://connect-eu.heroku.com/api/v3'
