@@ -44,6 +44,7 @@ class HerokuConnectModelBase(models.base.ModelBase):
         _meta = attrs.get('Meta', None)
         if _meta is not None:
             attrs['Meta'].managed = False
+            attrs['Meta'].base_manager_name = 'hc_base_manager'
 
         new_class = super_new(mcs, name, bases, attrs)
         if _meta is None or not hasattr(_meta, 'db_table'):
@@ -58,8 +59,7 @@ class HerokuConnectModelBase(models.base.ModelBase):
             new_class._meta.local_fields.remove(is_deleted)
 
         new_class._meta.managed = False
-        new_class.add_to_class('objects', HerokuConnectQuerySet.as_manager())
-
+        new_class._meta.base_manager_name = 'hc_base_manager'
         return new_class
 
 
@@ -152,9 +152,13 @@ class HerokuConnectModel(models.Model, metaclass=HerokuConnectModelBase):
                   ' information about the error',
     )
 
+    objects = HerokuConnectQuerySet.as_manager()
+    hc_base_manager = HerokuConnectQuerySet.as_manager()
+
     class Meta:
         abstract = True
         managed = False
+        base_manager_name = 'hc_base_manager'
 
     @classmethod
     def get_heroku_connect_fields(cls):
