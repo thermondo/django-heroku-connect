@@ -26,6 +26,7 @@ import sys
 import os
 
 import django
+import sphinx_rtd_theme
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "tests.testapp.settings")
 sys.path.insert(0, os.path.abspath('..'))
@@ -130,7 +131,6 @@ todo_include_todos = False
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-import sphinx_rtd_theme
 
 html_theme = 'sphinx_rtd_theme'
 html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
