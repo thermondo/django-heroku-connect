@@ -26,13 +26,14 @@ class ConnectionStates:
     )
 
 
-def get_mapping(version=1, exported_at=None):
+def get_mapping(version=1, exported_at=None, app_name=None):
     """
     Return Heroku Connect mapping for the entire project.
 
     Args:
         version (int): Version of the Heroku Connect mapping, default: ``1``.
         exported_at (datetime.datetime): Time the export was created, default is ``now()``.
+        app_name (str): Name of Heroku application associated with Heroku Connect the add-on.
 
     Returns:
         dict: Heroku Connect mapping.
@@ -44,11 +45,12 @@ def get_mapping(version=1, exported_at=None):
     """
     if exported_at is None:
         exported_at = timezone.now()
+    app_name = app_name or settings.HEROKU_CONNECT_APP_NAME
     return {
         'version': version,
         'connection': {
             'organization_id': settings.HEROKU_CONNECT_ORGANIZATION_ID,
-            'app_name': settings.HEROKU_CONNECT_APP_NAME,
+            'app_name': app_name,
             'exported_at': exported_at.isoformat(),
         },
         'mappings': [
@@ -218,3 +220,27 @@ def get_connection(connection_id, deep=False):
     response = requests.get(url, params=payload, headers=_get_authorization_headers())
     response.raise_for_status()
     return response.json()
+
+
+def import_mapping(connection_id, mapping):
+    """
+    Import Heroku Connection mapping for given connection.
+
+    Args:
+        connection_id (str): Heroku Connection connection ID.
+        mapping (dict): Heroku Connect mapping.
+
+    Raises:
+        requests.HTTPError: If an error occurs uploading the mapping.
+        ValueError: If the mapping is not JSON serializable.
+
+    """
+    url = os.path.join(settings.HEROKU_CONNECT_API_ENDPOINT,
+                       'connections', connection_id, 'actions', 'import')
+
+    response = requests.post(
+        url=url,
+        json=mapping,
+        headers=_get_authorization_headers()
+    )
+    response.raise_for_status()

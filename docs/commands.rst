@@ -7,6 +7,13 @@ Management Commands
 .. automodule:: heroku_connect.management.commands.makemappings
     :members:
 
+
+``import_mappings``
+-------------------
+
+.. automodule:: heroku_connect.management.commands.import_mappings
+    :members:
+
 ``load_remote_schema``
 ----------------------
 

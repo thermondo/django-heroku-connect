@@ -202,3 +202,23 @@ def test_get_connection():
     )
     with pytest.raises(ValueError):
         utils.get_connection('1')
+
+
+@httpretty.activate
+def test_import_mapping():
+    httpretty.register_uri(
+        httpretty.POST, "https://connect-eu.heroku.com/api/v3/connections/1/actions/import",
+        data={'message': 'success'},
+        status=200,
+        content_type='application/json',
+    )
+    utils.import_mapping('1', {})
+
+    httpretty.register_uri(
+        httpretty.POST, "https://connect-eu.heroku.com/api/v3/connections/1/actions/import",
+        data={'error': 'something is wrong'},
+        status=500,
+        content_type='application/json',
+    )
+    with pytest.raises(requests.HTTPError):
+        utils.import_mapping('1', {})
