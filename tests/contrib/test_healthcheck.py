@@ -1,29 +1,43 @@
+import json
 import secrets
-from unittest import mock
 
+import httpretty
 import pytest
 from health_check.exceptions import ServiceUnavailable
 
 from heroku_connect.contrib.heroku_connect_health_check.backends import (
     HerokuConnectHealthCheck
 )
-from tests.test_utils import (
-    ALL_CONNECTIONS_API_CALL_OUTPUT, CONNECTION_DETAILS_API_CALL_OUTPUT,
-    MockUrlLibResponse
-)
+from tests import fixtures
 
 
-@mock.patch('urllib.request.urlopen')
-def test_check_status(mock_get):
-    mock_get.side_effect = [MockUrlLibResponse(ALL_CONNECTIONS_API_CALL_OUTPUT),
-                            MockUrlLibResponse(CONNECTION_DETAILS_API_CALL_OUTPUT)]
-    assert HerokuConnectHealthCheck().check_status()
+@httpretty.activate
+def test_check_status():
+    httpretty.register_uri(
+        httpretty.GET, "https://connect-eu.heroku.com/api/v3/connections",
+        body=json.dumps(fixtures.connections),
+        status=200,
+        content_type='application/json',
+    )
+    hc = HerokuConnectHealthCheck()
+    hc.check_status()
+    assert not hc.errors
+
+    connection = fixtures.connection.copy()
+    connection['state'] = 'error'
+    httpretty.register_uri(
+        httpretty.GET, "https://connect-eu.heroku.com/api/v3/connections",
+        body=json.dumps({'results': [connection]}),
+        status=200,
+        content_type='application/json',
+    )
+    hc = HerokuConnectHealthCheck()
+    hc.check_status()
+    assert hc.errors
+    assert hc.errors[0].message == "Connection state for 'sample name' is 'error'"
 
 
-@mock.patch('urllib.request.urlopen')
-def test_settings_exception(mock_get, settings):
-    mock_get.side_effect = [MockUrlLibResponse(ALL_CONNECTIONS_API_CALL_OUTPUT),
-                            MockUrlLibResponse(CONNECTION_DETAILS_API_CALL_OUTPUT)]
+def test_settings_exception(settings):
     settings.HEROKU_AUTH_TOKEN = None
     settings.HEROKU_CONNECT_APP_NAME = secrets.token_urlsafe()
     with pytest.raises(ServiceUnavailable):
@@ -40,10 +54,14 @@ def test_settings_exception(mock_get, settings):
         HerokuConnectHealthCheck().check_status()
 
 
-@mock.patch('urllib.request.urlopen')
-def test_health_check_url(mock_get, client):
-    mock_get.side_effect = [MockUrlLibResponse(ALL_CONNECTIONS_API_CALL_OUTPUT),
-                            MockUrlLibResponse(CONNECTION_DETAILS_API_CALL_OUTPUT)]
+@httpretty.activate
+def test_health_check_url(client):
+    httpretty.register_uri(
+        httpretty.GET, "https://connect-eu.heroku.com/api/v3/connections",
+        body=json.dumps(fixtures.connections),
+        status=200,
+        content_type='application/json',
+    )
     response = client.get('/ht/')
     assert response.status_code == 200
     assert b'<td>Heroku Connect</td>' in response.content

@@ -1,6 +1,7 @@
 -e .
 coverage
 django-health-check
+httpretty
 isort
 psycopg2
 pyenchant

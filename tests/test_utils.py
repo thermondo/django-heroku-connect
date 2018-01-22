@@ -1,48 +1,16 @@
-from unittest import mock
+import json
 from urllib.error import URLError
 
+import httpretty
 import pytest
+import requests
 from django.db import models
 from django.utils import timezone
 
 from heroku_connect import utils
 from heroku_connect.db.models import HerokuConnectModel
 
-
-class MockUrlLibResponse:
-    def __init__(self, data):
-        self.data = data
-
-    def read(self):
-        return self.data.encode()
-
-
-ALL_CONNECTIONS_API_CALL_OUTPUT = """{
-        "count": 1,
-        "results": [
-            {
-              "id": "1",
-              "name": "sample name",
-              "resource_name": "resource name"
-            }
-        ]
-    }"""
-
-CONNECTION_DETAILS_API_CALL_OUTPUT = """{
-        "id": "1",
-        "name": "sample name",
-        "resource_name": "resource name",
-        "schema_name": "salesforce",
-        "db_key": "DATABASE_URL",
-        "state": "IDLE",
-        "mappings": [
-            {
-              "id": "XYZ",
-              "object_name": "Account",
-              "state": "SCHEMA_CHANGED"
-            }
-        ]
-    }"""
+from . import fixtures
 
 
 def test_get_heroku_connect_models():
@@ -178,21 +146,59 @@ def test_get_mapping(settings):
     ]
 
 
-@mock.patch('urllib.request.urlopen')
-def test_all_connections_api(mock_get):
-    mock_get.return_value = MockUrlLibResponse(ALL_CONNECTIONS_API_CALL_OUTPUT)
-    assert utils.get_connection_id() == '1'
-    mock_get.side_effect = URLError('not found')
-    with pytest.raises(URLError) as e:
-        utils.get_connection_id()
-    assert 'Unable to fetch connections' in str(e)
+@httpretty.activate
+def test_get_connections():
+    httpretty.register_uri(
+        httpretty.GET, "https://connect-eu.heroku.com/api/v3/connections",
+        body=json.dumps(fixtures.connections),
+        status=200,
+        content_type='application/json',
+    )
+    assert utils.get_connections('ninja') == [fixtures.connection]
+
+    httpretty.register_uri(
+        httpretty.GET, "https://connect-eu.heroku.com/api/v3/connections",
+        body=json.dumps({'error': 'something is wrong'}),
+        status=500,
+        content_type='application/json',
+    )
+    with pytest.raises(requests.HTTPError):
+        utils.get_connections('ninja')
+
+    httpretty.register_uri(
+        httpretty.GET, "https://connect-eu.heroku.com/api/v3/connections",
+        body='not-a-json',
+        status=200,
+        content_type='application/json',
+    )
+    with pytest.raises(ValueError):
+        utils.get_connections('ninja')
 
 
-@mock.patch('urllib.request.urlopen')
-def test_connection_detail_api(mock_get):
-    mock_get.return_value = MockUrlLibResponse(CONNECTION_DETAILS_API_CALL_OUTPUT)
-    assert utils.get_connection_status('1') == 'IDLE'
-    mock_get.side_effect = URLError('not found')
-    with pytest.raises(URLError) as e:
-        utils.get_connection_status('1')
-    assert 'Unable to fetch connection details' in str(e)
+@httpretty.activate
+def test_get_connection():
+    httpretty.register_uri(
+        httpretty.GET, "https://connect-eu.heroku.com/api/v3/connections/1",
+        body=json.dumps(fixtures.connection),
+        status=200,
+        content_type='application/json',
+    )
+    assert utils.get_connection('1') == fixtures.connection
+
+    httpretty.register_uri(
+        httpretty.GET, "https://connect-eu.heroku.com/api/v3/connections/1",
+        body=json.dumps({'error': 'something is wrong'}),
+        status=500,
+        content_type='application/json',
+    )
+    with pytest.raises(requests.HTTPError):
+        utils.get_connection('1')
+
+    httpretty.register_uri(
+        httpretty.GET, "https://connect-eu.heroku.com/api/v3/connections/1",
+        body='not-a-json',
+        status=200,
+        content_type='application/json',
+    )
+    with pytest.raises(ValueError):
+        utils.get_connection('1')
