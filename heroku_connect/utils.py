@@ -1,9 +1,7 @@
 """Utility methods for Django Heroku Connect."""
+import os
 
-import json
-import urllib.request
-from urllib.error import URLError
-
+import requests
 from django.db import DEFAULT_DB_ALIAS, connections
 from django.utils import timezone
 
@@ -106,9 +104,15 @@ def create_heroku_connect_schema(using=DEFAULT_DB_ALIAS, **kwargs):
     return True
 
 
-def get_connection_id():
+def _get_authorization_headers():
+    return {
+        'Authorization': 'Bearer %s' % settings.HEROKU_AUTH_TOKEN
+    }
+
+
+def get_connections(app):
     """
-    Get the first Heroku Connect's Connection ID from the connections API response.
+    Return all Heroku Connect connections setup with the given app.
 
     For more details check the link -
     https://devcenter.heroku.com/articles/heroku-connect-api#step-4-retrieve-the-new-connection-s-id
@@ -126,28 +130,27 @@ def get_connection_id():
             …
         }
 
+    Args:
+        app (str): Heroku application name.
+
     Returns:
-        String: The connection ID.
+        List[dict]: List of all Heroku Connect connections associated with the Heroku application.
 
     Raises:
-        URLError: An error occurred when accessing the connections API.
+        requests.HTTPError: If an error occurred when accessing the connections API.
+        ValueError: If response is not a valid JSON.
 
     """
-    req = urllib.request.Request('%s/v3/connections?app=%s' % (
-        settings.HEROKU_CONNECT_API_ENDPOINT, settings.HEROKU_CONNECT_APP_NAME))
-    req.add_header('-H', '"Authorization: Bearer %s"' % settings.HEROKU_AUTH_TOKEN)
-    try:
-        output = urllib.request.urlopen(req)
-    except URLError as e:
-        raise URLError('Unable to fetch connections') from e
-
-    json_output = json.load(output)
-    return json_output['results'][0]['id']
+    payload = {'app': app}
+    url = os.path.join(settings.HEROKU_CONNECT_API_ENDPOINT, 'connections')
+    response = requests.get(url, data=payload, headers=_get_authorization_headers())
+    response.raise_for_status()
+    return response.json()['results']
 
 
-def get_connection_status(connection_id):
+def get_connection(connection_id, deep=False):
     """
-    Get Connection Status from the connection detail API response.
+    Get Heroku Connection connection information.
 
     For more details check the link -
     https://devcenter.heroku.com/articles/heroku-connect-api#step-8-monitor-the-connection-and-mapping-status
@@ -181,22 +184,19 @@ def get_connection_status(connection_id):
 
     Args:
         connection_id (str): ID for Heroku Connect's connection.
+        deep (bool): Return information about the connection’s mappings,
+            in addition to the connection itself. Defaults to ``False``.
 
     Returns:
-        String: State for the Heroku Connect's connection.
+        dict: Heroku Connection connection information.
 
     Raises:
-        URLError: An error occurred when accessing the connection detail API.
+        requests.HTTPError: If an error occurred when accessing the connection detail API.
+        ValueError: If response is not a valid JSON.
 
     """
-    req = urllib.request.Request('%s/connections/%s?deep=true' % (
-        settings.HEROKU_CONNECT_API_ENDPOINT, connection_id))
-    req.add_header('-H', '"Authorization: Bearer %s"' % settings.HEROKU_AUTH_TOKEN)
-
-    try:
-        output = urllib.request.urlopen(req)
-    except URLError as e:
-        raise URLError('Unable to fetch connection details') from e
-
-    json_output = json.load(output)
-    return json_output['state']
+    url = os.path.join(settings.HEROKU_CONNECT_API_ENDPOINT, 'connections', connection_id)
+    payload = {'deep': deep}
+    response = requests.get(url, data=payload, headers=_get_authorization_headers())
+    response.raise_for_status()
+    return response.json()
