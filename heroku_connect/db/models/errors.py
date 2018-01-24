@@ -6,7 +6,7 @@ from .triggerlog import (
 
 
 class HerokuModelSyncError(Exception):
-    """Represents a failure to sync a connected model back to Salesforce"""
+    """Represents a failure to sync a connected model back to Salesforce."""
 
     # It's an exception with the idea that it can be raised, then captured and displayed
     # neatly by Sentry. It might make more sense to turn it into a model with one-to-many
@@ -14,7 +14,7 @@ class HerokuModelSyncError(Exception):
 
     @classmethod
     def iter(cls):
-        """Generate sync errors instances from failed records in the trigger log"""
+        """Generate sync errors instances from failed records in the trigger log."""
         for trigger_log in TriggerLog.objects.failed().combined():
             yield HerokuModelSyncError(trigger_log)
 
@@ -44,6 +44,7 @@ class FixableHerokuModelSyncError(HerokuModelSyncError):
         https://devcenter.heroku.com/articles/writing-data-to-salesforce-with-heroku-connect#ordered-writes-algorithm
 
     """
+
     FIXABLE_ACTIONS = {TriggerLog.Action.INSERT, TriggerLog.Action.UPDATE}
     FIXABLE_STATES = {TriggerLog.State.FAILED}
 
@@ -138,7 +139,7 @@ class ErrorTrackQuerySet(models.QuerySet):
         return self.filter(trigger_log_id=log.id)
 
     def orphaned(self):
-        """Filter for ErrorTracks whose related TriggerLogs do not exist anymore"""
+        """Filter for ErrorTracks whose related TriggerLogs do not exist anymore."""
         return (
             self
             .exclude(trigger_log_id__in=TriggerLog.objects.values_list('id'))
@@ -198,13 +199,13 @@ class ErrorTrack(models.Model):
     def __str__(self):
         return (
             '{action} {table_name}|{record_id} [{created_at:%Y-%m-%d %a %H:%M%z}] {state}'.format(
-            action=self.action, table_name=self.table_name, record_id=self.record_id,
-            created_at=self.created_at, state=self.state)
+                action=self.action, table_name=self.table_name, record_id=self.record_id,
+                created_at=self.created_at, state=self.state)
         )
 
     @property
     def log(self):
-        """The track's related trigger log entry if it exists, or None."""
+        """Return the track's related trigger log entry if it exists, or None."""
         try:
             log = self._log
         except AttributeError:

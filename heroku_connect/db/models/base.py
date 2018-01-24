@@ -61,6 +61,7 @@ class HerokuConnectModelBase(models.base.ModelBase):
 
         Raises:
             LookupError: if no class is using the given table name
+
         """
         return mcs._cls_by_table_name[table_name]
 
@@ -73,6 +74,7 @@ class HerokuConnectModelBase(models.base.ModelBase):
 
         Raises:
             LookupError: if no table name is associated with the given class
+
         """
         return mcs._table_name_by_cls[model_cls]
 

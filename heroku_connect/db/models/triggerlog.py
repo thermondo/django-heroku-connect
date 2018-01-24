@@ -8,7 +8,7 @@ from .base import HerokuConnectModelBase
 class TriggerLogQuerySet(models.QuerySet):
 
     def failed(self):
-        """Convenience method to filter for log records with sync failures"""
+        """Filter for log records with sync failures."""
         return self.filter(state=TriggerLog.State.FAILED)
 
     def related_to(self, instance):
@@ -16,13 +16,13 @@ class TriggerLogQuerySet(models.QuerySet):
         return self.filter(table_name=instance.table_name, record_id=instance.record_id)
 
     def archived(self):
-        """Apply this query to the trigger log archive"""
+        """Apply this query to the trigger log archive."""
         clone = self.all()
         clone.model = clone.query.model = TriggerLogArchive
         return clone
 
     def current(self):
-        """Apply this query to the live trigger log"""
+        """Apply this query to the live trigger log."""
         clone = self.all()
         clone.model = clone.query.model = TriggerLog
         return clone
@@ -61,7 +61,8 @@ class TriggerLogAbstract(models.Model):
     """
 
     class Action:
-        """Type of change that a trigger log object represents"""
+        """Type of change that a trigger log object represents."""
+
         INSERT = 'INSERT'
         UPDATE = 'UPDATE'
         DELETE = 'DELETE'
@@ -71,7 +72,8 @@ class TriggerLogAbstract(models.Model):
             return tuple((getattr(cls, name), name) for name in dir(cls) if name.isupper())
 
     class State:
-        """Sync state of the change"""
+        """Sync state of the change."""
+
         SUCCESS = 'SUCCESS'
         MERGED = 'MERGED'
         IGNORED = 'IGNORED'
@@ -132,6 +134,7 @@ class TriggerLogAbstract(models.Model):
 
         Raises:
             LookupError: if ``table_name`` does not belong to a connected model
+
         """
         exclude_cols = ()
         if exclude_fields:
@@ -169,8 +172,8 @@ class TriggerLogAbstract(models.Model):
 
         Raises:
             LookupError: if ``table_name`` does not belong to a connected model
-        """
 
+        """
         include_cols = ()
         if update_fields:
             model_cls = HerokuConnectModelBase.get_class_for_table_name(table_name)
@@ -203,12 +206,13 @@ class TriggerLogAbstract(models.Model):
 
         Returns:
             The connected instance, or ``None`` if it does not exists.
+
         """
         model_cls = HerokuConnectModelBase.get_class_for_table_name(self.table_name)
         return model_cls._default_manager.filter(id=self.record_id).first()
 
     def related(self, *, exclude_self=False):
-        """Get a queryset for all trigger log objects for the same connected model
+        """Get a queryset for all trigger log objects for the same connected model.
 
         Args:
             exclude_self: Whether to exclude this log object from the result list
@@ -220,12 +224,12 @@ class TriggerLogAbstract(models.Model):
         return queryset
 
     def capture_insert(self, *, exclude_fields=()):
-        """Convenience method to apply :meth:`TriggerLog.capture_insert_from_model` for this log"""
+        """Apply :meth:`TriggerLog.capture_insert_from_model` for this log."""
         return self.capture_insert_from_model(self.table_name, self.record_id,
                                               exclude_fields=exclude_fields)
 
     def capture_update(self, *, update_fields=()):
-        """Convenience method to apply :meth:`TriggerLog.capture_insert_from_model` for this log"""
+        """Apply :meth:`TriggerLog.capture_insert_from_model` for this log."""
         return self.capture_update_from_model(self.table_name, self.record_id,
                                               update_fields=update_fields)
 
