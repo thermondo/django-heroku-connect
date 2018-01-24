@@ -342,7 +342,6 @@ class TestHerokuConnectModelMixin:
             class Meta:
                 app_label = 'test'
                 abstract = True
-
         data_instance = MyModel(date=timezone.now())
         try:
             data_instance.save()
@@ -359,7 +358,6 @@ class TestHerokuConnectModelMixin:
             class Meta:
                 app_label = 'test'
                 abstract = True
-
         data_instance = MyModel(date=timezone.now())
         try:
             data_instance.delete()
