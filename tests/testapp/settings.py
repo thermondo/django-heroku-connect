@@ -1,6 +1,6 @@
 import os
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-import secrets
+import uuid
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -9,7 +9,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = secrets.token_urlsafe()
+SECRET_KEY = '^-(6k&#x%oev5q*0yyqv3ohfwbxlc12klxf63d#uho%*s^4gfl'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -119,4 +119,4 @@ STATIC_URL = '/static/'
 
 HEROKU_CONNECT_APP_NAME = 'ninja'
 HEROKU_CONNECT_ORGANIZATION_ID = '1234567890'
-HEROKU_AUTH_TOKEN = secrets.token_hex()
+HEROKU_AUTH_TOKEN = uuid.uuid4().hex
