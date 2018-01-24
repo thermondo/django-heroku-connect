@@ -3,7 +3,7 @@ import secrets
 
 import httpretty
 import pytest
-from health_check.exceptions import ServiceUnavailable
+from health_check.exceptions import ServiceUnavailable, ServiceReturnedUnexpectedResult
 
 from heroku_connect.contrib.heroku_connect_health_check.backends import (
     HerokuConnectHealthCheck
@@ -35,6 +35,19 @@ def test_check_status():
     hc.check_status()
     assert hc.errors
     assert hc.errors[0].message == "Connection state for 'sample name' is 'error'"
+
+    connection['state'] = 'error'
+    httpretty.register_uri(
+        httpretty.GET, "https://connect-eu.heroku.com/api/v3/connections",
+        body=json.dumps({'errors': 'unknown error'}),
+        status=500,
+        content_type='application/json',
+    )
+    hc = HerokuConnectHealthCheck()
+    with pytest.raises(ServiceReturnedUnexpectedResult) as e:
+        hc.check_status()
+
+    assert 'Unable to retrieve connection state' in str(e)
 
 
 def test_settings_exception(settings):
