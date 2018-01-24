@@ -410,4 +410,3 @@ class TestHerokuConnectModelMixin:
             assert(e.args[0] == 'Bulk Create operation is not allowed on a ReadOnly model')
         else:
             assert False
-
