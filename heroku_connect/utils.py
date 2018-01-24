@@ -8,6 +8,18 @@ from django.utils import timezone
 from .conf import settings
 
 
+class ConnectionStates:
+    IDLE = 'IDLE'
+    POLLING_DB_CHANGES = 'POLLING_DB_CHANGES'
+    IMPORT_CONFIGURATION = 'IMPORT_CONFIGURATION'
+
+    OK_STATES = (
+        IDLE,
+        POLLING_DB_CHANGES,
+        IMPORT_CONFIGURATION,
+    )
+
+
 def get_mapping(version=1, exported_at=None):
     """
     Return Heroku Connect mapping for the entire project.
