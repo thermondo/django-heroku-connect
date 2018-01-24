@@ -288,7 +288,7 @@ class TestHerokuConnectModelMixin:
             class Meta:
                 app_label = 'test'
                 abstract = True
-        
+
         class NameMixin(models.Model):
             name = hc_models.Text(sf_field_name='Name')
 
@@ -333,7 +333,7 @@ class TestHerokuConnectModelMixin:
                 },
             'object_name': 'My_Object__c',
         }
-    
+
     def test_fail_on_save_read_only_model(self):
         class MyModel(hc_models.HerokuConnectModel):
             sf_object_name = 'My_Object__c'
@@ -349,7 +349,7 @@ class TestHerokuConnectModelMixin:
             assert(e.args[0] == 'Save/Update operation is not allowed on a ReadOnly model')
         else:
             assert False
-    
+
     def test_fail_on_delete_read_only_model(self):
         class MyModel(hc_models.HerokuConnectModel):
             sf_object_name = 'My_Object__c'
