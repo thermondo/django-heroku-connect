@@ -1,7 +1,8 @@
 import uuid
 
-from django.test import TestCase
 from django.db import NotSupportedError
+from django.test import TestCase
+
 from .models import NumberModel
 
 
@@ -35,5 +36,3 @@ class NumberModelTestCase(TestCase):
         new_instance = NumberModel(a_number=2, external_id=uuid.UUID(int=2))
         NumberModel.objects.bulk_create([new_instance])
         assert NumberModel.objects.count() == 2
-
-
