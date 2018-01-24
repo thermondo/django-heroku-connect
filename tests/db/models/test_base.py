@@ -393,7 +393,7 @@ class TestHerokuConnectModelMixin:
             assert(e.args[0] == 'Delete operation is not allowed on a ReadOnly model')
         else:
             assert False
-    
+
     def test_fail_on_qs_bulk_create_read_only_model(self):
         class MyReadOnlyModel(hc_models.HerokuConnectModel):
             sf_object_name = 'My_Object__c'
@@ -401,7 +401,7 @@ class TestHerokuConnectModelMixin:
 
             class Meta:
                 app_label = 'test'
-        
+
         try:
             MyReadOnlyModel.objects.bulk_create([
                 MyReadOnlyModel(date=timezone.now())
