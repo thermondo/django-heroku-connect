@@ -13,22 +13,22 @@ OPERATION_UNAVAILABLE_ERROR_MESSAGE = '%s operation is not allowed on a ReadOnly
 
 class HerokuConnectQuerySet(QuerySet):
     def update(self, **kwargs):
-        if self.model.is_readonly:
+        if self.model.is_readonly():
             raise NotSupportedError(
                 OPERATION_UNAVAILABLE_ERROR_MESSAGE % 'Update')
         return super().update(**kwargs)
 
     def delete(self):
-        if self.model.is_readonly:
+        if self.model.is_readonly():
             raise NotSupportedError(
                 OPERATION_UNAVAILABLE_ERROR_MESSAGE % 'Delete')
         return super().delete()
 
-    def bulk_create(self, **kwargs):
-        if self.model.is_readonly:
+    def bulk_create(self, *args, **kwargs):
+        if self.model.is_readonly():
             raise NotSupportedError(
                 OPERATION_UNAVAILABLE_ERROR_MESSAGE % 'Bulk Create')
-        return super().bulk_create(**kwargs)
+        return super().bulk_create(*args, **kwargs)
 
 
 class HerokuConnectModelBase(models.base.ModelBase):
@@ -284,7 +284,7 @@ class HerokuConnectModel(models.Model, metaclass=HerokuConnectModelBase):
     def is_readonly(cls):
         return cls.sf_access == cls.READ_ONLY
 
-    def delete(self, *kwargs):
+    def delete(self, **kwargs):
         if self.is_readonly():
             raise NotSupportedError(
                 OPERATION_UNAVAILABLE_ERROR_MESSAGE % 'Delete')

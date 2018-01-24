@@ -334,15 +334,15 @@ class TestHerokuConnectModelMixin:
             'object_name': 'My_Object__c',
         }
 
-    def test_fail_on_save_read_only_model(self):
-        class MyModel(hc_models.HerokuConnectModel):
+    def test_fail_save_read_only_model(self, db):
+        class MyReadOnlyModel(hc_models.HerokuConnectModel):
             sf_object_name = 'My_Object__c'
             date = hc_models.DateTime(sf_field_name='Date1__c')
 
             class Meta:
                 app_label = 'test'
                 abstract = True
-        data_instance = MyModel(date=timezone.now())
+        data_instance = MyReadOnlyModel(date=timezone.now())
         try:
             data_instance.save()
         except NotSupportedError as e:
