@@ -15,6 +15,9 @@ class HerokuConnectModelBase(models.base.ModelBase):
     and sets a default value for :attr:`Meta.db_table<django.db.models.Options.db_table>`.
     """
 
+    _cls_by_table_name = {}
+    _table_name_by_cls = {}
+
     def __new__(mcs, name, bases, attrs):
         super_new = super(HerokuConnectModelBase, mcs).__new__
         _meta = attrs.get('Meta', None)
@@ -36,7 +39,42 @@ class HerokuConnectModelBase(models.base.ModelBase):
             is_deleted = [x for x in new_class._meta.local_fields if x.name == 'is_deleted'][0]
             new_class._meta.local_fields.remove(is_deleted)
 
+        new_class._meta.managed = False
+        mcs.register_class(new_class)
+
         return new_class
+
+    @classmethod
+    def register_class(mcs, new_class):
+        # strip schema and quotes from _meta.db_table
+        # https://www.postgresql.org/docs/9.6/static/sql-syntax-lexical.html#SQL-SYNTAX-IDENTIFIERS
+        hc_table_name = new_class._meta.db_table.rsplit('.', 1)[-1].strip('"')
+        mcs._cls_by_table_name[hc_table_name] = new_class
+        mcs._table_name_by_cls[new_class] = hc_table_name
+
+    @classmethod
+    def get_class_for_table_name(mcs, table_name):
+        """Return the model class associated with a given table name.
+
+        Args:
+            table_name: Name of the database table (without schema)
+
+        Raises:
+            LookupError: if no class is using the given table name
+        """
+        return mcs._cls_by_table_name[table_name]
+
+    @classmethod
+    def get_table_name_for_class(mcs, model_cls):
+        """Return the table name (without schema) associated with a model class.
+
+        Args:
+            model_cls: A model class object created by this metaclass
+
+        Raises:
+            LookupError: if no table name is associated with the given class
+        """
+        return mcs._table_name_by_cls[model_cls]
 
 
 class HerokuConnectModel(models.Model, metaclass=HerokuConnectModelBase):
