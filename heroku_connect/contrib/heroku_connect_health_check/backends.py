@@ -2,8 +2,8 @@
 
 import logging
 
-from ...conf import settings
 from ... import utils
+from ...conf import settings
 
 try:
     from health_check.backends import BaseHealthCheckBackend
