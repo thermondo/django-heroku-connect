@@ -39,9 +39,7 @@ class HerokuConnectModelBase(models.base.ModelBase):
             is_deleted = [x for x in new_class._meta.local_fields if x.name == 'is_deleted'][0]
             new_class._meta.local_fields.remove(is_deleted)
 
-        new_class._meta.managed = False
         mcs.register_class(new_class)
-
         return new_class
 
     @classmethod
