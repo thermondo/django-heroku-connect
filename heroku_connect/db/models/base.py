@@ -4,7 +4,27 @@ from django.db import models
 from . import fields
 from ...conf import settings
 
-__all__ = ('HerokuConnectModel',)
+__all__ = ('HerokuConnectModel', 'registry')
+
+
+class HerokuConnectModelRegistry:
+    """Keep track of which HerokuConnectModel classes use which table name."""
+
+    def __init__(self):
+        self._table_name_to_cls = {}
+
+    def register(self, cls):
+        table_name = HerokuConnectModelBase.get_table_name_from_class(cls)
+        self._table_name_to_cls[table_name] = cls
+
+    def get_table_name_for_class(self, cls):
+        return HerokuConnectModelBase.get_table_name_from_class(cls)
+
+    def get_class_for_table_name(self, table_name):
+        return self._table_name_to_cls[table_name]
+
+
+registry = HerokuConnectModelRegistry()
 
 
 class HerokuConnectModelBase(models.base.ModelBase):
@@ -40,7 +60,25 @@ class HerokuConnectModelBase(models.base.ModelBase):
             is_deleted = [x for x in new_class._meta.local_fields if x.name == 'is_deleted'][0]
             new_class._meta.local_fields.remove(is_deleted)
 
+        if not new_class._meta.proxy:
+            registry.register(new_class)
+
         return new_class
+
+    @classmethod
+    def get_table_name_from_class(mcs, model_cls):
+        """Return the table name (without schema) associated with a model class.
+
+        Args:
+            model_cls: A model class object created by this metaclass
+
+        Raises:
+            LookupError: if no table name is associated with the given class
+
+        """
+        # strip schema and quotes from _meta.db_table
+        # https://www.postgresql.org/docs/9.6/static/sql-syntax-lexical.html#SQL-SYNTAX-IDENTIFIERS
+        return model_cls._meta.db_table.rsplit('.', 1)[-1].strip('"')
 
 
 class HerokuConnectModel(models.Model, metaclass=HerokuConnectModelBase):
@@ -246,10 +284,37 @@ class HerokuConnectModel(models.Model, metaclass=HerokuConnectModelBase):
         return []
 
     @classmethod
+    def _check_is_registered(cls):
+        if cls._meta.proxy:
+            return []
+        try:
+            table_name = registry.get_table_name_for_class(cls)
+        except LookupError:  # pragma: no cover
+            table_name = None
+        if not table_name:
+            return [checks.Error(
+                "%s.%s has no associated table name." % (
+                    cls._meta.app_label, cls.__name__
+                ),
+                id='heroku_connect.E005a',
+            )]
+        registered_cls = registry.get_class_for_table_name(table_name)
+        if cls is not registered_cls:
+            return [checks.Error(
+                "%s.%s's table name is associated with another class" % (
+                    cls._meta.app_label, cls.__name__
+                ),
+                hint="%s.%s" % (registered_cls._meta.app_label, registered_cls.__name__),
+                id='heroku_connect.E005b'
+            )]
+        return []
+
+    @classmethod
     def check(cls, **kwargs):
         errors = super().check(**kwargs)
         errors.extend(cls._check_sf_object_name())
         errors.extend(cls._check_sf_access())
         errors.extend(cls._check_unique_sf_field_names())
         errors.extend(cls._check_upsert_field())
+        errors.extend(cls._check_is_registered())
         return errors
