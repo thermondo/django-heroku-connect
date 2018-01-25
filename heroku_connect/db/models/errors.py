@@ -1,8 +1,6 @@
 from django.db import models, transaction
 
-from .triggerlog import (
-    TriggerLog, TriggerLogAbstract, TriggerLogArchive
-)
+from .triggerlog import TriggerLog, TriggerLogAbstract, TriggerLogArchive
 
 
 class HerokuModelSyncError(Exception):
