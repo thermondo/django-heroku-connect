@@ -91,9 +91,9 @@ class TriggerLogAbstract(models.Model):
             return tuple((getattr(cls, name), name) for name in dir(cls) if name.isupper())
 
     # read-only fields
-    created_at = models.DateTimeField(editable=False)
-    updated_at = models.DateTimeField(editable=False)
-    processed_at = models.DateTimeField(editable=False)
+    created_at = models.DateTimeField(editable=False, auto_now_add=True)
+    updated_at = models.DateTimeField(editable=False, null=True)
+    processed_at = models.DateTimeField(editable=False, null=True)
     table_name = models.CharField(max_length=128, editable=False)
     record_id = models.BigIntegerField(editable=False)
     sf_id = models.CharField(max_length=18, editable=False, null=True, db_column='sfid')
