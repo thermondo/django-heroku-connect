@@ -1,6 +1,7 @@
 import os
 import shutil
 
+import pytest
 from django.core import checks
 from django.core.management import call_command
 from django.db import models
@@ -49,6 +50,54 @@ class TestHerokuConnectModelMixin:
 
         assert MyModel._meta.managed is False
         assert MyModel.Meta.managed is False
+
+    def test_registration(self):
+
+        class MyModel(hc_models.HerokuConnectModel):
+            sf_object_name = 'OBJECT_NAME'
+
+            class Meta:
+                abstract = True
+
+        assert hc_models.HerokuConnectModelBase.get_table_name_for_class(MyModel) == 'object_name'
+        assert hc_models.HerokuConnectModelBase.get_class_for_table_name('object_name') is MyModel
+
+        class MyModel(hc_models.HerokuConnectModel):
+            class Meta:
+                abstract = True
+                db_table = 'table_name'
+
+        assert hc_models.HerokuConnectModelBase.get_table_name_for_class(MyModel) == 'table_name'
+        assert hc_models.HerokuConnectModelBase.get_class_for_table_name('table_name') is MyModel
+
+        # cannot use same table name for different class
+        with pytest.raises(ValueError):
+            class OverridingModel(hc_models.HerokuConnectModel):
+                class Meta:
+                    abstract = True
+                    db_table = 'table_name'
+
+        assert hc_models.HerokuConnectModelBase.get_table_name_for_class(MyModel) == 'table_name'
+        assert hc_models.HerokuConnectModelBase.get_class_for_table_name('table_name') is MyModel
+
+        # redefining the same class works
+        class MyModel(hc_models.HerokuConnectModel):
+            class Meta:
+                app_label = 'heroku_connect'  # need a non-abstract base class for proxy model
+                db_table = 'table_name'
+
+        assert hc_models.HerokuConnectModelBase.get_table_name_for_class(MyModel) == 'table_name'
+        assert hc_models.HerokuConnectModelBase.get_class_for_table_name('table_name') is MyModel
+
+        # proxy models get ignored
+        class MyProxyModel(MyModel):
+            class Meta:
+                abstract = True
+                proxy = True
+                db_table = 'table_name'
+
+        assert hc_models.HerokuConnectModelBase.get_table_name_for_class(MyModel) == 'table_name'
+        assert hc_models.HerokuConnectModelBase.get_class_for_table_name('table_name') is MyModel
 
     def test_migrations(self, db, settings):
         settings.MIGRATION_MODULES = {'testapp': 'tests.testapp.migrations'}

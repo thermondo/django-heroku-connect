@@ -44,9 +44,27 @@ class HerokuConnectModelBase(models.base.ModelBase):
 
     @classmethod
     def register_class(mcs, new_class):
+        if new_class._meta.proxy:
+            return
+
         # strip schema and quotes from _meta.db_table
         # https://www.postgresql.org/docs/9.6/static/sql-syntax-lexical.html#SQL-SYNTAX-IDENTIFIERS
         hc_table_name = new_class._meta.db_table.rsplit('.', 1)[-1].strip('"')
+
+        # prevent table_name reuse, but don't break when redefining the same class
+        if hc_table_name in mcs._cls_by_table_name:
+            old_class = mcs._cls_by_table_name[hc_table_name]
+            old_qualname = '{}.{}'.format(old_class.__module__, old_class.__qualname__)
+            new_qualname = '{}.{}'.format(new_class.__module__, new_class.__qualname__)
+            if old_qualname != new_qualname:
+                raise ValueError(
+                    "Cannot assign table name {hc_table_name!r} to {new_qualname}:"
+                    " already in use by {old_qualname}."
+                    .format(**locals())
+                )
+            else:
+                del mcs._table_name_by_cls[old_class]
+
         mcs._cls_by_table_name[hc_table_name] = new_class
         mcs._table_name_by_cls[new_class] = hc_table_name
 
