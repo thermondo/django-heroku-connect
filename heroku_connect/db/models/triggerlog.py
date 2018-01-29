@@ -1,6 +1,8 @@
 from django.conf import settings
 from django.contrib.postgres.fields import HStoreField
-from django.db import models
+from django.db import connection, models
+from django.db.models.signals import pre_migrate
+from django.dispatch import receiver
 
 from .base import HerokuConnectModelBase
 
@@ -267,3 +269,10 @@ class TriggerLogArchive(TriggerLogAbstract):
 
     class Meta(TriggerLogAbstract.Meta):
         db_table = '{schema}"."_trigger_log_archive'.format(schema=settings.HEROKU_CONNECT_SCHEMA)
+
+
+@receiver(pre_migrate)
+def set_hstore(sender, app_config, **kwargs):
+    command = 'CREATE EXTENSION IF NOT EXISTS HSTORE;'
+    with connection.cursor() as cursor:
+        cursor.execute(command)
