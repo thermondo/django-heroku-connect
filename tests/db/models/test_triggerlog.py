@@ -5,7 +5,7 @@ from django import db
 from django.db import connection
 
 from heroku_connect.db.models import (
-    HerokuConnectModelBase, HerokuConnectModel, TriggerLog, TriggerLogArchive
+    HerokuConnectModel, HerokuConnectModelBase, TriggerLog, TriggerLogArchive
 )
 
 
