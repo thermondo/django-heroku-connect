@@ -16,7 +16,6 @@ class HerokuConnectModelBase(models.base.ModelBase):
     """
 
     _cls_by_table_name = {}
-    _table_name_by_cls = {}
 
     def __new__(mcs, name, bases, attrs):
         super_new = super(HerokuConnectModelBase, mcs).__new__
@@ -46,27 +45,9 @@ class HerokuConnectModelBase(models.base.ModelBase):
     def register_class(mcs, new_class):
         if new_class._meta.proxy:
             return
-
-        # strip schema and quotes from _meta.db_table
-        # https://www.postgresql.org/docs/9.6/static/sql-syntax-lexical.html#SQL-SYNTAX-IDENTIFIERS
-        hc_table_name = new_class._meta.db_table.rsplit('.', 1)[-1].strip('"')
-
-        # prevent table_name reuse, but don't break when redefining the same class
-        if hc_table_name in mcs._cls_by_table_name:
-            old_class = mcs._cls_by_table_name[hc_table_name]
-            old_qualname = '{}.{}'.format(old_class.__module__, old_class.__qualname__)
-            new_qualname = '{}.{}'.format(new_class.__module__, new_class.__qualname__)
-            if old_qualname != new_qualname:
-                raise ValueError(
-                    "Cannot assign table name {hc_table_name!r} to {new_qualname}:"
-                    " already in use by {old_qualname}."
-                    .format(**locals())
-                )
-            else:
-                del mcs._table_name_by_cls[old_class]
-
-        mcs._cls_by_table_name[hc_table_name] = new_class
-        mcs._table_name_by_cls[new_class] = hc_table_name
+        # allow table_name reuse
+        table_name = mcs.get_table_name_for_class(new_class)
+        mcs._cls_by_table_name[table_name] = new_class
 
     @classmethod
     def get_class_for_table_name(mcs, table_name):
@@ -92,7 +73,9 @@ class HerokuConnectModelBase(models.base.ModelBase):
             LookupError: if no table name is associated with the given class
 
         """
-        return mcs._table_name_by_cls[model_cls]
+        # strip schema and quotes from _meta.db_table
+        # https://www.postgresql.org/docs/9.6/static/sql-syntax-lexical.html#SQL-SYNTAX-IDENTIFIERS
+        return model_cls._meta.db_table.rsplit('.', 1)[-1].strip('"')
 
 
 class HerokuConnectModel(models.Model, metaclass=HerokuConnectModelBase):
@@ -294,10 +277,37 @@ class HerokuConnectModel(models.Model, metaclass=HerokuConnectModelBase):
         return []
 
     @classmethod
+    def _check_is_registered(cls):
+        if cls._meta.proxy:
+            return []
+        try:
+            table_name = HerokuConnectModelBase.get_table_name_for_class(cls)
+        except LookupError:
+            table_name = None
+        if not table_name:
+            return [checks.Error(
+                "%s.%s has no associated table name." % (
+                    cls._meta.app_label, cls.__name__
+                ),
+                id='heroku_connect.E005a',
+            )]
+        registered_cls = HerokuConnectModelBase.get_class_for_table_name(table_name)
+        if cls is not registered_cls:
+            return [checks.Error(
+                "%s.%s's table name is associated with another class" % (
+                    cls._meta.app_label, cls.__name__
+                ),
+                hint="%s.%s" % (registered_cls._meta.app_label, registered_cls.__name__),
+                id='heroku_connect.E005b'
+            )]
+        return []
+
+    @classmethod
     def check(cls, **kwargs):
         errors = super().check(**kwargs)
         errors.extend(cls._check_sf_object_name())
         errors.extend(cls._check_sf_access())
         errors.extend(cls._check_unique_sf_field_names())
         errors.extend(cls._check_upsert_field())
+        errors.extend(cls._check_is_registered())
         return errors

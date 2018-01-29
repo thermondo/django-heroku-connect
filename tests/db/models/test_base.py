@@ -70,26 +70,21 @@ class TestHerokuConnectModelMixin:
         assert hc_models.HerokuConnectModelBase.get_table_name_for_class(MyModel) == 'table_name'
         assert hc_models.HerokuConnectModelBase.get_class_for_table_name('table_name') is MyModel
 
-        # cannot use same table name for different class
-        with pytest.raises(ValueError):
-            class OverridingModel(hc_models.HerokuConnectModel):
-                class Meta:
-                    abstract = True
-                    db_table = 'table_name'
+        # can redefine table name for different class
+        class NewModel(hc_models.HerokuConnectModel):
+            class Meta:
+                abstract = True
+                db_table = 'table_name'
 
-        assert hc_models.HerokuConnectModelBase.get_table_name_for_class(MyModel) == 'table_name'
-        assert hc_models.HerokuConnectModelBase.get_class_for_table_name('table_name') is MyModel
+        assert hc_models.HerokuConnectModelBase.get_table_name_for_class(NewModel) == 'table_name'
+        assert hc_models.HerokuConnectModelBase.get_class_for_table_name('table_name') is NewModel
 
-        # redefining the same class works
+    def test_registration_ignores_proxy_models(self):
         class MyModel(hc_models.HerokuConnectModel):
             class Meta:
                 app_label = 'heroku_connect'  # need a non-abstract base class for proxy model
                 db_table = 'table_name'
 
-        assert hc_models.HerokuConnectModelBase.get_table_name_for_class(MyModel) == 'table_name'
-        assert hc_models.HerokuConnectModelBase.get_class_for_table_name('table_name') is MyModel
-
-        # proxy models get ignored
         class MyProxyModel(MyModel):
             class Meta:
                 abstract = True
@@ -266,10 +261,10 @@ class TestHerokuConnectModelMixin:
                 abstract = True
 
         errors = MyModel.check()
-        assert errors == [checks.Error(
+        assert checks.Error(
             "test.MyModel must define a \"sf_object_name\".",
             id='heroku_connect.E001',
-        )]
+        ) in errors
 
     def test_check_sf_access(self):
         class MyModel(hc_models.HerokuConnectModel):
@@ -328,6 +323,29 @@ class TestHerokuConnectModelMixin:
             ],
             id='heroku_connect.E004',
         )]
+
+    def test_check_is_registered(self):
+
+        class MyModel(hc_models.HerokuConnectModel):
+            sf_object_name = 'My_Object__c'
+
+            class Meta:
+                app_label = 'test'
+                db_table = 'the_table'
+
+        class MyOtherModel(hc_models.HerokuConnectModel):
+            sf_object_name = 'My_Other_Object__c'
+
+            class Meta:
+                app_label = 'test'
+                db_table = 'the_table'
+
+        assert MyModel.check() == [checks.Error(
+            "test.MyModel's table name is associated with another class",
+            hint="test.%s" % MyOtherModel.__name__,
+            id="heroku_connect.E005b",
+        )]
+        assert MyOtherModel.check() == []
 
     def test_inheritance(self):
         class DateMixin(models.Model):
