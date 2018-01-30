@@ -3,7 +3,9 @@ import secrets
 
 import httpretty
 import pytest
-from health_check.exceptions import ServiceUnavailable, ServiceReturnedUnexpectedResult
+from health_check.exceptions import (
+    ServiceReturnedUnexpectedResult, ServiceUnavailable
+)
 
 from heroku_connect.contrib.heroku_connect_health_check.backends import (
     HerokuConnectHealthCheck
