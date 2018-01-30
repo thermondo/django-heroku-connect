@@ -53,7 +53,7 @@ class TestTriggerLog:
                 assert re.search(regex, str(error))
                 raise
 
-    def test_queryset(self, trigger_log, archived_trigger_log):
+    def test_queryset(self, connected_class, trigger_log, archived_trigger_log):
         no_archived = TriggerLog.objects.all()
         is_archived = TriggerLogArchive.objects.all()
 
@@ -70,3 +70,12 @@ class TestTriggerLog:
         assert set(is_archived) == set(no_archived.archived())
         assert set(is_archived) == set(is_archived.archived())
         assert set(no_archived.combined()) == set(is_archived.combined())
+
+        connected_model = connected_class.objects.create()
+        failed = create_trigger_log_for_model(connected_model, state=TriggerLog.State.FAILED)
+
+        assert set(TriggerLog.objects.failed()) == {failed}
+
+    def test_str(self, trigger_log, archived_trigger_log):
+        assert str(trigger_log)
+        assert str(archived_trigger_log)

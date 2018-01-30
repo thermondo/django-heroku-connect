@@ -148,12 +148,13 @@ class ErrorTrackQuerySet(models.QuerySet):
 
 class ErrorTrackManager(models.Manager.from_queryset(ErrorTrackQuerySet)):
 
-    def get_or_create_for_log(self, trigger_log, **defaults):
+    def get_or_create_for_log(self, trigger_log, *, is_initial, **defaults):
         _defaults = {
             name: getattr(trigger_log, name)
             for name in {'created_at', 'table_name', 'record_id', 'action', 'state', 'sf_message'}
         }
         _defaults.update(defaults)
+        _defaults['is_initial'] = is_initial
         return self.get_or_create(trigger_log_id=trigger_log.id, defaults=_defaults)
 
 
@@ -209,6 +210,13 @@ class ErrorTrack(models.Model):
         except AttributeError:
             log = self._log = (
                 TriggerLog.objects.filter(id=self.trigger_log_id).first() or
-                TriggerLogArchive.filter(id=self.trigger_log_id).first()
+                TriggerLogArchive.objects.filter(id=self.trigger_log_id).first()
             )
         return log
+
+    def refresh_from_db(self, **kwargs):
+        try:
+            del self._log  # clear cached related trigger log
+        except AttributeError:
+            pass
+        super().refresh_from_db(**kwargs)
