@@ -1,3 +1,5 @@
+from operator import itemgetter
+
 from django.conf import settings
 from django.contrib.postgres.fields import HStoreField
 from django.db import connection, models
@@ -56,6 +58,10 @@ class TriggerLogAbstract(models.Model):
         def choices(cls):
             return tuple((getattr(cls, name), name) for name in dir(cls) if name.isupper())
 
+        @classmethod
+        def values(cls):
+            return map(itemgetter(0), cls.choices())
+
     class State:
         """Sync state of the change."""
 
@@ -74,6 +80,10 @@ class TriggerLogAbstract(models.Model):
         @classmethod
         def choices(cls):
             return tuple((getattr(cls, name), name) for name in dir(cls) if name.isupper())
+
+        @classmethod
+        def values(cls):
+            return map(itemgetter(0), cls.choices())
 
     # read-only fields
     created_at = models.DateTimeField(editable=False, auto_now_add=True)

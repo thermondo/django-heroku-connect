@@ -1,8 +1,13 @@
+from itertools import product
+
 import pytest
 
-from heroku_connect.db.models.errors import ErrorTrack, HerokuModelSyncError
+from heroku_connect.db.models import TriggerLog
+from heroku_connect.db.models.errors import (
+    ErrorTrack, FixableHerokuModelSyncError, HerokuModelSyncError
+)
 
-from .conftest import reified_models
+from .conftest import create_trigger_log_for_model, reified_models
 
 
 @pytest.fixture(autouse=True)
@@ -56,3 +61,53 @@ class TestHerokuConnectSyncError:
 
         assert len(error_list) == 1
         assert error_list[0].trigger_log == failed_trigger_log
+
+
+@pytest.mark.django_db
+class TestFixableHerokuModelSyncError:
+
+    @pytest.mark.parametrize('action,state',
+                             product(TriggerLog.Action.values(), TriggerLog.State.values()))
+    def test_may_fix_state_action(self, action, state, trigger_log):
+        known_states = {
+            TriggerLog.State.FAILED,
+            TriggerLog.State.NEW,
+            TriggerLog.State.IGNORE,
+            TriggerLog.State.IGNORED,
+            TriggerLog.State.MERGED,
+            TriggerLog.State.PENDING,
+            TriggerLog.State.READONLY,
+            TriggerLog.State.REQUEUE,
+            TriggerLog.State.REQUEUED,
+            TriggerLog.State.SUCCESS,
+        }
+        known_actions = {
+            TriggerLog.Action.DELETE,
+            TriggerLog.Action.INSERT,
+            TriggerLog.Action.UPDATE,
+        }
+        fixable_states = {TriggerLog.State.FAILED}
+        fixable_actions = {TriggerLog.Action.INSERT, TriggerLog.Action.UPDATE}
+
+        trigger_log.action = action
+        trigger_log.state = state
+        may_fix = (action in fixable_actions and state in fixable_states)
+        expected_type = (FixableHerokuModelSyncError if may_fix else HerokuModelSyncError)
+        assert issubclass(expected_type, HerokuModelSyncError)
+        assert action in known_actions
+        assert state in known_states
+        assert FixableHerokuModelSyncError.may_fix(trigger_log) is may_fix
+        assert type(HerokuModelSyncError(trigger_log)) is expected_type
+
+    def test_may_not_fix_error_tracked_logs(self, failed_trigger_log):
+        assert FixableHerokuModelSyncError.may_fix(failed_trigger_log)
+        track, _ = ErrorTrack.objects.get_or_create_for_log(failed_trigger_log, is_initial=True)
+        assert not FixableHerokuModelSyncError.may_fix(failed_trigger_log)
+
+    def test_fix(self, failed_trigger_log, monkeypatch):
+        error = HerokuModelSyncError(failed_trigger_log)
+        monkeypatch.setattr(TriggerLog, 'capture_insert_from_model', lambda *a, **kw: [])
+
+        error.fix()
+
+        assert ErrorTrack.objects.filter(trigger_log_id=failed_trigger_log.id).exists()
