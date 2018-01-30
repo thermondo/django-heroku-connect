@@ -54,27 +54,19 @@ class TestTriggerLog:
                 raise
 
     def test_queryset(self, connected_class, trigger_log, archived_trigger_log):
-        no_archived = TriggerLog.objects.all()
-        is_archived = TriggerLogArchive.objects.all()
-
-        assert trigger_log in no_archived
-        assert trigger_log not in is_archived
-        assert trigger_log in is_archived.combined()
-
-        assert archived_trigger_log not in no_archived
-        assert archived_trigger_log in is_archived
-        assert archived_trigger_log in is_archived.combined()
-
-        assert set(no_archived) == set(is_archived.current())
-        assert set(no_archived) == set(no_archived.current())
-        assert set(is_archived) == set(no_archived.archived())
-        assert set(is_archived) == set(is_archived.archived())
-        assert set(no_archived.combined()) == set(is_archived.combined())
+        assert list(TriggerLog.objects.all()) == [trigger_log]
+        assert list(TriggerLogArchive.objects.all()) == [archived_trigger_log]
 
         connected_model = connected_class.objects.create()
         failed = create_trigger_log_for_model(connected_model, state=TriggerLog.State.FAILED)
-
         assert set(TriggerLog.objects.failed()) == {failed}
+        assert TriggerLog.objects.all().count() == 2
+        assert set(TriggerLog.objects.all()) == {trigger_log, failed}
+        assert list(TriggerLogArchive.objects.all()) == [archived_trigger_log]
+
+        related = create_trigger_log_for_model(connected_model)
+        assert TriggerLog.objects.related_to(failed).count() == 2
+        assert set(TriggerLog.objects.related_to(failed)) == {failed, related}
 
     def test_str(self, trigger_log, archived_trigger_log):
         assert str(trigger_log)

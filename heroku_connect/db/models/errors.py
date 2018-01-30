@@ -1,3 +1,5 @@
+from itertools import chain
+
 from django.db import models, transaction
 
 from .triggerlog import TriggerLog, TriggerLogAbstract, TriggerLogArchive
@@ -13,7 +15,7 @@ class HerokuModelSyncError(Exception):
     @classmethod
     def iter(cls):
         """Generate sync errors instances from failed records in the trigger log."""
-        for trigger_log in TriggerLog.objects.failed().combined():
+        for trigger_log in chain(TriggerLog.objects.failed(), TriggerLogArchive.objects.failed()):
             yield HerokuModelSyncError(trigger_log)
 
     def __new__(cls, trigger_log):

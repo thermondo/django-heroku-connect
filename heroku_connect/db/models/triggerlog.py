@@ -17,23 +17,6 @@ class TriggerLogQuerySet(models.QuerySet):
         """Filter for all log objects of the same connected model as the given instance."""
         return self.filter(table_name=instance.table_name, record_id=instance.record_id)
 
-    def archived(self):
-        """Apply this query to the trigger log archive."""
-        clone = self.all()
-        clone.model = clone.query.model = TriggerLogArchive
-        return clone
-
-    def current(self):
-        """Apply this query to the live trigger log."""
-        clone = self.all()
-        clone.model = clone.query.model = TriggerLog
-        return clone
-
-    def combined(self):
-        """Get an iterator for both live and archived results; order is not guaranteed."""
-        yield from self.current()
-        yield from self.archived()
-
 
 class TriggerLogAbstract(models.Model):
     """Support for accessing the Heroku Connect Trigger Log data and related actions.

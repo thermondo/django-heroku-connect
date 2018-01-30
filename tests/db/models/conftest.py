@@ -2,6 +2,8 @@ from contextlib import contextmanager
 
 import pytest
 from django.db import connection
+from django.db.models import Max
+from django.db.models.functions import Coalesce
 
 from heroku_connect.db.models import (
     HerokuConnectModel, HerokuConnectModelBase, TriggerLog, TriggerLogArchive
@@ -49,6 +51,11 @@ def _create_trigger_log_tables():
 
 def create_trigger_log_for_model(model, *, is_archived=False, **kwargs):
     model_cls = TriggerLogArchive if is_archived else TriggerLog
+    max_id = max(
+        TriggerLog.objects.aggregate(max=Coalesce(Max('id'), 0))['max'],
+        TriggerLogArchive.objects.aggregate(max=Coalesce(Max('id'), 0))['max'],
+    )
+    kwargs['id'] = max_id + 1
     kwargs.setdefault('table_name', HerokuConnectModelBase.get_table_name_for_class(type(model)))
     kwargs.setdefault('record_id', model.id)
     kwargs.setdefault('state', TriggerLog.State.NEW)
