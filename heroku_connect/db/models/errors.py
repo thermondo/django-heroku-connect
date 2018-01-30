@@ -24,7 +24,7 @@ class HerokuModelSyncError(Exception):
         return super().__new__(HerokuModelSyncError, trigger_log)
 
     def __init__(self, trigger_log):
-        msg = '{log.action} {log.table_name} {log.record_id}'.format(log=trigger_log)
+        msg = '{log.action} {log.table_name}:{log.record_id} {log.state}'.format(log=trigger_log)
         super().__init__(msg)
         self.trigger_log = trigger_log
         self.model = trigger_log.get_model()

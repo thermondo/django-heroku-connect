@@ -100,3 +100,10 @@ def trigger_log(_create_trigger_log_tables, connected_model):
 @pytest.fixture()
 def archived_trigger_log(_create_trigger_log_tables, connected_model):
     return create_trigger_log_for_model(connected_model, is_archived=True)
+
+
+@pytest.fixture()
+def failed_trigger_log(_create_trigger_log_tables, connected_model):
+    return create_trigger_log_for_model(connected_model,
+                                        is_archived=False,
+                                        state=TriggerLog.State.FAILED)
