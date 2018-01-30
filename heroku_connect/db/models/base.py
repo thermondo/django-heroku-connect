@@ -282,7 +282,7 @@ class HerokuConnectModel(models.Model, metaclass=HerokuConnectModelBase):
             return []
         try:
             table_name = HerokuConnectModelBase.get_table_name_for_class(cls)
-        except LookupError:
+        except LookupError:  # pragma: no cover
             table_name = None
         if not table_name:
             return [checks.Error(

@@ -340,12 +340,18 @@ class TestHerokuConnectModelMixin:
                 app_label = 'test'
                 db_table = 'the_table'
 
+        class MyProxyModel(MyModel):
+            class Meta:
+                app_label = 'test'
+                proxy = True
+
         assert MyModel.check() == [checks.Error(
             "test.MyModel's table name is associated with another class",
             hint="test.%s" % MyOtherModel.__name__,
             id="heroku_connect.E005b",
         )]
         assert MyOtherModel.check() == []
+        assert MyProxyModel.check() == []
 
     def test_inheritance(self):
         class DateMixin(models.Model):

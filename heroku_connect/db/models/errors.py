@@ -74,7 +74,7 @@ class FixableHerokuModelSyncError(HerokuModelSyncError):
                 TriggerLogAbstract.Action.INSERT: self._fix_insert,
                 TriggerLogAbstract.Action.UPDATE: self._fix_update,
             }[trigger_log.action]
-        except KeyError:
+        except KeyError:  # pragma: no cover
             raise ValueError("Can't fix {self}".format(self=self))
         with transaction.atomic():
             # prevent collisions with concurrent fixes:

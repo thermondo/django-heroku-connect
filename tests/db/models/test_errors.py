@@ -39,7 +39,9 @@ class TestErrorTrack:
         track, _ = ErrorTrack.objects.get_or_create_for_log(trigger_log, is_initial=True)
         trigger_log.delete()
         track.refresh_from_db()
+
         assert track.log is None
+        assert list(ErrorTrack.objects.orphaned()) == [track]
 
     def test_str(self, trigger_log):
         track, _ = ErrorTrack.objects.get_or_create_for_log(trigger_log, is_initial=True)
@@ -104,9 +106,15 @@ class TestFixableHerokuModelSyncError:
         track, _ = ErrorTrack.objects.get_or_create_for_log(failed_trigger_log, is_initial=True)
         assert not FixableHerokuModelSyncError.may_fix(failed_trigger_log)
 
-    def test_fix(self, failed_trigger_log, monkeypatch):
+    @pytest.mark.parametrize('action', [TriggerLog.Action.INSERT, TriggerLog.Action.UPDATE])
+    def test_fix(self, action, failed_trigger_log, monkeypatch):
+        failed_trigger_log.action = action
         error = HerokuModelSyncError(failed_trigger_log)
-        monkeypatch.setattr(TriggerLog, 'capture_insert_from_model', lambda *a, **kw: [])
+        patch_target = {
+            TriggerLog.Action.INSERT: 'capture_insert_from_model',
+            TriggerLog.Action.UPDATE: 'capture_update_from_model',
+        }[action]
+        monkeypatch.setattr(TriggerLog, patch_target, lambda *a, **kw: [])
 
         error.fix()
 
