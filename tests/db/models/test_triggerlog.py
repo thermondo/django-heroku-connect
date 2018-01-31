@@ -2,6 +2,7 @@ import re
 
 import pytest
 from django import db
+from django.core.exceptions import FieldDoesNotExist
 
 from heroku_connect.db.models import TriggerLog, TriggerLogArchive
 from tests.db.models.conftest import create_trigger_log_for_model
@@ -40,11 +41,14 @@ class TestTriggerLog:
                 )
                 assert re.search(regex, str(error))
                 raise
+        with pytest.raises(FieldDoesNotExist):
+            trigger_log.capture_update(update_fields=('NOT A FIELD',))
 
     def test_capture_insert(self, trigger_log):
         with pytest.raises(db.ProgrammingError):
             try:
-                trigger_log.capture_insert()
+                exclude_fields = ['_hc_lastop', '_hc_err']  # for test coverage
+                trigger_log.capture_insert(exclude_fields=exclude_fields)
             except db.ProgrammingError as error:
                 regex = 'function {schema}hc_capture_insert_from_row{args} does not exist'.format(
                     schema=r'(?:[^.]+\.)?',
@@ -52,6 +56,8 @@ class TestTriggerLog:
                 )
                 assert re.search(regex, str(error))
                 raise
+        with pytest.raises(FieldDoesNotExist):
+            trigger_log.capture_insert(exclude_fields=('NOT A FIELD',))
 
     def test_queryset(self, connected_class, trigger_log, archived_trigger_log):
         assert list(TriggerLog.objects.all()) == [trigger_log]

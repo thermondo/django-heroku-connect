@@ -84,7 +84,7 @@ class FixableHerokuModelSyncError(HerokuModelSyncError):
                 .get(id=trigger_log.id)
             )
             _, created = ErrorTrack.objects.get_or_create_for_log(trigger_log, is_initial=True)
-            if not created:
+            if not created:  # pragma: no cover
                 # somebody created an ErrorTrack concurrently
                 return
             results = fixer(trigger_log, delay_fields=delay_fields, update_model=update_model)

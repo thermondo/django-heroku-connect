@@ -95,12 +95,10 @@ class TriggerLogAbstract(models.Model):
     action = models.CharField(max_length=7, editable=False, choices=Action.choices())
     sf_message = models.TextField(editable=False, null=True, blank=True)
 
-    if 'django.contrib.postgres' in settings.INSTALLED_APPS:
-        values = HStoreField(editable=False)
-        old = HStoreField(editable=False)
-    else:
-        values = models.TextField(editable=False)
-        old = models.TextField(editable=False)
+    # TODO: these are more useful as HStoreFields (if 'django.contrib.postgres' in INSTALLED_APPS)
+    # leave them as textfields for now
+    _values = models.TextField(editable=False, db_column='values')
+    _old = models.TextField(editable=False, null=True, blank=True, db_column='old')
 
     # editable fields
     state = models.CharField(max_length=8, null=False, blank=False, choices=State.choices())
