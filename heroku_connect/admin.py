@@ -1,7 +1,11 @@
+from urllib.parse import parse_qs, urlencode, urlsplit, urlunsplit
+
 from django.contrib import admin
+from django.contrib.contenttypes.models import ContentType
+from django.urls import reverse
 from django.utils.html import format_html
 
-from heroku_connect.models import TriggerLog
+from heroku_connect.models import TriggerLog, TriggerLogArchive
 
 
 @admin.register(TriggerLog)
@@ -10,7 +14,7 @@ class TriggerLogAdmin(admin.ModelAdmin):
 
     # LIST
     date_hierarchy = 'created_at'
-    list_display = ('created_at', 'action', 'table_name', 'record_id', 'sf_message', 'state_label',)
+    list_display = ('created_at', 'action', 'table_name', 'record_id_link', 'sf_message', 'state_label',)
     list_filter = ('action', 'state', 'table_name')
     list_per_page = 100
     list_max_show_all = 200
@@ -39,3 +43,38 @@ class TriggerLogAdmin(admin.ModelAdmin):
                            mod=mod, mod2=mod2, state=state)
     state_label.allow_tags = True
     state_label.short_description = 'State'
+    state_label.admin_order_field = 'state'
+
+    def record_id_link(self, log):
+        if not log.record_id:
+            return None
+        template = '{record_id}'
+        new_url = self._build_filter_url(type(log), log)
+        if new_url:
+            template += ' <a href="{url}">[filter]</a>'
+        return format_html(template, url=new_url, record_id=log.record_id)
+    record_id_link.allow_tags = True
+    record_id_link.short_description = 'Record ID'
+    record_id_link.admin_order_field = 'record_id'
+
+    @classmethod
+    def _build_filter_url(cls, model, log):
+        table_name, record_id = log.table_name, log.record_id
+        if not table_name and record_id:
+            return None
+        record_query = {
+            'table_name__exact': log.table_name,
+            'record_id': log.record_id,
+        }
+        content_type = ContentType.objects.get_for_model(model)
+        url = reverse('admin:{app_label}_{model}_changelist'.format(**content_type.__dict__))
+        parts = urlsplit(url)
+        query = parse_qs(parts.query)
+        query.update(record_query)
+        parts = parts._replace(query=urlencode(query))
+        return urlunsplit(parts)
+
+
+@admin.register(TriggerLogArchive)
+class TriggerLogArchiveAdmin(TriggerLogAdmin):
+    pass
