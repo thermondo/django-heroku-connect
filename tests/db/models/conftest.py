@@ -42,7 +42,7 @@ def reified_models(model_class, *model_classes):
 
 
 @pytest.fixture()
-def _create_trigger_log_tables():
+def create_trigger_log_tables():
     # Need to create the tables manually as the models are `managed = False`.
     model_classes = (TriggerLog, TriggerLogArchive)
     with reified_models(*model_classes):
@@ -93,17 +93,17 @@ def connected_model(connected_class):
 
 
 @pytest.fixture()
-def trigger_log(_create_trigger_log_tables, connected_model):
+def trigger_log(create_trigger_log_tables, connected_model):
     return create_trigger_log_for_model(connected_model, is_archived=False)
 
 
 @pytest.fixture()
-def archived_trigger_log(_create_trigger_log_tables, connected_model):
+def archived_trigger_log(create_trigger_log_tables, connected_model):
     return create_trigger_log_for_model(connected_model, is_archived=True)
 
 
 @pytest.fixture()
-def failed_trigger_log(_create_trigger_log_tables, connected_model):
+def failed_trigger_log(create_trigger_log_tables, connected_model):
     return create_trigger_log_for_model(connected_model,
                                         is_archived=False,
                                         state=TriggerLog.State.FAILED)

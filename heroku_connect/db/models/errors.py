@@ -111,11 +111,14 @@ class FixableHerokuModelSyncError(HerokuModelSyncError):
         if exclude:
             model = trigger_log.get_model()
             fields = type(model)._meta.get_fields()
-            include = {f.name for f in fields if not {f.name, f.attname}.issubset(exclude)}
+            include = {
+                f.name for f in fields
+                if not (f.name in exclude or (hasattr(f, 'attname') and f.attname in exclude))
+            }
             if include:
                 # Attention: passing empty include_fields will update everything
                 results.extend(
-                    trigger_log.capture_update(include_fields=include)
+                    trigger_log.capture_update(update_fields=include)
                 )
             if update_model:
                 cls._update_model(model, update_model)
@@ -144,7 +147,7 @@ class ErrorTrackQuerySet(models.QuerySet):
             self
             .exclude(trigger_log_id__in=TriggerLog.objects.values_list('id'))
             .exclude(trigger_log_id__in=TriggerLogArchive.objects.values_list('id'))
-            # interestingly, excludes seem to perform faster than a query with Exists(...)
+            # excludes seem to perform faster than a query with Exists(...)
         )
 
 
