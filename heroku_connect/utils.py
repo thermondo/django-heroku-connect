@@ -156,7 +156,7 @@ def get_connections(app):
     """
     payload = {'app': app}
     url = os.path.join(settings.HEROKU_CONNECT_API_ENDPOINT, 'connections')
-    response = requests.get(url, data=payload, headers=_get_authorization_headers())
+    response = requests.get(url, params=payload, headers=_get_authorization_headers())
     response.raise_for_status()
     return response.json()['results']
 
@@ -210,6 +210,6 @@ def get_connection(connection_id, deep=False):
     """
     url = os.path.join(settings.HEROKU_CONNECT_API_ENDPOINT, 'connections', connection_id)
     payload = {'deep': deep}
-    response = requests.get(url, data=payload, headers=_get_authorization_headers())
+    response = requests.get(url, params=payload, headers=_get_authorization_headers())
     response.raise_for_status()
     return response.json()
