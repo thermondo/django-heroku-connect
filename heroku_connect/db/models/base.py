@@ -4,7 +4,27 @@ from django.db import models
 from . import fields
 from ...conf import settings
 
-__all__ = ('HerokuConnectModel',)
+__all__ = ('HerokuConnectModel', 'registry')
+
+
+class HerokuConnectModelRegistry:
+    """Keep track of which HerokuConnectModel classes use which table name."""
+
+    def __init__(self):
+        self._table_name_to_cls = {}
+
+    def register(self, cls):
+        table_name = HerokuConnectModelBase.get_table_name_from_class(cls)
+        self._table_name_to_cls[table_name] = cls
+
+    def get_table_name_for_class(self, cls):
+        return HerokuConnectModelBase.get_table_name_from_class(cls)
+
+    def get_class_for_table_name(self, table_name):
+        return self._table_name_to_cls[table_name]
+
+
+registry = HerokuConnectModelRegistry()
 
 
 class HerokuConnectModelBase(models.base.ModelBase):
@@ -14,8 +34,6 @@ class HerokuConnectModelBase(models.base.ModelBase):
     Sets :attr:`Meta.managed<django.db.models.Options.managed>` to ``False``
     and sets a default value for :attr:`Meta.db_table<django.db.models.Options.db_table>`.
     """
-
-    _cls_by_table_name = {}
 
     def __new__(mcs, name, bases, attrs):
         super_new = super(HerokuConnectModelBase, mcs).__new__
@@ -38,32 +56,13 @@ class HerokuConnectModelBase(models.base.ModelBase):
             is_deleted = [x for x in new_class._meta.local_fields if x.name == 'is_deleted'][0]
             new_class._meta.local_fields.remove(is_deleted)
 
-        mcs.register_class(new_class)
+        if not new_class._meta.proxy:
+            registry.register(new_class)
+
         return new_class
 
     @classmethod
-    def register_class(mcs, new_class):
-        if new_class._meta.proxy:
-            return
-        # allow table_name reuse
-        table_name = mcs.get_table_name_for_class(new_class)
-        mcs._cls_by_table_name[table_name] = new_class
-
-    @classmethod
-    def get_class_for_table_name(mcs, table_name):
-        """Return the model class associated with a given table name.
-
-        Args:
-            table_name: Name of the database table (without schema)
-
-        Raises:
-            LookupError: if no class is using the given table name
-
-        """
-        return mcs._cls_by_table_name[table_name]
-
-    @classmethod
-    def get_table_name_for_class(mcs, model_cls):
+    def get_table_name_from_class(mcs, model_cls):
         """Return the table name (without schema) associated with a model class.
 
         Args:
@@ -281,7 +280,7 @@ class HerokuConnectModel(models.Model, metaclass=HerokuConnectModelBase):
         if cls._meta.proxy:
             return []
         try:
-            table_name = HerokuConnectModelBase.get_table_name_for_class(cls)
+            table_name = registry.get_table_name_for_class(cls)
         except LookupError:  # pragma: no cover
             table_name = None
         if not table_name:
@@ -291,7 +290,7 @@ class HerokuConnectModel(models.Model, metaclass=HerokuConnectModelBase):
                 ),
                 id='heroku_connect.E005a',
             )]
-        registered_cls = HerokuConnectModelBase.get_class_for_table_name(table_name)
+        registered_cls = registry.get_class_for_table_name(table_name)
         if cls is not registered_cls:
             return [checks.Error(
                 "%s.%s's table name is associated with another class" % (

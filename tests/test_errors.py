@@ -2,21 +2,12 @@ from itertools import product
 
 import pytest
 
-from heroku_connect.db.models import TriggerLog
-from heroku_connect.db.models.errors import (
-    ErrorTrack, FixableHerokuModelSyncError, HerokuModelSyncError
+from heroku_connect.errors import (
+    FixableHerokuModelSyncError, HerokuModelSyncError
 )
+from heroku_connect.models import ErrorTrack, TriggerLog
+from tests.conftest import create_trigger_log_for_model
 from tests.testapp.models import NumberModel
-
-from .conftest import create_trigger_log_for_model, reified_models
-
-
-@pytest.fixture(autouse=True)
-def _error_track_table():
-    # ErrorTrack table not auto-created with --nomigrations when there's no heroku_connect.models
-    # TODO: maybe we should have errors and trigger_log in that very module
-    with reified_models(ErrorTrack):
-        yield ErrorTrack
 
 
 @pytest.mark.django_db

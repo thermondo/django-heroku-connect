@@ -5,16 +5,15 @@ from django.db import connection
 from django.db.models import Max
 from django.db.models.functions import Coalesce
 
-from heroku_connect.db.models import (
-    HerokuConnectModel, HerokuConnectModelBase, TriggerLog, TriggerLogArchive
-)
+from heroku_connect.db.models.base import HerokuConnectModel, registry
+from heroku_connect.models import TriggerLog, TriggerLogArchive
 
 
 @contextmanager
 def reified_models(model_class, *model_classes):
     """Create a model's table in the database.
 
-    This is useful for testing unmanaged models, or ones defined after Django setup already
+    This is useful for testing un-managed models, or ones defined after Django setup already
     created the tables for the models it knew back then.
     """
     model_classes = (model_class,) + model_classes
@@ -56,7 +55,7 @@ def create_trigger_log_for_model(model, *, is_archived=False, **kwargs):
         TriggerLogArchive.objects.aggregate(max=Coalesce(Max('id'), 0))['max'],
     )
     kwargs['id'] = max_id + 1
-    kwargs.setdefault('table_name', HerokuConnectModelBase.get_table_name_for_class(type(model)))
+    kwargs.setdefault('table_name', registry.get_table_name_for_class(type(model)))
     kwargs.setdefault('record_id', model.id)
     kwargs.setdefault('state', TriggerLog.State.NEW)
     kwargs.setdefault('action', TriggerLog.Action.INSERT)
@@ -67,14 +66,12 @@ def create_trigger_log_for_model(model, *, is_archived=False, **kwargs):
 def connected_class():
     """Get a HerokuConnectedModel subclass"""
     # The class definition is hidden in a fixture to keep the app registry and database table space
-    # clean for other tests. For example, our database backend calls
-    # :func:`heroku_connect.utils.create_heroku_connect_schema` when the test database is created,
-    # which will in turn create tables for all known connected models, test classes created at
-    # import time included.
-    # return ConnectedTestModel
+    # clean for other tests.
     global __ConnectedTestModel
     try:
         cls = __ConnectedTestModel
+        meta = cls._meta
+        meta.apps.register_model(meta.app_label, cls)
     except NameError:
         # define the class only once, or django will warn about redefining models
         class ConnectedTestModel(HerokuConnectModel):
@@ -82,9 +79,22 @@ def connected_class():
 
             class Meta:
                 app_label = 'tests'
+
         cls = __ConnectedTestModel = ConnectedTestModel
+        meta = cls._meta
+        # creating the class automatically registers it
     with reified_models(cls):
-        yield cls
+        try:
+            yield cls  # run test
+        finally:
+            # de-register class from Apps registry
+            testapp_models = meta.apps.all_models.get(meta.app_label, {})
+            registered_name = None
+            for name, model_cls in testapp_models.items():
+                if model_cls is cls:
+                    registered_name = name
+            if registered_name:
+                del testapp_models[registered_name]
 
 
 @pytest.fixture()

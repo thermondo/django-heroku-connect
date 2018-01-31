@@ -4,8 +4,8 @@ import pytest
 from django import db
 from django.core.exceptions import FieldDoesNotExist
 
-from heroku_connect.db.models import TriggerLog, TriggerLogArchive
-from tests.db.models.conftest import create_trigger_log_for_model
+from heroku_connect.models import TriggerLog, TriggerLogArchive
+from tests.conftest import create_trigger_log_for_model
 
 
 @pytest.mark.django_db

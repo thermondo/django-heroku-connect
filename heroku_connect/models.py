@@ -1,12 +1,11 @@
 from operator import itemgetter
 
 from django.conf import settings
-from django.contrib.postgres.fields import HStoreField
 from django.db import connection, models
 from django.db.models.signals import pre_migrate
 from django.dispatch import receiver
 
-from .base import HerokuConnectModelBase
+from heroku_connect.db import models as hc_models
 
 
 class TriggerLogQuerySet(models.QuerySet):
@@ -131,7 +130,7 @@ class TriggerLogAbstract(models.Model):
         """
         exclude_cols = ()
         if exclude_fields:
-            model_cls = HerokuConnectModelBase.get_class_for_table_name(table_name)
+            model_cls = hc_models.registry.get_class_for_table_name(table_name)
             exclude_cols = cls._fieldnames_to_colnames(model_cls, exclude_fields)
 
         sql = """
@@ -169,7 +168,7 @@ class TriggerLogAbstract(models.Model):
         """
         include_cols = ()
         if update_fields:
-            model_cls = HerokuConnectModelBase.get_class_for_table_name(table_name)
+            model_cls = hc_models.registry.get_class_for_table_name(table_name)
             include_cols = cls._fieldnames_to_colnames(model_cls, update_fields)
         sql = """
             SELECT "{schema}".hc_capture_update_from_row(
@@ -201,7 +200,7 @@ class TriggerLogAbstract(models.Model):
             The connected instance, or ``None`` if it does not exists.
 
         """
-        model_cls = HerokuConnectModelBase.get_class_for_table_name(self.table_name)
+        model_cls = hc_models.registry.get_class_for_table_name(self.table_name)
         return model_cls._default_manager.filter(id=self.record_id).first()
 
     def related(self, *, exclude_self=False):
@@ -267,3 +266,95 @@ def set_hstore(sender, app_config, **kwargs):
     command = 'CREATE EXTENSION IF NOT EXISTS HSTORE;'
     with connection.cursor() as cursor:
         cursor.execute(command)
+
+
+class ErrorTrackQuerySet(models.QuerySet):
+
+    def of_log(self, log):
+        # Abstract away the details of how log record and it's track are connected
+        return self.filter(trigger_log_id=log.id)
+
+    def orphaned(self):
+        """Filter for ErrorTracks whose related TriggerLogs do not exist anymore."""
+        return (
+            self
+            .exclude(trigger_log_id__in=TriggerLog.objects.values_list('id'))
+            .exclude(trigger_log_id__in=TriggerLogArchive.objects.values_list('id'))
+            # excludes seem to perform faster than a query with Exists(...)
+        )
+
+
+class ErrorTrackManager(models.Manager.from_queryset(ErrorTrackQuerySet)):
+
+    def get_or_create_for_log(self, trigger_log, *, is_initial, **defaults):
+        _defaults = {
+            name: getattr(trigger_log, name)
+            for name in {'created_at', 'table_name', 'record_id', 'action', 'state', 'sf_message'}
+        }
+        _defaults.update(defaults)
+        _defaults['is_initial'] = is_initial
+        return self.get_or_create(trigger_log_id=trigger_log.id, defaults=_defaults)
+
+
+class ErrorTrack(models.Model):
+    """Extra data to associate with entries in the trigger log.
+
+    The idea is to track which trigger log entries are involved in the recognition and
+    resolution of errors. It's useful for answering questions like:
+
+    * Has a fix already been tried for a failed log record?
+    * Has it succeeded?
+
+    Because trigger log entries are tracked across the live and archive tables, the tracks survive
+    the eventual automatic purge of their respective entries, and manual cleanup is needed. On the
+    other hand, this can be used to build a longer history of error data than the Trigger Log
+    itself allows.
+    """
+
+    # The following fields uniquely identify the trigger log entry an ErrorTrack belongs to.
+    # A foreign key does not work, unfortunately, because a log entry can move between the
+    # actual trigger log and the archive table.
+    # Side note: Has anyone ever run out of big serial ids? Then we should use (id, created_at) as
+    # composite foreign keys.
+    trigger_log_id = models.BigIntegerField(unique=True, editable=False)
+
+    # The following fields are duplicated from TriggerLog, so information can be retained after
+    # Heroku Connect purges the trigger log. It also makes queries for these fields easier, since
+    # the lack of a true foreign key negates a lot of Django's ORM features.
+    created_at = models.DateTimeField(editable=False)
+    table_name = models.CharField(max_length=128, editable=False)
+    record_id = models.BigIntegerField(editable=False)
+    action = models.CharField(max_length=7, editable=False)
+    state = models.CharField(max_length=8, null=False, blank=False, editable=False)
+    sf_message = models.TextField(editable=False, null=True, blank=True)
+
+    # Additional data:
+    is_initial = models.BooleanField()
+
+    objects = ErrorTrackManager()
+
+    def __str__(self):
+        return (
+            '{action} {table_name}|{record_id} [{created_at:%Y-%m-%d %a %H:%M%z}] {state}'.format(
+                action=self.action, table_name=self.table_name, record_id=self.record_id,
+                created_at=self.created_at, state=self.state)
+        )
+
+    @property
+    def log(self):
+        """Return the track's related trigger log entry if it exists, or None."""
+        try:
+            log = self._log
+        except AttributeError:
+            log = self._log = (
+                TriggerLog.objects.filter(id=self.trigger_log_id).first() or
+                TriggerLogArchive.objects.filter(id=self.trigger_log_id).first()
+            )
+        return log
+
+    def refresh_from_db(self, **kwargs):
+        try:
+            del self._log  # clear cached related trigger log
+        except AttributeError:
+            pass
+        super().refresh_from_db(**kwargs)

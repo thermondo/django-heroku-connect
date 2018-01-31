@@ -1,7 +1,6 @@
 import os
 import shutil
 
-import pytest
 from django.core import checks
 from django.core.management import call_command
 from django.db import models
@@ -59,16 +58,16 @@ class TestHerokuConnectModelMixin:
             class Meta:
                 abstract = True
 
-        assert hc_models.HerokuConnectModelBase.get_table_name_for_class(MyModel) == 'object_name'
-        assert hc_models.HerokuConnectModelBase.get_class_for_table_name('object_name') is MyModel
+        assert hc_models.registry.get_table_name_for_class(MyModel) == 'object_name'
+        assert hc_models.registry.get_class_for_table_name('object_name') is MyModel
 
         class MyModel(hc_models.HerokuConnectModel):
             class Meta:
                 abstract = True
                 db_table = 'table_name'
 
-        assert hc_models.HerokuConnectModelBase.get_table_name_for_class(MyModel) == 'table_name'
-        assert hc_models.HerokuConnectModelBase.get_class_for_table_name('table_name') is MyModel
+        assert hc_models.registry.get_table_name_for_class(MyModel) == 'table_name'
+        assert hc_models.registry.get_class_for_table_name('table_name') is MyModel
 
         # can redefine table name for different class
         class NewModel(hc_models.HerokuConnectModel):
@@ -76,8 +75,8 @@ class TestHerokuConnectModelMixin:
                 abstract = True
                 db_table = 'table_name'
 
-        assert hc_models.HerokuConnectModelBase.get_table_name_for_class(NewModel) == 'table_name'
-        assert hc_models.HerokuConnectModelBase.get_class_for_table_name('table_name') is NewModel
+        assert hc_models.registry.get_table_name_for_class(NewModel) == 'table_name'
+        assert hc_models.registry.get_class_for_table_name('table_name') is NewModel
 
     def test_registration_ignores_proxy_models(self):
         class MyModel(hc_models.HerokuConnectModel):
@@ -91,8 +90,8 @@ class TestHerokuConnectModelMixin:
                 proxy = True
                 db_table = 'table_name'
 
-        assert hc_models.HerokuConnectModelBase.get_table_name_for_class(MyModel) == 'table_name'
-        assert hc_models.HerokuConnectModelBase.get_class_for_table_name('table_name') is MyModel
+        assert hc_models.registry.get_table_name_for_class(MyModel) == 'table_name'
+        assert hc_models.registry.get_class_for_table_name('table_name') is MyModel
 
     def test_migrations(self, db, settings):
         settings.MIGRATION_MODULES = {'testapp': 'tests.testapp.migrations'}
