@@ -14,7 +14,8 @@ class TriggerLogAdmin(admin.ModelAdmin):
 
     # LIST
     date_hierarchy = 'created_at'
-    list_display = ('created_at', 'action', 'table_name', 'record_id_link', 'sf_message', 'state_label',)
+    list_display = ('created_at', 'action', 'table_name', 'record_id_link', 'sf_message',
+                    'state_label',)
     list_filter = ('action', 'state', 'table_name')
     list_per_page = 100
     list_max_show_all = 200
