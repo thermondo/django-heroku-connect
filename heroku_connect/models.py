@@ -1,4 +1,3 @@
-from itertools import chain, groupby, repeat
 from operator import itemgetter
 
 from django.conf import settings
@@ -21,12 +20,12 @@ class TriggerLogQuerySet(models.QuerySet):
         return self.filter(table_name=instance.table_name, record_id=instance.record_id)
 
     def initial_failures(self):
-        """Initial failures are trigger logs that started a chain of failures.
+        """Filter for trigger logs that started a chain of failures.
 
         They are the first failed logs which are not preceded by another failure without at least
         one success in between.
         """
-        ordered = self.order_by('id')
+        ordered = self.order_by('id')  # TODO replace self.order_by to prevent subsequent changes
         return (
             ordered
             .failed()
