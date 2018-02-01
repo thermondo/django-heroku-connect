@@ -15,6 +15,7 @@ class ConnectionStates:
     BUSY = 'BUSY'
     NEED_AUTHENTICATION = 'NEED_AUTHENTICATION'
     INACTIVE_ORG = 'INACTIVE_ORG'
+    PAUSED = 'PAUSED'
 
     OK_STATES = (
         IDLE,
