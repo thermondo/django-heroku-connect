@@ -3,7 +3,7 @@ from urllib.parse import parse_qs, urlencode, urlsplit, urlunsplit
 
 from django.contrib import admin, messages
 from django.contrib.contenttypes.models import ContentType
-from django.urls import reverse
+from django.urls import NoReverseMatch, reverse
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 
@@ -154,14 +154,35 @@ admin.register(TriggerLogArchive)(TriggerLogAdmin)
 @admin.register(ErrorTrack)
 class ErrorTrackAdmin(GenericLogModelAdmin):
 
-    field_overrides = GenericLogModelAdmin.field_overrides.copy()
-    field_overrides.update()
-
     # LIST
-    list_display = GenericLogModelAdmin.list_display + ('is_initial',)
+    list_display = (
+            GenericLogModelAdmin.list_display +
+            ('trigger_log_link', 'is_initial',))
     list_filter = GenericLogModelAdmin.list_filter + ('is_initial',)
 
     # DETAIL
     readonly_fields = _replaced(
         (field.name for field in ErrorTrack._meta.get_fields() if not field.editable),
         **GenericLogModelAdmin.field_overrides)
+
+    def trigger_log_link(self, track):
+        log = track.log
+        url = None
+        log_id = (log and log.id) or track.trigger_log_id
+        if log:
+            print('LOG EXISTS')
+            try:
+                content_type = ContentType.objects.get_for_model(type(log))
+                url = reverse(
+                    'admin:{app_label}_{model}_change'.format(**content_type.__dict__),
+                    args=(log.id,),
+                )
+            except (ContentType.DoesNotExist, NoReverseMatch) as error:
+                print('ERROR', error)
+                pass
+        if url:
+            return format_html('<a href="{url}">{log_id}</a>', log_id=log_id, url=url)
+        return format_html('{log_id}', log_id=log_id)
+    trigger_log_link.allow_tags = True
+    trigger_log_link.short_description = 'Trigger log id'
+    trigger_log_link.admin_order_field = 'trigger_log_id'
