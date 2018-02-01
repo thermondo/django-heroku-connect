@@ -12,6 +12,7 @@ class ConnectionStates:
     IDLE = 'IDLE'
     POLLING_DB_CHANGES = 'POLLING_DB_CHANGES'
     IMPORT_CONFIGURATION = 'IMPORT_CONFIGURATION'
+    BUSY = 'BUSY'
     NEED_AUTHENTICATION = 'NEED_AUTHENTICATION'
     INACTIVE_ORG = 'INACTIVE_ORG'
 
@@ -19,6 +20,7 @@ class ConnectionStates:
         IDLE,
         POLLING_DB_CHANGES,
         IMPORT_CONFIGURATION,
+        BUSY,
     )
 
 
