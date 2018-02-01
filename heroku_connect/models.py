@@ -1,7 +1,9 @@
+from itertools import chain, groupby, repeat
 from operator import itemgetter
 
 from django.conf import settings
 from django.db import connection, models
+from django.db.models import F, OuterRef, Q, Subquery
 from django.db.models.signals import pre_migrate
 from django.dispatch import receiver
 
@@ -17,6 +19,62 @@ class TriggerLogQuerySet(models.QuerySet):
     def related_to(self, instance):
         """Filter for all log objects of the same connected model as the given instance."""
         return self.filter(table_name=instance.table_name, record_id=instance.record_id)
+
+    def initial_failures(self):
+        """Initial failures are trigger logs that started a chain of failures.
+
+        They are the first failed logs which are not preceded by another failure without at least
+        one success in between.
+        """
+        ordered = self.order_by('id')
+        return (
+            ordered
+            .failed()
+            .annotate(
+                previous_failure_id=Subquery(
+                    TriggerLog.objects.filter(
+                        state='FAILED',
+                        table_name=OuterRef('table_name'),
+                        record_id=OuterRef('record_id'),
+                        id__lt=OuterRef('id')
+                    ).values('id')[:1]
+                ),
+                previous_archived_failure_id=Subquery(
+                    TriggerLogArchive.objects.filter(
+                        state='FAILED',
+                        table_name=OuterRef('table_name'),
+                        record_id=OuterRef('record_id'),
+                        id__lt=OuterRef('id')
+                    ).values('id')[:1]
+                ),
+                previous_success_id=Subquery(
+                    TriggerLog.objects.filter(
+                        state='SUCCESS',
+                        table_name=OuterRef('table_name'),
+                        record_id=OuterRef('record_id'),
+                        id__lt=OuterRef('id')
+                    ).values('id')[:1]
+                ),
+                previous_archived_success_id=Subquery(
+                    TriggerLog.objects.filter(
+                        state='SUCCESS',
+                        table_name=OuterRef('table_name'),
+                        record_id=OuterRef('record_id'),
+                        id__lt=OuterRef('id')
+                    ).values('id')[:1]
+                ),
+            )
+            .filter(
+                Q(
+                    previous_failure_id__isnull=True,
+                    previous_archived_failure_id__isnull=True
+                ) |
+                Q(previous_success_id__gt=F('previous_failure_id')) |
+                Q(previous_success_id__gt=F('previous_archived_failure_id')) |
+                Q(previous_archived_success_id__gt=F('previous_failure_id')) |
+                Q(previous_archived_success_id__gt=F('previous_archived_failure_id'))
+            )
+        )
 
 
 class TriggerLogAbstract(models.Model):
@@ -286,7 +344,10 @@ class ErrorTrackQuerySet(models.QuerySet):
 
 class ErrorTrackManager(models.Manager.from_queryset(ErrorTrackQuerySet)):
 
-    def get_or_create_for_log(self, trigger_log, *, is_initial, **defaults):
+    def get_or_create_for_log(self, trigger_log, *, is_initial=None, **defaults):
+        if is_initial is None:
+            cls_objects = type(trigger_log)._default_manager
+            is_initial = cls_objects.initial_failures().filter(id=trigger_log.id).exists()
         _defaults = {
             name: getattr(trigger_log, name)
             for name in {'created_at', 'table_name', 'record_id', 'action', 'state', 'sf_message'}
@@ -294,6 +355,11 @@ class ErrorTrackManager(models.Manager.from_queryset(ErrorTrackQuerySet)):
         _defaults.update(defaults)
         _defaults['is_initial'] = is_initial
         return self.get_or_create(trigger_log_id=trigger_log.id, defaults=_defaults)
+
+    def get_or_create_for_multiple(self, logs):
+        for log in logs:
+            t, created = self.get_or_create_for_log(log, is_initial=None)
+            yield t, created
 
 
 class ErrorTrack(models.Model):

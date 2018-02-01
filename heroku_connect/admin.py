@@ -1,5 +1,4 @@
 from collections import OrderedDict
-from itertools import chain, repeat
 from urllib.parse import parse_qs, urlencode, urlsplit, urlunsplit
 
 from django.contrib import admin, messages
@@ -127,16 +126,12 @@ class TriggerLogAdmin(GenericLogModelAdmin):
         If a track for the first log in the queryset (lowest id) does not exist yet, it is created
         with ``is_initial=True``; the others get created with a default value of ``False``.
         """
-        queryset = queryset.order_by('id')  # use same ordering as Heroku Connect
         error_tracks = ErrorTrack._meta.verbose_name_plural
         model_plural = queryset.model._meta.verbose_name_plural
         selected_count = queryset.count()
         created_count = existed_count = 0
-        # set the first error track is_initial=True, if it doesn't exist yet
-        is_initial_values = chain([True], repeat(False))
 
-        for log, is_initial in zip(queryset, is_initial_values):
-            track, created = ErrorTrack.objects.get_or_create_for_log(log, is_initial=is_initial)
+        for track, created in ErrorTrack.objects.get_or_create_for_multiple(queryset):
             if created:
                 created_count += 1
             else:
