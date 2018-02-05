@@ -170,7 +170,6 @@ class ErrorTrackAdmin(GenericLogModelAdmin):
         url = None
         log_id = (log and log.id) or track.trigger_log_id
         if log:
-            print('LOG EXISTS')
             try:
                 content_type = ContentType.objects.get_for_model(type(log))
                 url = reverse(
@@ -178,7 +177,6 @@ class ErrorTrackAdmin(GenericLogModelAdmin):
                     args=(log.id,),
                 )
             except (ContentType.DoesNotExist, NoReverseMatch) as error:
-                print('ERROR', error)
                 pass
         if url:
             return format_html('<a href="{url}">{log_id}</a>', log_id=log_id, url=url)

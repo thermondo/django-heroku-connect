@@ -55,7 +55,7 @@ class TriggerLogQuerySet(models.QuerySet):
                     ).values('id')[:1]
                 ),
                 previous_archived_success_id=Subquery(
-                    TriggerLog.objects.filter(
+                    TriggerLogArchive.objects.filter(
                         state='SUCCESS',
                         table_name=OuterRef('table_name'),
                         record_id=OuterRef('record_id'),

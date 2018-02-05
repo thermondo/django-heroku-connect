@@ -77,3 +77,49 @@ class TestTriggerLog:
     def test_str(self, trigger_log, archived_trigger_log):
         assert str(trigger_log)
         assert str(archived_trigger_log)
+
+    @pytest.mark.parametrize('log1_state', TriggerLog.State.values())
+    @pytest.mark.parametrize('log2_state', TriggerLog.State.values())
+    @pytest.mark.parametrize('log1_model', [1])
+    @pytest.mark.parametrize('log2_model', [1, 2])
+    @pytest.mark.parametrize('log1_archived', [False, True])
+    @pytest.mark.parametrize('log2_archived', [False, True])
+    def test_initial_failures(self,
+                              log1_state,
+                              log2_state,
+                              log1_model,
+                              log2_model,
+                              log1_archived,
+                              log2_archived,
+                              connected_class,
+                              create_trigger_log_tables):
+
+        logs = []
+        models = {
+            x: connected_class(id=x) for x in {log1_model, log2_model}
+        }
+        logs_kwargs = [
+            {'state': log1_state, 'model': models[log1_model], 'is_archived': log1_archived},
+            {'state': log2_state, 'model': models[log2_model], 'is_archived': log2_archived},
+        ]
+        for kwargs in logs_kwargs:
+            log = create_trigger_log_for_model(**kwargs)
+            logs.append(log)
+        log1, log2 = logs
+        assert log1.id < log2.id
+
+        if TriggerLog.State.FAILED not in {log1.state, log2.state}:
+            expected = []
+        elif (log1_state, log2_state) == (TriggerLog.State.FAILED, TriggerLog.State.FAILED):
+            expected = [log1] if (log1_model == log2_model) else [log1, log2]
+        elif log1_state == TriggerLog.State.FAILED:
+            expected = [log1]
+        elif log2_state == TriggerLog.State.FAILED:
+            expected = [log2]
+        else:
+            assert False, 'Missing check condition: {}'.format(logs_kwargs)
+        expected_triggerlog_failures = [l for l in expected if isinstance(l, TriggerLog)]
+        expected_archived_failures = [l for l in expected if isinstance(l, TriggerLogArchive)]
+
+        assert list(TriggerLog.objects.initial_failures()) == expected_triggerlog_failures
+        assert list(TriggerLogArchive.objects.initial_failures()) == expected_archived_failures
