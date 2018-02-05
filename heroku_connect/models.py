@@ -2,7 +2,8 @@ from operator import itemgetter
 
 from django.conf import settings
 from django.db import connection, models
-from django.db.models import F, OuterRef, Q, Subquery
+from django.db.models import Case, F, OuterRef, Subquery, When
+from django.db.models.functions import Greatest
 from django.db.models.signals import pre_migrate
 from django.dispatch import receiver
 
@@ -19,16 +20,10 @@ class TriggerLogQuerySet(models.QuerySet):
         """Filter for all log objects of the same connected model as the given instance."""
         return self.filter(table_name=instance.table_name, record_id=instance.record_id)
 
-    def initial_failures(self):
-        """Filter for trigger logs that started a chain of failures.
-
-        They are the first failed logs which are not preceded by another failure without at least
-        one success in between.
-        """
+    def annotate_initial_failures(self):
         ordered = self.order_by('id')  # TODO replace self.order_by to prevent subsequent changes
         return (
             ordered
-            .failed()
             .annotate(
                 previous_failure_id=Subquery(
                     TriggerLog.objects.filter(
@@ -63,17 +58,39 @@ class TriggerLogQuerySet(models.QuerySet):
                     ).values('id')[:1]
                 ),
             )
-            .filter(
-                Q(
-                    previous_failure_id__isnull=True,
-                    previous_archived_failure_id__isnull=True
-                ) |
-                Q(previous_success_id__gt=F('previous_failure_id')) |
-                Q(previous_success_id__gt=F('previous_archived_failure_id')) |
-                Q(previous_archived_success_id__gt=F('previous_failure_id')) |
-                Q(previous_archived_success_id__gt=F('previous_archived_failure_id'))
+            .annotate(
+                is_initial_failure=Case(
+                    When(
+                        state=TriggerLog.State.FAILED,
+                        previous_failure_id__isnull=True,
+                        previous_archived_failure_id__isnull=True,
+                        then=True),
+                    When(
+                        state=TriggerLog.State.FAILED,
+                        previous_success_id__gt=Greatest(
+                            F('previous_failure_id'),
+                            F('previous_archived_failure_id')),
+                        then=True),
+                    When(
+                        state=TriggerLog.State.FAILED,
+                        previous_archived_success_id__gt=Greatest(
+                            F('previous_failure_id'),
+                            F('previous_archived_failure_id')),
+                        then=True
+                    ),
+                    default=False,
+                    output_field=models.BooleanField()
+                ),
             )
         )
+
+    def initial_failures(self):
+        """Filter for trigger logs that started a chain of failures.
+
+        They are the first failed logs which are not preceded by another failure without at least
+        one success in between.
+        """
+        return self.failed().annotate_initial_failures().filter(is_initial_failure=True)
 
 
 class TriggerLogAbstract(models.Model):
