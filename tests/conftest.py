@@ -49,17 +49,25 @@ def create_trigger_log_tables():
 
 
 def create_trigger_log_for_model(model, *, is_archived=False, **kwargs):
-    model_cls = TriggerLogArchive if is_archived else TriggerLog
-    max_id = max(
-        TriggerLog.objects.aggregate(max=Coalesce(Max('id'), 0))['max'],
-        TriggerLogArchive.objects.aggregate(max=Coalesce(Max('id'), 0))['max'],
-    )
-    kwargs['id'] = max_id + 1
     kwargs.setdefault('table_name', registry.get_table_name_for_class(type(model)))
     kwargs.setdefault('record_id', model.id)
-    kwargs.setdefault('state', TriggerLog.State.NEW)
-    kwargs.setdefault('action', TriggerLog.Action.INSERT)
-    return model_cls.objects.create(**kwargs)
+    log = make_trigger_log(is_archived=is_archived, **kwargs)
+    log.save()
+    return log
+
+
+def make_trigger_log(*, is_archived, **attrs):
+    model_cls = TriggerLogArchive if is_archived else TriggerLog
+    if 'id' not in attrs:
+        max_id = max(
+            TriggerLog.objects.aggregate(max=Coalesce(Max('id'), 0))['max'],
+            TriggerLogArchive.objects.aggregate(max=Coalesce(Max('id'), 0))['max'],
+        )
+        attrs['id'] = max_id + 1
+    attrs.setdefault('state', TriggerLog.State.NEW)
+    attrs.setdefault('action', TriggerLog.Action.INSERT)
+    return model_cls(**attrs)
+
 
 
 @pytest.fixture()

@@ -1,11 +1,14 @@
 import re
+from collections import namedtuple
+from itertools import chain, groupby, product
+from operator import attrgetter
 
 import pytest
 from django import db
 from django.core.exceptions import FieldDoesNotExist
 
 from heroku_connect.models import TriggerLog, TriggerLogArchive
-from tests.conftest import create_trigger_log_for_model
+from tests.conftest import create_trigger_log_for_model, make_trigger_log
 
 
 @pytest.mark.django_db
@@ -78,48 +81,114 @@ class TestTriggerLog:
         assert str(trigger_log)
         assert str(archived_trigger_log)
 
-    @pytest.mark.parametrize('log1_state', TriggerLog.State.values())
-    @pytest.mark.parametrize('log2_state', TriggerLog.State.values())
-    @pytest.mark.parametrize('log1_model', [1])
-    @pytest.mark.parametrize('log2_model', [1, 2])
-    @pytest.mark.parametrize('log1_archived', [False, True])
-    @pytest.mark.parametrize('log2_archived', [False, True])
-    def test_initial_failures(self,
-                              log1_state,
-                              log2_state,
-                              log1_model,
-                              log2_model,
-                              log1_archived,
-                              log2_archived,
-                              connected_class,
-                              create_trigger_log_tables):
 
-        logs = []
-        models = {
-            x: connected_class(id=x) for x in {log1_model, log2_model}
+class TestInitialFailure:
+
+    MATRIX = {
+        'log1': {
+            'state': TriggerLogArchive.State.values(),
+            'record_id': [1],
+            'table_name': ['TABLE_A'],
+            'is_archived': [False, True],
+        },
+        'log2': {
+            'state': TriggerLogArchive.State.values(),
+            'record_id': [1, 2],
+            'table_name': ['TABLE_A', 'TABLE_B'],
+            'is_archived': [False, True],
+        },
+    }
+
+    class Key(namedtuple('LogTuple', 'id state table_name record_id is_archived')):
+        def __new__(cls, trigger_log):
+            return super().__new__(cls, *(getattr(trigger_log, name) for name in super()._fields))
+        
+        def __repr__(self):
+            return repr(tuple(self))
+
+    Run = namedtuple('Run', 'id config logs')
+
+    @staticmethod
+    def is_related(log1, log2):
+        return (log1.table_name, log1.record_id) == (log2.table_name, log2.record_id)
+
+    @classmethod
+    def expect_initial_failure(cls, log, logs):
+        SUCCESS = TriggerLog.State.SUCCESS
+        FAILED = TriggerLog.State.FAILED
+        by_id = attrgetter('id')
+        by_state = attrgetter('state')
+        is_related = cls.is_related
+        related_logs = sorted((l for l in logs if is_related(l, log)), key=by_id)
+        try:
+            index = related_logs.index(log)
+        except ValueError:
+            index = sorted(related_logs + [log], key=by_id).index(log)
+        previous_logs = related_logs[:index]
+        previous_by_state = {
+            state: list(log_group)  # still sorted by id because `sorted` is stable
+            for state, log_group
+            in groupby(sorted(previous_logs, key=by_state), key=by_state)
         }
-        logs_kwargs = [
-            {'state': log1_state, 'model': models[log1_model], 'is_archived': log1_archived},
-            {'state': log2_state, 'model': models[log2_model], 'is_archived': log2_archived},
-        ]
-        for kwargs in logs_kwargs:
-            log = create_trigger_log_for_model(**kwargs)
-            logs.append(log)
-        log1, log2 = logs
-        assert log1.id < log2.id
+        if log.state != FAILED:
+            return False
+        if FAILED not in previous_by_state:
+            return True
+        return (SUCCESS in previous_by_state and
+                previous_by_state[SUCCESS][-1].id > previous_by_state[FAILED][-1].id)
 
-        if TriggerLog.State.FAILED not in {log1.state, log2.state}:
-            expected = []
-        elif (log1_state, log2_state) == (TriggerLog.State.FAILED, TriggerLog.State.FAILED):
-            expected = [log1] if (log1_model == log2_model) else [log1, log2]
-        elif log1_state == TriggerLog.State.FAILED:
-            expected = [log1]
-        elif log2_state == TriggerLog.State.FAILED:
-            expected = [log2]
-        else:
-            assert False, 'Missing check condition: {}'.format(logs_kwargs)
-        expected_triggerlog_failures = [l for l in expected if isinstance(l, TriggerLog)]
-        expected_archived_failures = [l for l in expected if isinstance(l, TriggerLogArchive)]
+    @classmethod
+    def make_trigger_log_runs_from_matrix(cls):
+        all_values = chain.from_iterable(l.values() for l in cls.MATRIX.values())
+        last_id = 0
+        runs = []
+        for run_id, config in enumerate(product(*all_values), start=1):
+            logs = []
+            config = iter(config)
+            for log_id, attrs in enumerate(cls.MATRIX.values(), start=last_id + 1):
+                last_id = log_id
+                attrs = {key: next(config) for key in attrs.keys()}
+                attrs['table_name'] = '{}_{}'.format(run_id, attrs['table_name'])
+                log = make_trigger_log(id=log_id, **attrs)
+                logs.append(log)
+            runs.append(cls.Run(run_id, config, logs))
+        return runs
 
-        assert list(TriggerLog.objects.initial_failures()) == expected_triggerlog_failures
-        assert list(TriggerLogArchive.objects.initial_failures()) == expected_archived_failures
+    @classmethod
+    def bulk_create_logs(cls, logs):
+        TriggerLog.objects.bulk_create(l for l in logs if isinstance(l, TriggerLog))
+        TriggerLogArchive.objects.bulk_create(l for l in logs if isinstance(l, TriggerLogArchive))
+
+    @pytest.mark.django_db
+    def test_initial_failure_matrix(self, create_trigger_log_tables):
+        key = self.Key
+        expect_initial_failure = self.expect_initial_failure
+        runs = self.make_trigger_log_runs_from_matrix()
+        all_logs = list(chain.from_iterable(run.logs for run in runs))
+        self.bulk_create_logs(all_logs)
+
+        actual_initial_failures = {
+            key(log): log.is_initial_failure
+            for log in chain(TriggerLog.objects.annotate_initial_failures(),
+                             TriggerLogArchive.objects.annotate_initial_failures())
+        }
+
+        for run in runs:
+            diff = {
+                k: {
+                    'actual': actual,
+                    'expect': expect,
+                    'logs': logs,
+                }
+                for k, actual, expect, logs in (
+                    (
+                        key(log),
+                        actual_initial_failures[key(log)],
+                        expect_initial_failure(log, run.logs),
+                        run.logs,
+                    )
+                    for log in run.logs
+                )
+                if actual != expect
+            }
+            assert not diff
