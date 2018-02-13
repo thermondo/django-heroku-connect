@@ -4,6 +4,7 @@ import os
 import requests
 from django.db import DEFAULT_DB_ALIAS, connections
 from django.utils import timezone
+from psycopg2.extensions import AsIs
 
 from .conf import settings
 
@@ -113,7 +114,7 @@ def create_heroku_connect_schema(using=DEFAULT_DB_ALIAS, **kwargs):
         if schema_exists:
             return False
 
-        cursor.execute("CREATE SCHEMA %s;" % settings.HEROKU_CONNECT_SCHEMA)
+        cursor.execute("CREATE SCHEMA %s;", [AsIs(settings.HEROKU_CONNECT_SCHEMA)])
 
     with connection.schema_editor() as editor:
         for model in get_heroku_connect_models():
