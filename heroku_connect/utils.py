@@ -88,7 +88,7 @@ SELECT exists(
 """
 
 
-def create_heroku_connect_schema(using=DEFAULT_DB_ALIAS, **kwargs):
+def create_heroku_connect_schema(using=DEFAULT_DB_ALIAS):
     """
     Create Heroku Connect schema.
 
