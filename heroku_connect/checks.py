@@ -2,7 +2,7 @@ from collections import defaultdict
 
 from django.apps import apps
 from django.core.checks import Error, Warning
-from django.db.models.fields.related import RelatedField
+from django.db.models.fields.related import RelatedField, ManyToManyField, ForeignKey
 
 from .db.models import HerokuConnectModel
 from .utils import get_heroku_connect_models
@@ -19,7 +19,7 @@ def _check_foreign_key(app_configs, **kwargs):
     for model in all_models:
         opts = model._meta
         fks_to_hc_model = filter(
-            lambda f: isinstance(f, RelatedField) and
+            lambda f: isinstance(f, (ForeignKey, ManyToManyField)) and
             issubclass(f.remote_field.model, HerokuConnectModel),
             opts.local_fields
         )
