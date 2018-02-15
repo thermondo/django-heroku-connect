@@ -31,8 +31,12 @@ class HerokuConnectModelBase(models.base.ModelBase):
             )
         new_class = super_new(mcs, name, bases, attrs)
 
-        # User object in Heroku Connect has no is_deleted field.
-        if new_class.sf_object_name == 'User':
+        # Some objects in Heroku Connect has no is_deleted field.
+        objects_without_is_deleted = [
+            'User',
+            'RecordType',
+        ]
+        if new_class.sf_object_name in objects_without_is_deleted:
             is_deleted = [x for x in new_class._meta.local_fields if x.name == 'is_deleted'][0]
             new_class._meta.local_fields.remove(is_deleted)
 

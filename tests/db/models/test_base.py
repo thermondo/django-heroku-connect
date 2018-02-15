@@ -210,6 +210,25 @@ class TestHerokuConnectModelMixin:
             None
         )
 
+    def test_record_type(self):
+        """
+        Test ``RecordType`` object edge case.
+
+        See: https://help.heroku.com/sharing/5295ce37-d767-4355-aef7-95f3cde95915
+        """
+        class RecordType(hc_models.HerokuConnectModel):
+            sf_object_name = 'RecordType'
+
+            class Meta:
+                abstract = True
+
+        assert not any(f.name == 'is_deleted' for f in RecordType._meta.fields)
+        assert RecordType.get_heroku_connect_field_mapping() == (
+            {'Id': {}, 'SystemModstamp': {}},
+            {'Id': {'unique': True}, 'SystemModstamp': {'unique': False}},
+            None
+        )
+
     def test_check_sf_object_name(self):
         class MyModel(hc_models.HerokuConnectModel):
             class Meta:
