@@ -7,6 +7,6 @@ psycopg2
 pyenchant
 pytest
 pytest-django
-sphinx
+sphinx==1.6.5
 sphinx_rtd_theme
 sphinxcontrib-spelling
