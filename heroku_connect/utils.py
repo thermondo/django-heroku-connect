@@ -130,7 +130,7 @@ def _get_authorization_headers():
 
 def get_connections(app):
     """
-    Return all Heroku Connect connections setup with the given app.
+    Return all Heroku Connect connections setup with the given application.
 
     For more details check the link -
     https://devcenter.heroku.com/articles/heroku-connect-api#step-4-retrieve-the-new-connection-s-id

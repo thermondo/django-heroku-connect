@@ -82,6 +82,9 @@ class HerokuConnectModel(models.Model, metaclass=HerokuConnectModelBase):
     .. _User:
         https://developer.salesforce.com/docs/atlas.en-us.object_reference.meta/object_reference/sforce_api_objects_user.htm
 
+    .. _RecordType:
+        https://developer.salesforce.com/docs/atlas.en-us.object_reference.meta/object_reference/sforce_api_objects_recordtype.htm
+
     """
 
     sf_object_name = ''
