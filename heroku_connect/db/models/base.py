@@ -73,10 +73,11 @@ class HerokuConnectModel(models.Model, metaclass=HerokuConnectModelBase):
 
     Warning:
 
-        The Salesforce object `User`_ object has no ``IsDeleted`` field. Therefore
-        if :attr:`.sf_object_name` is set to ``User`` the Django ORM representation
-        does not have this field either. You can add the ``IsActive`` field to your
-        user object, but it is not required by Heroku Connect.
+        The Salesforce `User`_ and `RecordType`_ objects have no ``IsDeleted`` field. Therefore
+        if :attr:`.sf_object_name` is set to ``User`` or ``RecordType``
+        the Django ORM representation does not have this field either.
+        You can add the ``IsActive`` field to your
+        User or RecordType object, but it is not required by Heroku Connect.
 
     .. _User:
         https://developer.salesforce.com/docs/atlas.en-us.object_reference.meta/object_reference/sforce_api_objects_user.htm
