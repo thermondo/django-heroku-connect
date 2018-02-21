@@ -5,7 +5,9 @@ from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 from django.utils.html import format_html
 
-from heroku_connect.models import TriggerLog, TriggerLogArchive
+from heroku_connect.models import (
+    TriggerLog, TriggerLogArchive, TriggerLogPermanent
+)
 
 
 def _replaced(__values, **__replacements):
@@ -106,3 +108,27 @@ class GenericLogModelAdmin(admin.ModelAdmin):
 
 admin.register(TriggerLog)(GenericLogModelAdmin)
 admin.register(TriggerLogArchive)(GenericLogModelAdmin)
+
+
+@admin.register(TriggerLogPermanent)
+class TriggerLogPermanentAdmin(GenericLogModelAdmin):
+
+    readonly_fields = GenericLogModelAdmin.readonly_fields + ('related',)
+
+    def related(self, log):
+        try:
+            related_logs = log.related_surrounding()
+            tmplt = '{log.id} {log.action} [{log.state}]'
+            links = [
+                tmplt.format(log=related) + ' (this)' if related == log else format_html(
+                    '<a href="{url}">{text}</a>',
+                    text=tmplt.format(log=related),
+                    url=reverse('admin:heroku_connect_triggerlogpermanent_change',
+                                args=(related.id,))
+                )
+                for related in related_logs
+            ]
+            return '<ul>' + ''.join(format_html('<li>{}</li>', x) for x in links) + '</ul>'
+        except Exception as e:
+            return str(e)
+    related.allow_tags = True

@@ -4,7 +4,9 @@ import pytest
 from django import db
 from django.core.exceptions import FieldDoesNotExist
 
-from heroku_connect.models import TriggerLog, TriggerLogArchive
+from heroku_connect.models import (
+    TriggerLog, TriggerLogArchive, TriggerLogPermanent
+)
 from tests.conftest import create_trigger_log_for_model
 
 
@@ -83,3 +85,48 @@ class TestTriggerLog:
     def test_str(self, trigger_log, archived_trigger_log):
         assert str(trigger_log)
         assert str(archived_trigger_log)
+
+
+@pytest.mark.django_db
+class TestTriggerLogPermanent:
+
+    def test_create_unknown(self, trigger_log, archived_trigger_log, failed_trigger_log):
+        original_logs = [trigger_log, archived_trigger_log, failed_trigger_log]
+
+        def fields_dict(instance):
+            return {
+                name: getattr(instance, name)
+                for name in (f.name for f in instance._meta.get_fields())
+            }
+
+        TriggerLogPermanent.create_unknown(original_logs)
+        assert TriggerLogPermanent.objects.count() == len(original_logs)
+        for original_log in original_logs:
+            created = TriggerLogPermanent.objects.get(id=original_log.id)
+            assert fields_dict(created) == fields_dict(original_log)
+
+        TriggerLogPermanent.create_unknown(original_logs)
+        assert TriggerLogPermanent.objects.count() == len(original_logs)
+
+    def test_related_surrounding(self):
+        SUCCESS, FAILED = TriggerLog.State.SUCCESS, TriggerLog.State.FAILED
+        id_states = [
+            (0, SUCCESS), (1, SUCCESS), (2, SUCCESS), (3, FAILED), (4, FAILED)
+        ]
+        logs = TriggerLogPermanent.objects.bulk_create([
+            TriggerLogPermanent(id=i, state=state, table_name='TABLE', record_id='111')
+            for i, state, in id_states
+        ])
+        unrelated_log = TriggerLogPermanent.objects.create(
+            id=len(logs),
+            state=FAILED,
+            table_name='TABLE',
+            record_id='666',
+        )
+
+        assert list(logs[0].related_surrounding().values_list('id', 'state')) == id_states[:2]
+        assert list(logs[1].related_surrounding().values_list('id', 'state')) == id_states[:3]
+        assert list(logs[2].related_surrounding().values_list('id', 'state')) == id_states[1:]
+        assert list(logs[3].related_surrounding().values_list('id', 'state')) == id_states[2:]
+        assert list(logs[4].related_surrounding().values_list('id', 'state')) == id_states[2:]
+        assert list(unrelated_log.related_surrounding()) == [unrelated_log]
