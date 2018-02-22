@@ -11,17 +11,28 @@ from heroku_connect.models import (
 
 
 def _replaced(__values, **__replacements):
-    """Replace values with replacements from an alias dict, suppressing empty replacements."""
+    """Replace elements in iterable with values from an alias dict, suppressing empty values.
+
+    Used to consistently enhance how certain fields are displayed in list and detail pages.
+    """
     return tuple(o for o in (__replacements.get(name, name) for name in __values) if o)
 
 
-def _build_admin_filter_url(model, obj, *, fields):
-    """Build a filter URL to an admin changelist based on an object's field values."""
-    if not all(getattr(obj, name, None) for name in fields):
-        return None
-    filter_query = {name: getattr(obj, name) for name in fields}
+def _get_admin_route_name(model_or_instance):
+    """Get the base name of the admin route for a model or model instance.
+
+    For use with :func:`django.urls.reverse`, although it still needs the specific route suffix
+    appended, for example ``_changelist``.
+    """
+    model = model_or_instance if isinstance(model_or_instance, type) else type(model_or_instance)
     content_type = ContentType.objects.get_for_model(model)
-    url = reverse('admin:{app_label}_{model}_changelist'.format(**content_type.__dict__))
+    return 'admin:{0.app_label}_{0.model}'.format(content_type)
+
+
+def _build_admin_filter_url(obj, *, fields):
+    """Build a filter URL to an admin changelist of all objects with similar field values."""
+    filter_query = {name: getattr(obj, name) for name in fields}
+    url = reverse(_get_admin_route_name(obj) + '_changelist')
     parts = urlsplit(url)
     query = parse_qs(parts.query)
     query.update(filter_query)
@@ -29,21 +40,16 @@ def _build_admin_filter_url(model, obj, *, fields):
     return urlunsplit(parts_with_filter)
 
 
-def _make_filter_link(primary_field, *fields, name=None):
-    """Create a function that links to a list of all objects with the same field values."""
+def _make_admin_link_to_similar(primary_field, *fields, name=None):
+    """Create a function that links to a changelist of all objects with similar field values."""
     fields = (primary_field,) + fields
     url_template = '<a href="{url}">{name_or_value}</a>'
-    no_url_template = '<span>{value}</span>'
 
     def field_link(self, obj):
-        model = type(obj)
         value = getattr(obj, primary_field, None)
         name_or_value = name or value
-        if all(getattr(obj, field, None) for field in fields):
-            url = _build_admin_filter_url(model, obj, fields=fields)
-            if url:
-                return format_html(url_template, **locals())
-        return format_html(no_url_template, **locals())
+        url = _build_admin_filter_url(obj, fields=fields)
+        return format_html(url_template, **locals()) if url else value
     field_link.allow_tags = True
     field_link.short_description = primary_field.replace('_', ' ').capitalize()
     field_link.admin_order_field = primary_field
@@ -80,8 +86,8 @@ class GenericLogModelAdmin(admin.ModelAdmin):
     save_as = True
     save_on_top = True
 
-    table_name_link = _make_filter_link('table_name')
-    record_id_link = _make_filter_link('record_id', 'table_name')
+    table_name_link = _make_admin_link_to_similar('table_name')
+    record_id_link = _make_admin_link_to_similar('record_id', 'table_name')
 
     def action_label(self, log):
         action = log.action
@@ -113,22 +119,21 @@ admin.register(TriggerLogArchive)(GenericLogModelAdmin)
 @admin.register(TriggerLogPermanent)
 class TriggerLogPermanentAdmin(GenericLogModelAdmin):
 
-    readonly_fields = GenericLogModelAdmin.readonly_fields + ('related',)
+    readonly_fields = GenericLogModelAdmin.readonly_fields + ('related_logs',)
 
-    def related(self, log):
-        try:
-            related_logs = log.related_surrounding()
-            tmplt = '{log.id} {log.action} [{log.state}]'
-            links = [
-                tmplt.format(log=related) + ' (this)' if related == log else format_html(
-                    '<a href="{url}">{text}</a>',
-                    text=tmplt.format(log=related),
-                    url=reverse('admin:heroku_connect_triggerlogpermanent_change',
-                                args=(related.id,))
-                )
-                for related in related_logs
-            ]
-            return '<ul>' + ''.join(format_html('<li>{}</li>', x) for x in links) + '</ul>'
-        except Exception as e:
-            return str(e)
-    related.allow_tags = True
+    def related_logs(self, log):
+        """Make a HTML list of links to the admin pages of related logs."""
+        related_logs = log.related_surrounding()
+        elements = []
+        for related in related_logs:
+            label = '{0.id} {0.action} [{0.state}]'.format(related)
+            if related == log:
+                element = label + ' (this)'
+            else:
+                admin_url = reverse(
+                    'admin:heroku_connect_triggerlogpermanent_change', args=(related.id,))
+                element = format_html(
+                    '<a href="{admin_url}">{label}</a>', admin_url=admin_url, label=label)
+            elements.append(element)
+        return '<ul>' + ''.join(format_html('<li>{}</li>', x) for x in elements) + '</ul>'
+    related_logs.allow_tags = True

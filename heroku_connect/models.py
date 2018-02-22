@@ -55,10 +55,6 @@ class TriggerLogAbstract(models.Model):
         def choices(cls):
             return tuple((getattr(cls, name), name) for name in dir(cls) if name.isupper())
 
-        @classmethod
-        def values(cls):
-            return tuple(value for value, name in cls.choices())
-
     class State:
         """Sync state of the change."""
 
@@ -77,10 +73,6 @@ class TriggerLogAbstract(models.Model):
         @classmethod
         def choices(cls):
             return tuple((getattr(cls, name), name) for name in dir(cls) if name.isupper())
-
-        @classmethod
-        def values(cls):
-            return tuple(value for value, name in cls.choices())
 
     # read-only fields
     id = models.BigIntegerField(primary_key=True, editable=False)
