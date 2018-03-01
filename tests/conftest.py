@@ -7,7 +7,9 @@ from django.db.models.functions import Coalesce
 from django.utils import timezone
 
 from heroku_connect.db.models.base import HerokuConnectModel, registry
-from heroku_connect.models import TriggerLog, TriggerLogArchive
+from heroku_connect.models import (
+    TriggerLog, TriggerLogAction, TriggerLogArchive, TriggerLogState
+)
 
 
 @contextmanager
@@ -66,8 +68,8 @@ def make_trigger_log(*, is_archived, **attrs):
             TriggerLogArchive.objects.aggregate(max=Coalesce(Max('id'), 0))['max'],
         )
         attrs['id'] = max_id + 1
-    attrs.setdefault('state', TriggerLog.State.NEW)
-    attrs.setdefault('action', TriggerLog.Action.INSERT)
+    attrs.setdefault('state', TriggerLogState.NEW)
+    attrs.setdefault('action', TriggerLogAction.INSERT)
     return model_cls(**attrs)
 
 
@@ -125,4 +127,4 @@ def archived_trigger_log(create_trigger_log_tables, connected_model):
 def failed_trigger_log(create_trigger_log_tables, connected_model):
     return create_trigger_log_for_model(connected_model,
                                         is_archived=False,
-                                        state=TriggerLog.State.FAILED)
+                                        state=TriggerLogState.FAILED)

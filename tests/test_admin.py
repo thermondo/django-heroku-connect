@@ -4,7 +4,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 
 from heroku_connect.admin import TriggerLogPermanentAdmin
-from heroku_connect.models import TriggerLogPermanent
+from heroku_connect.models import TriggerLogAction, TriggerLogPermanent
 
 
 class TestTriggerLogPermanentAdmin:
@@ -34,12 +34,12 @@ class TestTriggerLogPermanentAdmin:
 
     def test_action_label(self, admin):
         log = TriggerLogPermanent(id=0, table_name='TABLE', record_id=100,
-                                  action=TriggerLogPermanent.Action.INSERT)
+                                  action=TriggerLogAction.INSERT)
         assert log.get_action_display() in admin.action_label(log)
 
     def test_state_label(self, admin):
         log = TriggerLogPermanent(id=0, table_name='TABLE', record_id=100,
-                                  action=TriggerLogPermanent.Action.INSERT)
+                                  action=TriggerLogAction.INSERT)
         assert log.get_state_display() in admin.state_label(log)
 
     def test_related_logs(self, admin, db):

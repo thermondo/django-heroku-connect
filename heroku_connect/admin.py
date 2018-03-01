@@ -6,7 +6,7 @@ from django.urls import reverse
 from django.utils.html import format_html
 
 from heroku_connect.models import (
-    TriggerLog, TriggerLogArchive, TriggerLogPermanent
+    TriggerLog, TriggerLogArchive, TriggerLogPermanent, TriggerLogState
 )
 
 
@@ -99,12 +99,12 @@ class GenericLogModelAdmin(admin.ModelAdmin):
     def state_label(self, log):
         state = log.state
         mod = {
-            TriggerLog.State.SUCCESS: 'success',
-            TriggerLog.State.FAILED: 'danger label-important',  # fallback for bootstrap 2
-            TriggerLog.State.NEW: 'primary label-inverse',  # fallback for bootstrap 2
-            TriggerLog.State.PENDING: 'info',
-            TriggerLog.State.REQUEUE: 'warning',
-            TriggerLog.State.REQUEUED: 'warning',
+            TriggerLogState.SUCCESS: 'success',
+            TriggerLogState.FAILED: 'danger label-important',  # fallback for bootstrap 2
+            TriggerLogState.NEW: 'primary label-inverse',  # fallback for bootstrap 2
+            TriggerLogState.PENDING: 'info',
+            TriggerLogState.REQUEUE: 'warning',
+            TriggerLogState.REQUEUED: 'warning',
         }.get(state, 'default')
         return format_html('<span class="label label-{mod}">{state}</a>', mod=mod, state=state)
     state_label.allow_tags = True

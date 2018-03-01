@@ -11,11 +11,56 @@ class TriggerLogQuerySet(models.QuerySet):
 
     def failed(self):
         """Filter for log records with sync failures."""
-        return self.filter(state=TriggerLog.State.FAILED)
+        return self.filter(state=TriggerLogState.FAILED)
 
     def related_to(self, instance):
         """Filter for all log objects of the same connected model as the given instance."""
         return self.filter(table_name=instance.table_name, record_id=instance.record_id)
+
+
+class TriggerLogAction:
+    """Type of change that a trigger log object represents."""
+
+    INSERT = 'INSERT'
+    """A new connected model instance was created locally."""
+    UPDATE = 'UPDATE'
+    """A connected model instance was updated locally."""
+    DELETE = 'DELETE'
+    """A connected model instance was deleted locally."""
+
+    @classmethod
+    def choices(cls):
+        return tuple((getattr(cls, name), name) for name in dir(cls) if name.isupper())
+
+
+class TriggerLogState:
+    """Sync state of the change tracked by a trigger log entry."""
+
+    SUCCESS = 'SUCCESS'
+    """Synced to Salesforce."""
+    MERGED = 'MERGED'
+    """Merged with another local change to be processed together."""
+    IGNORED = 'IGNORED'
+    """No sync attempted. (Usually because it's not needed.)"""
+    FAILED = 'FAILED'
+    """Sync attempt failed. Check `sf_message`."""
+    READONLY = 'READONLY'
+    """Captured update on read-only table."""
+    NEW = 'NEW'
+    """Newly captured change reedy for processing."""
+    IGNORE = 'IGNORE'
+    """Newly captured change that needs no syncing."""
+    PENDING = 'PENDING'
+    """Currently being processed."""
+
+    REQUEUE = 'REQUEUE'
+    """Marks a archived entry to be copied back as NEW into the current log."""
+    REQUEUED = 'REQUEUED'
+    """An archived entry that was copied back into as NEW into the current log."""
+
+    @classmethod
+    def choices(cls):
+        return tuple((getattr(cls, name), name) for name in dir(cls) if name.isupper())
 
 
 class TriggerLogAbstract(models.Model):
@@ -45,49 +90,6 @@ class TriggerLogAbstract(models.Model):
 
     """
 
-    class Action:
-        """Type of change that a trigger log object represents."""
-
-        INSERT = 'INSERT'
-        """A new connected model instance was created locally."""
-        UPDATE = 'UPDATE'
-        """A connected model instance was updated locally."""
-        DELETE = 'DELETE'
-        """A connected model instance was deleted locally."""
-
-        @classmethod
-        def choices(cls):
-            return tuple((getattr(cls, name), name) for name in dir(cls) if name.isupper())
-
-    class State:
-        """Sync state of the change."""
-
-        SUCCESS = 'SUCCESS'
-        """Synced to Salesforce."""
-        MERGED = 'MERGED'
-        """Merged with another local change to be processed together."""
-        IGNORED = 'IGNORED'
-        """No sync attempted. (Usually because it's not needed.)"""
-        FAILED = 'FAILED'
-        """Sync attempt failed. Check `sf_message`."""
-        READONLY = 'READONLY'
-        """Captured update on read-only table."""
-        NEW = 'NEW'
-        """Newly captured change reedy for processing."""
-        IGNORE = 'IGNORE'
-        """Newly captured change that needs no syncing."""
-        PENDING = 'PENDING'
-        """Currently being processed."""
-
-        REQUEUE = 'REQUEUE'
-        """Marks a archived entry to be copied back as NEW into the current log."""
-        REQUEUED = 'REQUEUED'
-        """An archived entry that was copied back into as NEW into the current log."""
-
-        @classmethod
-        def choices(cls):
-            return tuple((getattr(cls, name), name) for name in dir(cls) if name.isupper())
-
     # read-only fields
     id = models.BigIntegerField(primary_key=True, editable=False)
     created_at = models.DateTimeField(editable=False, null=True)
@@ -96,7 +98,7 @@ class TriggerLogAbstract(models.Model):
     table_name = models.CharField(max_length=128, editable=False)
     record_id = models.BigIntegerField(editable=False)
     sf_id = models.CharField(max_length=18, editable=False, null=True, db_column='sfid')
-    action = models.CharField(max_length=7, editable=False, choices=Action.choices())
+    action = models.CharField(max_length=7, editable=False, choices=TriggerLogAction.choices())
     sf_message = models.TextField(editable=False, null=True, blank=True)
 
     # TODO: these are more useful as HStoreFields (if 'django.contrib.postgres' in INSTALLED_APPS)
@@ -105,7 +107,8 @@ class TriggerLogAbstract(models.Model):
     _old = models.TextField(editable=False, null=True, blank=True, db_column='old')
 
     # editable fields
-    state = models.CharField(max_length=8, null=False, blank=False, choices=State.choices())
+    state = models.CharField(max_length=8, null=False, blank=False,
+                             choices=TriggerLogState.choices())
 
     objects = models.Manager.from_queryset(TriggerLogQuerySet)()
 
@@ -312,7 +315,7 @@ class TriggerLogPermanent(TriggerLogAbstract):
                     Subquery(
                         related_logs
                         .filter(
-                            state=TriggerLog.State.SUCCESS,
+                            state=TriggerLogState.SUCCESS,
                             id__lt=log_id,
                         )
                         .order_by('-id')  # latest first
@@ -325,7 +328,7 @@ class TriggerLogPermanent(TriggerLogAbstract):
                     Subquery(
                         related_logs
                         .filter(
-                            state=TriggerLog.State.SUCCESS,
+                            state=TriggerLogState.SUCCESS,
                             id__gt=log_id,
                         )
                         .order_by('id')  # earliest first
