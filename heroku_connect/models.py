@@ -7,6 +7,7 @@ from heroku_connect.db import models as hc_models
 
 
 class TriggerLogQuerySet(models.QuerySet):
+    """A QuerySet for trigger log models."""
 
     def failed(self):
         """Filter for log records with sync failures."""
@@ -26,7 +27,7 @@ class TriggerLogAbstract(models.Model):
 
     Old logs are moved to an archive table (usually after 24 hours), from where they are purged
     eventually (currently 30 days for paid plans, 7 days for demo). Recent logs are modeled by
-    :cls:`TriggerLog`; archived logs by :cls:`TriggerLogArchive`.
+    :class:`TriggerLog`; archived logs by :class:`TriggerLogArchive`.
 
     The data represented by these models is maintained entirely by Heroku Connect, and is
     instrumental to its operations; it should therefore not be modified. A possible exception is
@@ -34,10 +35,10 @@ class TriggerLogAbstract(models.Model):
     Heroku Connect documentation.
 
     .. seealso::
-        `Heroku Connect doc`_
-            Details about the Trigger Log.
+        - :class:`.TriggerLogQuerySet`
+        - `Trigger Log in Heroku Connect docs`_
 
-    .. _Heroku Connect doc:
+    .. _Trigger Log in Heroku Connect docs:
         https://devcenter.heroku.com/articles/writing-data-to-salesforce-with-heroku-connect#understanding-the-trigger-log
     .. _error handling:
         https://devcenter.heroku.com/articles/writing-data-to-salesforce-with-heroku-connect#write-errors
@@ -48,8 +49,11 @@ class TriggerLogAbstract(models.Model):
         """Type of change that a trigger log object represents."""
 
         INSERT = 'INSERT'
+        """A new connected model instance was created locally."""
         UPDATE = 'UPDATE'
+        """A connected model instance was updated locally."""
         DELETE = 'DELETE'
+        """A connected model instance was deleted locally."""
 
         @classmethod
         def choices(cls):
@@ -59,16 +63,26 @@ class TriggerLogAbstract(models.Model):
         """Sync state of the change."""
 
         SUCCESS = 'SUCCESS'
+        """Synced to Salesforce."""
         MERGED = 'MERGED'
+        """Merged with another local change to be processed together."""
         IGNORED = 'IGNORED'
+        """No sync attempted. (Usually because it's not needed.)"""
         FAILED = 'FAILED'
+        """Sync attempt failed. Check `sf_message`."""
         READONLY = 'READONLY'
+        """Captured update on read-only table."""
         NEW = 'NEW'
+        """Newly captured change reedy for processing."""
         IGNORE = 'IGNORE'
+        """Newly captured change that needs no syncing."""
         PENDING = 'PENDING'
+        """Currently being processed."""
 
         REQUEUE = 'REQUEUE'
+        """Marks a archived entry to be copied back as NEW into the current log."""
         REQUEUED = 'REQUEUED'
+        """An archived entry that was copied back into as NEW into the current log."""
 
         @classmethod
         def choices(cls):
@@ -198,7 +212,7 @@ class TriggerLogAbstract(models.Model):
         return model_cls._default_manager.filter(id=self.record_id).first()
 
     def related(self, *, exclude_self=False):
-        """Get a queryset for all trigger log objects for the same connected model.
+        """Get a QuerySet for all trigger log objects for the same connected model.
 
         Args:
             exclude_self: Whether to exclude this log object from the result list
@@ -210,12 +224,12 @@ class TriggerLogAbstract(models.Model):
         return queryset
 
     def capture_insert(self, *, exclude_fields=()):
-        """Apply :meth:`TriggerLog.capture_insert_from_model` for this log."""
+        """Apply :meth:`.TriggerLogAbstract.capture_insert_from_model` for this log."""
         return self.capture_insert_from_model(self.table_name, self.record_id,
                                               exclude_fields=exclude_fields)
 
     def capture_update(self, *, update_fields=()):
-        """Apply :meth:`TriggerLog.capture_insert_from_model` for this log."""
+        """Apply :meth:`.TriggerLogAbstract.capture_insert_from_model` for this log."""
         return self.capture_update_from_model(self.table_name, self.record_id,
                                               update_fields=update_fields)
 
@@ -230,9 +244,7 @@ class TriggerLogAbstract(models.Model):
 class TriggerLog(TriggerLogAbstract):
     """Represents entries in the Heroku Connect trigger log.
 
-    .. seealso::
-        Class :cls:`TriggerLogAbstract`
-            for more details about the trigger log
+    .. seealso:: :class:`TriggerLogAbstract`
     """
 
     is_archived = False
@@ -245,9 +257,7 @@ class TriggerLog(TriggerLogAbstract):
 class TriggerLogArchive(TriggerLogAbstract):
     """Represents entries in the Heroku Connect trigger log archive.
 
-    .. seealso::
-        Class :cls:`TriggerLogAbstract`
-            for more details about the trigger log
+    .. seealso:: :class:`TriggerLogAbstract`
     """
 
     is_archived = True
@@ -258,7 +268,10 @@ class TriggerLogArchive(TriggerLogAbstract):
 
 
 class TriggerLogPermanent(TriggerLogAbstract):
-    """Keep a permanent copy of trigger log data in a table managed by us, not Heroku Connect."""
+    """Keep a permanent copy of trigger log data in a table managed by us, not Heroku Connect.
+
+    .. seealso:: :class:`TriggerLogAbstract`
+    """
 
     class Meta(TriggerLogAbstract.Meta):
         abstract = False
@@ -285,7 +298,7 @@ class TriggerLogPermanent(TriggerLogAbstract):
         )
 
     def related_surrounding(self):
-        """Get a queryset for related trigger logs, up to the previous and next successful ones."""
+        """Get a QuerySet for related trigger logs, up to the previous and next successful ones."""
         related_logs = TriggerLogPermanent.objects.filter(
             table_name=OuterRef('table_name'),
             record_id=OuterRef('record_id'),
