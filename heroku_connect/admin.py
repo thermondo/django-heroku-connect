@@ -1,7 +1,6 @@
 from urllib.parse import parse_qs, urlencode, urlsplit, urlunsplit
 
 from django.contrib import admin
-from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 from django.utils.html import format_html
 
@@ -25,8 +24,7 @@ def _get_admin_route_name(model_or_instance):
     appended, for example ``_changelist``.
     """
     model = model_or_instance if isinstance(model_or_instance, type) else type(model_or_instance)
-    content_type = ContentType.objects.get_for_model(model)
-    return 'admin:{0.app_label}_{0.model}'.format(content_type)
+    return 'admin:{meta.app_label}_{meta.model_name}'.format(meta=model._meta)
 
 
 def _build_admin_filter_url(obj, *, fields):
@@ -98,7 +96,7 @@ class GenericLogModelAdmin(admin.ModelAdmin):
 
     def state_label(self, log):
         state = log.state
-        mod = {
+        css_label_class = {
             TRIGGER_LOG_STATE['SUCCESS']: 'success',
             TRIGGER_LOG_STATE['FAILED']: 'danger label-important',  # fallback for bootstrap 2
             TRIGGER_LOG_STATE['NEW']: 'primary label-inverse',  # fallback for bootstrap 2
@@ -106,7 +104,9 @@ class GenericLogModelAdmin(admin.ModelAdmin):
             TRIGGER_LOG_STATE['REQUEUE']: 'warning',
             TRIGGER_LOG_STATE['REQUEUED']: 'warning',
         }.get(state, 'default')
-        return format_html('<span class="label label-{mod}">{state}</a>', mod=mod, state=state)
+        return format_html('<span class="label label-{css_label_class}">{state}</a>',
+                           css_label_class=css_label_class,
+                           state=state)
     state_label.allow_tags = True
     state_label.short_description = 'State'
     state_label.admin_order_field = 'state'
@@ -128,7 +128,7 @@ class TriggerLogPermanentAdmin(GenericLogModelAdmin):
         for related in related_logs:
             label = '{0.id} {0.action} [{0.state}]'.format(related)
             if related == log:
-                element = label + ' (this)'
+                element = label
             else:
                 admin_url = reverse(
                     'admin:heroku_connect_triggerlogpermanent_change', args=(related.id,))
