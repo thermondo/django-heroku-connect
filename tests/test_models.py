@@ -5,7 +5,7 @@ from django import db
 from django.core.exceptions import FieldDoesNotExist
 
 from heroku_connect.models import (
-    TriggerLog, TriggerLogArchive, TriggerLogPermanent, TriggerLogState
+    TRIGGER_LOG_STATE, TriggerLog, TriggerLogArchive, TriggerLogPermanent
 )
 from tests.conftest import create_trigger_log_for_model
 
@@ -72,7 +72,7 @@ class TestTriggerLog:
         assert list(TriggerLogArchive.objects.all()) == [archived_trigger_log]
 
         connected_model = connected_class.objects.create()
-        failed = create_trigger_log_for_model(connected_model, state=TriggerLogState.FAILED)
+        failed = create_trigger_log_for_model(connected_model, state=TRIGGER_LOG_STATE['FAILED'])
         assert set(TriggerLog.objects.failed()) == {failed}
         assert TriggerLog.objects.all().count() == 2
         assert set(TriggerLog.objects.all()) == {trigger_log, failed}
@@ -109,7 +109,7 @@ class TestTriggerLogPermanent:
         assert TriggerLogPermanent.objects.count() == len(original_logs)
 
     def test_related_surrounding(self):
-        SUCCESS, FAILED = TriggerLogState.SUCCESS, TriggerLogState.FAILED
+        SUCCESS, FAILED = TRIGGER_LOG_STATE['SUCCESS'], TRIGGER_LOG_STATE['FAILED']
         id_states = [
             (0, SUCCESS), (1, SUCCESS), (2, SUCCESS), (3, FAILED), (4, FAILED)
         ]

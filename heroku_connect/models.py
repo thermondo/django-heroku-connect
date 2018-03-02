@@ -11,56 +11,40 @@ class TriggerLogQuerySet(models.QuerySet):
 
     def failed(self):
         """Filter for log records with sync failures."""
-        return self.filter(state=TriggerLogState.FAILED)
+        return self.filter(state=TRIGGER_LOG_STATE['FAILED'])
 
     def related_to(self, instance):
         """Filter for all log objects of the same connected model as the given instance."""
         return self.filter(table_name=instance.table_name, record_id=instance.record_id)
 
 
-class TriggerLogAction:
-    """Type of change that a trigger log object represents."""
-
-    INSERT = 'INSERT'
-    """A new connected model instance was created locally."""
-    UPDATE = 'UPDATE'
-    """A connected model instance was updated locally."""
-    DELETE = 'DELETE'
-    """A connected model instance was deleted locally."""
-
-    @classmethod
-    def choices(cls):
-        return tuple((getattr(cls, name), name) for name in dir(cls) if name.isupper())
+TRIGGER_LOG_ACTION = {
+    'INSERT': 'INSERT',
+    'UPDATE': 'UPDATE',
+    'DELETE': 'DELETE',
+}
+"""The type of change that a trigger log object represents."""
 
 
-class TriggerLogState:
-    """Sync state of the change tracked by a trigger log entry."""
+TRIGGER_LOG_ACTION_CHOICES = sorted((value, value) for value in TRIGGER_LOG_ACTION.values())
 
-    SUCCESS = 'SUCCESS'
-    """Synced to Salesforce."""
-    MERGED = 'MERGED'
-    """Merged with another local change to be processed together."""
-    IGNORED = 'IGNORED'
-    """No sync attempted. (Usually because it's not needed.)"""
-    FAILED = 'FAILED'
-    """Sync attempt failed. Check `sf_message`."""
-    READONLY = 'READONLY'
-    """Captured update on read-only table."""
-    NEW = 'NEW'
-    """Newly captured change reedy for processing."""
-    IGNORE = 'IGNORE'
-    """Newly captured change that needs no syncing."""
-    PENDING = 'PENDING'
-    """Currently being processed."""
 
-    REQUEUE = 'REQUEUE'
-    """Marks a archived entry to be copied back as NEW into the current log."""
-    REQUEUED = 'REQUEUED'
-    """An archived entry that was copied back into as NEW into the current log."""
+TRIGGER_LOG_STATE = {
+    'SUCCESS': 'SUCCESS',
+    'MERGED': 'MERGED',
+    'IGNORED': 'IGNORED',
+    'FAILED': 'FAILED',
+    'READONLY': 'READONLY',
+    'NEW': 'NEW',
+    'IGNORE': 'IGNORE',
+    'PENDING': 'PENDING',
+    'REQUEUE': 'REQUEUE',
+    'REQUEUED': 'REQUEUED',
+}
+"""The sync state of the change tracked by a trigger log entry."""
 
-    @classmethod
-    def choices(cls):
-        return tuple((getattr(cls, name), name) for name in dir(cls) if name.isupper())
+
+TRIGGER_LOG_STATE_CHOICES = sorted((value, value) for value in TRIGGER_LOG_STATE.values())
 
 
 class TriggerLogAbstract(models.Model):
@@ -98,7 +82,7 @@ class TriggerLogAbstract(models.Model):
     table_name = models.CharField(max_length=128, editable=False)
     record_id = models.BigIntegerField(editable=False)
     sf_id = models.CharField(max_length=18, editable=False, null=True, db_column='sfid')
-    action = models.CharField(max_length=7, editable=False, choices=TriggerLogAction.choices())
+    action = models.CharField(max_length=7, editable=False, choices=TRIGGER_LOG_ACTION_CHOICES)
     sf_message = models.TextField(editable=False, null=True, blank=True)
 
     # TODO: these are more useful as HStoreFields (if 'django.contrib.postgres' in INSTALLED_APPS)
@@ -108,7 +92,7 @@ class TriggerLogAbstract(models.Model):
 
     # editable fields
     state = models.CharField(max_length=8, null=False, blank=False,
-                             choices=TriggerLogState.choices())
+                             choices=TRIGGER_LOG_STATE_CHOICES)
 
     objects = models.Manager.from_queryset(TriggerLogQuerySet)()
 
@@ -315,7 +299,7 @@ class TriggerLogPermanent(TriggerLogAbstract):
                     Subquery(
                         related_logs
                         .filter(
-                            state=TriggerLogState.SUCCESS,
+                            state=TRIGGER_LOG_STATE['SUCCESS'],
                             id__lt=log_id,
                         )
                         .order_by('-id')  # latest first
@@ -328,7 +312,7 @@ class TriggerLogPermanent(TriggerLogAbstract):
                     Subquery(
                         related_logs
                         .filter(
-                            state=TriggerLogState.SUCCESS,
+                            state=TRIGGER_LOG_STATE['SUCCESS'],
                             id__gt=log_id,
                         )
                         .order_by('id')  # earliest first
