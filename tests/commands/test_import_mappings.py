@@ -85,10 +85,11 @@ class TestImportMapping:
                 call_command('import_mappings', '--app', 'ninja', stdout=stdout)
             stdout.seek(0)
             console = stdout.read()
-        assert "There are no connections associated with the app 'ninja'." in str(e)
+        assert ("No associated connections found"
+                " for the current user with the app 'ninja'.") in str(e)
         assert console == (
-            "There is no connection associated with current user the app 'ninja'."
-            " Trying to link the current user with Heroku Connect...\n"
+            "No associated connections found for the current user with the app 'ninja'."
+            " Linking the current user with Heroku Connect.\n"
         )
 
     @httpretty.activate
@@ -118,8 +119,8 @@ class TestImportMapping:
             console = stdout.read()
         assert "Authentication failed" in str(e)
         assert console == (
-            "There is no connection associated with current user the app 'ninja'."
-            " Trying to link the current user with Heroku Connect...\n"
+            "No associated connections found for the current user with the app 'ninja'."
+            " Linking the current user with Heroku Connect.\n"
         )
 
     @httpretty.activate
@@ -138,7 +139,9 @@ class TestImportMapping:
         )
         with pytest.raises(CommandError) as e:
             call_command('import_mappings', '--app', 'ninja')
-        assert "There is more than one connection associated with the app 'ninja'." in str(e)
+        assert ("More than one associated connections found"
+                " for the current user with the app 'ninja'."
+                " Please specify the connection ID.") in str(e)
 
     @httpretty.activate
     def test_upload_failed(self):

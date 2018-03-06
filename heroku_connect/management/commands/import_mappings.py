@@ -20,43 +20,45 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         connection_id = options.get('CONNECTION_ID', None)
-        self.app_name = options.get('HEROKU_APP', settings.HEROKU_CONNECT_APP_NAME)
-        if not (connection_id or self.app_name):
+        app_name = options.get('HEROKU_APP', settings.HEROKU_CONNECT_APP_NAME)
+        if not (connection_id or app_name):
             raise CommandError("You need ether specify the application name or "
                                "the connection ID.")
         if connection_id is None:
-            connections = self.get_connections()
+            connections = self.get_connections(app_name)
             if len(connections) == 0:
                 msg = self.style.NOTICE(
-                    "There is no connection associated with current user the app '%s'."
-                    " Trying to link the current user with Heroku Connect..." % self.app_name
+                    "No associated connections found for the current user with the app %r."
+                    " Linking the current user with Heroku Connect." % app_name
                 )
                 self.stdout.write(msg)
                 try:
-                    utils.link_connection_to_account(self.app_name)
+                    utils.link_connection_to_account(app_name)
                 except requests.HTTPError as e:
                     raise CommandError("Authentication failed") from e
                 else:
-                    self.get_connections()
+                    self.get_connections(app_name)
 
             if len(connections) == 0:
                 raise CommandError(
-                    "There are no connections associated with the app '%s'." % self.app_name)
+                    "No associated connections found"
+                    " for the current user with the app %r." % app_name)
             elif len(connections) > 1:
-                raise CommandError("There is more than one connection "
-                                   "associated with the app '%s'.\n"
-                                   "Please specify the connection ID." % self.app_name)
+                raise CommandError("More than one associated connections found"
+                                   " for the current user with the app %r."
+                                   " Please specify the connection ID." % app_name)
             connection_id = connections[0]['id']
 
-        mapping = utils.get_mapping(app_name=self.app_name)
+        mapping = utils.get_mapping(app_name=app_name)
 
         try:
             utils.import_mapping(connection_id, mapping)
         except requests.HTTPError as e:
             raise CommandError("Failed to upload the mapping") from e
 
-    def get_connections(self):
+    @staticmethod
+    def get_connections(app_name):
         try:
-            return utils.get_connections(self.app_name)
+            return utils.get_connections(app_name)
         except requests.HTTPError as e:
             raise CommandError("Failed to load connections") from e
