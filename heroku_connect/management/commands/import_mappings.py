@@ -25,17 +25,28 @@ class Command(BaseCommand):
             raise CommandError("You need ether specify the application name or "
                                "the connection ID.")
         if connection_id is None:
-            try:
-                connections = utils.get_connections(app_name)
-            except requests.HTTPError as e:
-                raise CommandError("Failed to load connections") from e
+            connections = self.get_connections(app_name)
             if len(connections) == 0:
-                raise CommandError("There are no connections associated "
-                                   "with the app '%s'." % app_name)
+                msg = self.style.NOTICE(
+                    "No associated connections found for the current user with the app %r."
+                    " Linking the current user with Heroku Connect." % app_name
+                )
+                self.stdout.write(msg)
+                try:
+                    utils.link_connection_to_account(app_name)
+                except requests.HTTPError as e:
+                    raise CommandError("Authentication failed") from e
+                else:
+                    self.get_connections(app_name)
+
+            if len(connections) == 0:
+                raise CommandError(
+                    "No associated connections found"
+                    " for the current user with the app %r." % app_name)
             elif len(connections) > 1:
-                raise CommandError("There is more than one connection "
-                                   "associated with the app '%s'.\n"
-                                   "Please specify the connection ID." % app_name)
+                raise CommandError("More than one associated connections found"
+                                   " for the current user with the app %r."
+                                   " Please specify the connection ID." % app_name)
             connection_id = connections[0]['id']
 
         mapping = utils.get_mapping(app_name=app_name)
@@ -44,3 +55,10 @@ class Command(BaseCommand):
             utils.import_mapping(connection_id, mapping)
         except requests.HTTPError as e:
             raise CommandError("Failed to upload the mapping") from e
+
+    @staticmethod
+    def get_connections(app_name):
+        try:
+            return utils.get_connections(app_name)
+        except requests.HTTPError as e:
+            raise CommandError("Failed to load connections") from e

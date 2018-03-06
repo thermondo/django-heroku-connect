@@ -222,3 +222,32 @@ def test_import_mapping():
     )
     with pytest.raises(requests.HTTPError):
         utils.import_mapping('1', {})
+
+
+@httpretty.activate
+def test_link_connection_to_account():
+    httpretty.register_uri(
+        httpretty.POST, "https://connect-eu.heroku.com/api/v3/users/me/apps/ninja/auth",
+        body=json.dumps({'results': []}),
+        status=200,
+        content_type='application/json',
+    )
+    utils.link_connection_to_account('ninja')
+
+    httpretty.register_uri(
+        httpretty.POST, "https://connect-eu.heroku.com/api/v3/users/me/apps/ninja/auth",
+        body=json.dumps({'error': 'permission denied'}),
+        status=403,
+        content_type='application/json',
+    )
+    with pytest.raises(requests.HTTPError):
+        utils.link_connection_to_account('ninja')
+
+    httpretty.register_uri(
+        httpretty.POST, "https://connect-eu.heroku.com/api/v3/users/me/apps/ninja/auth",
+        body=json.dumps({'error': 'not found'}),
+        status=404,
+        content_type='application/json',
+    )
+    with pytest.raises(requests.HTTPError):
+        utils.link_connection_to_account('ninja')

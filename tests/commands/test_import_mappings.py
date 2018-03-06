@@ -1,3 +1,4 @@
+import io
 import json
 
 import httpretty
@@ -73,9 +74,54 @@ class TestImportMapping:
             status=200,
             content_type='application/json',
         )
-        with pytest.raises(CommandError) as e:
-            call_command('import_mappings', '--app', 'ninja')
-        assert "There are no connections associated with the app 'ninja'." in str(e)
+        httpretty.register_uri(
+            httpretty.POST, "https://connect-eu.heroku.com/api/v3/users/me/apps/ninja/auth",
+            body=json.dumps({'results': []}),
+            status=200,
+            content_type='application/json',
+        )
+        with io.StringIO() as stdout:
+            with pytest.raises(CommandError) as e:
+                call_command('import_mappings', '--app', 'ninja', stdout=stdout)
+            stdout.seek(0)
+            console = stdout.read()
+        assert ("No associated connections found"
+                " for the current user with the app 'ninja'.") in str(e)
+        assert console == (
+            "No associated connections found for the current user with the app 'ninja'."
+            " Linking the current user with Heroku Connect.\n"
+        )
+
+    @httpretty.activate
+    def test_authentication_failed(self):
+        httpretty.register_uri(
+            httpretty.POST, "https://connect-eu.heroku.com/api/v3/connections/1/actions/import",
+            data={'message': 'success'},
+            status=200,
+            content_type='application/json',
+        )
+        httpretty.register_uri(
+            httpretty.GET, "https://connect-eu.heroku.com/api/v3/connections",
+            body=json.dumps({'results': []}),
+            status=200,
+            content_type='application/json',
+        )
+        httpretty.register_uri(
+            httpretty.POST, "https://connect-eu.heroku.com/api/v3/users/me/apps/ninja/auth",
+            body=json.dumps({'error': 'permission denied'}),
+            status=403,
+            content_type='application/json',
+        )
+        with io.StringIO() as stdout:
+            with pytest.raises(CommandError) as e:
+                call_command('import_mappings', '--app', 'ninja', stdout=stdout)
+            stdout.seek(0)
+            console = stdout.read()
+        assert "Authentication failed" in str(e)
+        assert console == (
+            "No associated connections found for the current user with the app 'ninja'."
+            " Linking the current user with Heroku Connect.\n"
+        )
 
     @httpretty.activate
     def test_multiple_connections(self):
@@ -93,7 +139,9 @@ class TestImportMapping:
         )
         with pytest.raises(CommandError) as e:
             call_command('import_mappings', '--app', 'ninja')
-        assert "There is more than one connection associated with the app 'ninja'." in str(e)
+        assert ("More than one associated connections found"
+                " for the current user with the app 'ninja'."
+                " Please specify the connection ID.") in str(e)
 
     @httpretty.activate
     def test_upload_failed(self):
