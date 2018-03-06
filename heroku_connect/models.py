@@ -2,6 +2,7 @@ from django.conf import settings
 from django.db import models
 from django.db.models import F, OuterRef, Subquery
 from django.db.models.functions import Coalesce
+from django.utils.translation import ugettext_lazy as _
 
 from heroku_connect.db import models as hc_models
 
@@ -73,6 +74,12 @@ class TriggerLogAbstract(models.Model):
         https://devcenter.heroku.com/articles/writing-data-to-salesforce-with-heroku-connect#write-errors
 
     """
+
+    # I18N / TRANSLATIONS:
+    #
+    # Field names and choices don't use translations, because they refer to (English)technical
+    # terms in Heroku Connect's manual. That connection should be preserved. Trigger Log Models
+    # are for technical folks and not intended to be user-facing.
 
     # read-only fields
     id = models.BigIntegerField(primary_key=True, editable=False)
@@ -238,7 +245,7 @@ class TriggerLog(TriggerLogAbstract):
 
     class Meta(TriggerLogAbstract.Meta):
         db_table = '{schema}"."_trigger_log'.format(schema=settings.HEROKU_CONNECT_SCHEMA)
-        verbose_name = 'Current Trigger Log'
+        verbose_name = _('Trigger Log')
 
 
 class TriggerLogArchive(TriggerLogAbstract):
@@ -251,7 +258,8 @@ class TriggerLogArchive(TriggerLogAbstract):
 
     class Meta(TriggerLogAbstract.Meta):
         db_table = '{schema}"."_trigger_log_archive'.format(schema=settings.HEROKU_CONNECT_SCHEMA)
-        verbose_name = 'Archived Trigger Log'
+        verbose_name = _('Trigger Log (archived)')
+        verbose_name_plural = _('Trigger Logs (archived)')
 
 
 class TriggerLogPermanent(TriggerLogAbstract):
@@ -263,7 +271,8 @@ class TriggerLogPermanent(TriggerLogAbstract):
     class Meta(TriggerLogAbstract.Meta):
         abstract = False
         managed = True
-        verbose_name = 'Permanent Trigger Log'
+        verbose_name = _('Trigger Log (permanent)')
+        verbose_name_plural = _('Trigger Logs (permanent)')
         index_together = (
             ('table_name', 'record_id', 'id'),  # for lookup of related trigger logs
         )
