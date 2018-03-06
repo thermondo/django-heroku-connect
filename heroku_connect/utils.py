@@ -244,3 +244,17 @@ def import_mapping(connection_id, mapping):
         headers=_get_authorization_headers()
     )
     response.raise_for_status()
+
+
+def link_connection_to_account(app):
+    """
+    Link the connection to your Heroku user account.
+
+    https://devcenter.heroku.com/articles/heroku-connect-api#step-3-link-the-connection-to-your-heroku-user-account
+    """
+    url = os.path.join(settings.HEROKU_CONNECT_API_ENDPOINT, 'users', 'me', 'apps', app, 'auth')
+    response = requests.post(
+        url=url,
+        headers=_get_authorization_headers()
+    )
+    response.raise_for_status()
