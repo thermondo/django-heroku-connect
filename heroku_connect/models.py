@@ -123,6 +123,9 @@ class TriggerLogAbstract(models.Model):
             record_id: The primary id of the connected model
             exclude_fields: The names of fields that will not be included in the write record
 
+        Returns:
+            A list of the created TriggerLog entries (usually one).
+
         Raises:
             LookupError: if ``table_name`` does not belong to a connected model
 
@@ -147,7 +150,8 @@ class TriggerLogAbstract(models.Model):
             exclude_cols=', '.join("'{}'".format(col) for col in exclude_cols)
         )
         params = {'record_id': record_id}
-        return list(TriggerLog.objects.raw(sql, params))
+        result_qs = TriggerLog.objects.raw(sql, params)
+        return list(result_qs)  # don't expose raw query; clients only care about the log entries
 
     @classmethod
     def capture_update_from_model(cls, table_name, record_id, *, update_fields=()):
@@ -160,6 +164,9 @@ class TriggerLogAbstract(models.Model):
             table_name: The name of the table backing the connected model (without schema)
             record_id: The primary id of the connected model
             update_fields: If given, the names of fields that will be included in the write record
+
+        Returns:
+            A list of the created TriggerLog entries (usually one).
 
         Raises:
             LookupError: if ``table_name`` does not belong to a connected model
@@ -184,7 +191,8 @@ class TriggerLogAbstract(models.Model):
             include_cols=', '.join("'{}'".format(col) for col in include_cols),
         )
         params = {'record_id': record_id}
-        return list(TriggerLog.objects.raw(sql, params))
+        result_qs = TriggerLog.objects.raw(sql, params)
+        return list(result_qs)  # don't expose raw query; clients only care about the log entries
 
     def __str__(self):
         created_at = self.created_at
