@@ -3,6 +3,7 @@ from django.db import models
 from django.db.models import F, OuterRef, Subquery
 from django.db.models.functions import Coalesce
 from django.utils.translation import ugettext_lazy as _
+from psycopg2 import sql
 
 from heroku_connect.db import models as hc_models
 
@@ -135,22 +136,21 @@ class TriggerLogAbstract(models.Model):
             model_cls = hc_models.registry.get_class_for_table_name(table_name)
             exclude_cols = cls._fieldnames_to_colnames(model_cls, exclude_fields)
 
-        sql = """
-            SELECT "{schema}".hc_capture_insert_from_row(
+        raw_query = sql.SQL("""
+            SELECT {schema}.hc_capture_insert_from_row(
               hstore({schema}.{table_name}.*),
-              '{table_name}',
-              ARRAY[{exclude_cols}]::text[]
+              %(table_name)s,
+              ARRAY[{exclude_cols}]::text[]  -- cast to type expected by stored procedure
             ) AS id
-            FROM "{schema}"."{table_name}"
+            FROM {schema}.{table_name}
             WHERE id = %(record_id)s
-        """.format(
-            # TODO escape
-            schema=settings.HEROKU_CONNECT_SCHEMA,
-            table_name=table_name,
-            exclude_cols=', '.join("'{}'".format(col) for col in exclude_cols)
+        """).format(
+            schema=sql.Identifier(settings.HEROKU_CONNECT_SCHEMA),
+            table_name=sql.Identifier(table_name),
+            exclude_cols=sql.SQL(', ').join(sql.Identifier(col) for col in exclude_cols),
         )
-        params = {'record_id': record_id}
-        result_qs = TriggerLog.objects.raw(sql, params)
+        params = {'record_id': record_id, 'table_name': table_name}
+        result_qs = TriggerLog.objects.raw(raw_query, params)
         return list(result_qs)  # don't expose raw query; clients only care about the log entries
 
     @classmethod
@@ -176,22 +176,21 @@ class TriggerLogAbstract(models.Model):
         if update_fields:
             model_cls = hc_models.registry.get_class_for_table_name(table_name)
             include_cols = cls._fieldnames_to_colnames(model_cls, update_fields)
-        sql = """
-            SELECT "{schema}".hc_capture_update_from_row(
+        raw_query = sql.SQL("""
+            SELECT {schema}.hc_capture_update_from_row(
               hstore({schema}.{table_name}.*),
-              '{table_name}',
-              ARRAY[{include_cols}]::text[]
+              %(table_name)s,
+              ARRAY[{include_cols}]::text[]  -- cast to type expected by stored procedure
             ) AS id
-            FROM "{schema}"."{table_name}"
+            FROM {schema}.{table_name}
             WHERE id = %(record_id)s
-        """.format(
-            # TODO escape
-            schema=settings.HEROKU_CONNECT_SCHEMA,
-            table_name=table_name,
-            include_cols=', '.join("'{}'".format(col) for col in include_cols),
+        """).format(
+            schema=sql.Identifier(settings.HEROKU_CONNECT_SCHEMA),
+            table_name=sql.Identifier(table_name),
+            include_cols=sql.SQL(', ').join(sql.Identifier(col) for col in include_cols),
         )
-        params = {'record_id': record_id}
-        result_qs = TriggerLog.objects.raw(sql, params)
+        params = {'record_id': record_id, 'table_name': table_name}
+        result_qs = TriggerLog.objects.raw(raw_query, params)
         return list(result_qs)  # don't expose raw query; clients only care about the log entries
 
     def __str__(self):
