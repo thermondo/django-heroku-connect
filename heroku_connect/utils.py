@@ -121,7 +121,14 @@ def create_heroku_connect_schema(using=DEFAULT_DB_ALIAS):
     with connection.schema_editor() as editor:
         for model in get_heroku_connect_models():
             editor.create_model(model)
+        _create_trigger_log_tables(editor)
     return True
+
+
+def _create_trigger_log_tables(schema_editor):
+    from heroku_connect.models import (TriggerLog, TriggerLogArchive)
+    for cls in [TriggerLog, TriggerLogArchive]:
+        schema_editor.create_model(cls)
 
 
 def _get_authorization_headers():

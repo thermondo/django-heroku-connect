@@ -1,5 +1,3 @@
-from contextlib import contextmanager
-
 import pytest
 from django.db import connection
 from django.db.models import Max
@@ -10,45 +8,6 @@ from heroku_connect.db.models.base import HerokuConnectModel, registry
 from heroku_connect.models import (
     TRIGGER_LOG_ACTION, TRIGGER_LOG_STATE, TriggerLog, TriggerLogArchive
 )
-
-
-@contextmanager
-def reified_models(model_class, *model_classes):
-    """Create a model's table in the database.
-
-    This is useful for testing un-managed models, or ones defined after Django setup already
-    created the tables for the models it knew back then.
-    """
-    model_classes = (model_class,) + model_classes
-
-    with connection.schema_editor() as schema:
-        for cls in model_classes:
-            schema.create_model(cls)
-    yield
-    # let django TestCase transaction rollback take care of cleaning this up again
-    #
-    # ...or, to explicitly clean up:
-    # try:
-    #     yield
-    # finally:
-    #     try:
-    #         with connection.schema_editor() as schema:
-    #             for cls in created:
-    #                 schema.delete_model(cls)
-    #     except db.DatabaseError as error:
-    #         if 'current transaction is aborted' in str(error):
-    #             # We're in a transaction which is rolling back; no need to do our cleanup
-    #             pass
-    #         else:
-    #             raise
-
-
-@pytest.fixture()
-def create_trigger_log_tables():
-    # Need to create the tables manually as the models are `managed = False`.
-    model_classes = (TriggerLog, TriggerLogArchive)
-    with reified_models(*model_classes):
-        yield
 
 
 def create_trigger_log_for_model(model, *, is_archived=False, **kwargs):
@@ -94,18 +53,22 @@ def connected_class():
         cls = __ConnectedTestModel = ConnectedTestModel
         meta = cls._meta
         # creating the class automatically registers it
-    with reified_models(cls):
-        try:
-            yield cls  # run test
-        finally:
-            # de-register class from Apps registry
-            testapp_models = meta.apps.all_models.get(meta.app_label, {})
-            registered_name = None
-            for name, model_cls in testapp_models.items():
-                if model_cls is cls:
-                    registered_name = name
-            if registered_name:
-                del testapp_models[registered_name]
+
+    # create the model table (let django's test cases roll this back automatically)
+    with connection.schema_editor() as editor:
+        editor.create_model(cls)
+
+    try:
+        yield cls  # run test
+    finally:
+        # de-register class from Apps registry
+        testapp_models = meta.apps.all_models.get(meta.app_label, {})
+        registered_name = None
+        for name, model_cls in testapp_models.items():
+            if model_cls is cls:
+                registered_name = name
+        if registered_name:
+            del testapp_models[registered_name]
 
 
 @pytest.fixture()
@@ -114,17 +77,17 @@ def connected_model(connected_class):
 
 
 @pytest.fixture()
-def trigger_log(create_trigger_log_tables, connected_model):
+def trigger_log(connected_model):
     return create_trigger_log_for_model(connected_model, is_archived=False)
 
 
 @pytest.fixture()
-def archived_trigger_log(create_trigger_log_tables, connected_model):
+def archived_trigger_log(connected_model):
     return create_trigger_log_for_model(connected_model, is_archived=True)
 
 
 @pytest.fixture()
-def failed_trigger_log(create_trigger_log_tables, connected_model):
+def failed_trigger_log(connected_model):
     return create_trigger_log_for_model(connected_model,
                                         is_archived=False,
                                         state=TRIGGER_LOG_STATE['FAILED'])
