@@ -5,7 +5,7 @@ from django.db.models.functions import Coalesce
 from django.utils.translation import ugettext_lazy as _
 from psycopg2 import sql
 
-from heroku_connect.db import models as hc_models
+from heroku_connect.utils import get_connected_model_for_table_name
 
 
 class TriggerLogQuerySet(models.QuerySet):
@@ -133,7 +133,7 @@ class TriggerLogAbstract(models.Model):
         """
         exclude_cols = ()
         if exclude_fields:
-            model_cls = hc_models.registry.get_class_for_table_name(table_name)
+            model_cls = get_connected_model_for_table_name(table_name)
             exclude_cols = cls._fieldnames_to_colnames(model_cls, exclude_fields)
 
         raw_query = sql.SQL("""
@@ -174,7 +174,7 @@ class TriggerLogAbstract(models.Model):
         """
         include_cols = ()
         if update_fields:
-            model_cls = hc_models.registry.get_class_for_table_name(table_name)
+            model_cls = get_connected_model_for_table_name(table_name)
             include_cols = cls._fieldnames_to_colnames(model_cls, update_fields)
         raw_query = sql.SQL("""
             SELECT {schema}.hc_capture_update_from_row(
@@ -209,7 +209,7 @@ class TriggerLogAbstract(models.Model):
             The connected instance, or ``None`` if it does not exists.
 
         """
-        model_cls = hc_models.registry.get_class_for_table_name(self.table_name)
+        model_cls = get_connected_model_for_table_name(self.table_name)
         return model_cls._default_manager.filter(id=self.record_id).first()
 
     def related(self, *, exclude_self=False):

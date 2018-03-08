@@ -1,5 +1,6 @@
 """Utility methods for Django Heroku Connect."""
 import os
+from functools import lru_cache
 
 import requests
 from django.db import DEFAULT_DB_ALIAS, connections
@@ -80,6 +81,14 @@ def get_heroku_connect_models():
         for model in models.values()
         if issubclass(model, HerokuConnectModel)
     )
+
+
+@lru_cache(maxsize=128)
+def get_connected_model_for_table_name(table_name):
+    for connected_model in get_heroku_connect_models():
+        if connected_model.get_heroku_connect_table_name() == table_name:
+            return connected_model
+    raise LookupError('No connected model found for table %r' % (table_name,))
 
 
 _SCHEMA_EXISTS_QUERY = """

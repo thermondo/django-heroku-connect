@@ -4,14 +4,14 @@ from django.db.models import Max
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 
-from heroku_connect.db.models.base import HerokuConnectModel, registry
+from heroku_connect.db.models.base import HerokuConnectModel
 from heroku_connect.models import (
     TRIGGER_LOG_ACTION, TRIGGER_LOG_STATE, TriggerLog, TriggerLogArchive
 )
 
 
 def create_trigger_log_for_model(model, *, is_archived=False, **kwargs):
-    kwargs.setdefault('table_name', registry.get_table_name_for_class(type(model)))
+    kwargs.setdefault('table_name', model.get_heroku_connect_table_name())
     kwargs.setdefault('record_id', model.id)
     kwargs.setdefault('created_at', timezone.now())
     log = make_trigger_log(is_archived=is_archived, **kwargs)
