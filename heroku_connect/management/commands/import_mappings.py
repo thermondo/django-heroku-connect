@@ -30,19 +30,23 @@ class Command(BaseCommand):
             raise CommandError("You need ether specify the application name or "
                                "the connection ID.")
         if connection_id is None:
+            self.stdout.write(self.style.NOTICE('Fetching connections.'))
             connections = self.get_connections(app_name)
             if len(connections) == 0:
-                msg = self.style.NOTICE(
-                    "No associated connections found for the current user with the app %r."
-                    " Linking the current user with Heroku Connect." % app_name
+                msg = self.style.WARNING(
+                    "No associated connections found for the current user"
+                    " with the app %r." % app_name
                 )
                 self.stdout.write(msg)
                 try:
+                    self.stdout.write(
+                        self.style.NOTICE('Linking the current user with Heroku Connect.'))
                     utils.link_connection_to_account(app_name)
                 except requests.HTTPError as e:
                     raise CommandError("Authentication failed") from e
                 else:
                     time.sleep(3)  # deep breath
+                    self.stdout.write(self.style.NOTICE('Fetching connections.'))
                     self.get_connections(app_name)
 
             if len(connections) == 0:
@@ -57,6 +61,7 @@ class Command(BaseCommand):
 
         mapping = utils.get_mapping(app_name=app_name)
 
+        self.stdout.write(self.style.NOTICE('Uploading mapping...'))
         try:
             utils.import_mapping(connection_id, mapping)
         except requests.HTTPError as e:
@@ -65,8 +70,7 @@ class Command(BaseCommand):
         if wait:
             self.wait_for_import(connection_id)
 
-    @staticmethod
-    def wait_for_import(connection_id):
+    def wait_for_import(self, connection_id):
         """
         Wait until connection state is no longer ``IMPORT_CONFIGURATION``.
 
@@ -77,16 +81,19 @@ class Command(BaseCommand):
             CommandError: If fetch connection information fails.
 
         """
+        self.stdout.write(self.style.NOTICE('Warning for import'), ending='')
         state = utils.ConnectionStates.IMPORT_CONFIGURATION
         while state == utils.ConnectionStates.IMPORT_CONFIGURATION:
             # before you get the first state, the API can be a bit behind
-            time.sleep(1)  # breeze
+            self.stdout.write(self.style.NOTICE('.'), ending='')
+            time.sleep(1)  # take a breath
             try:
                 connection = utils.get_connection(connection_id)
             except requests.HTTPError as e:
                 raise CommandError("Failed to fetch connection information.") from e
             else:
                 state = connection['state']
+        self.stdout.write(self.style.NOTICE(' Done!'))
 
     @staticmethod
     def get_connections(app_name):
