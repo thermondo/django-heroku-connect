@@ -42,6 +42,7 @@ class Command(BaseCommand):
                 except requests.HTTPError as e:
                     raise CommandError("Authentication failed") from e
                 else:
+                    time.sleep(3)  # deep breath
                     self.get_connections(app_name)
 
             if len(connections) == 0:
