@@ -10,10 +10,8 @@ instances, as well as its own efforts to sync them to Salesforce.
 
 *django-heroku-connect* exposes the trigger log tables, which are managed by
 Heroku Connect, as Django models :class:`.TriggerLog` and
-:class:`.TriggerLogArchive`. There is also :class:`.TriggerLogPermanent` to
-retain data permanently; however, you need to manage the data in it yourself.
-These models also offer access to database stored procedures provided by
-Heroku Connect to `fix sync errors`_.
+:class:`.TriggerLogArchive`. These models also offer access to database stored
+procedures provided by Heroku Connect to `fix sync errors`_.
 
 .. seealso:: :class:`.TriggerLogAbstract` for how to use trigger log models.
 

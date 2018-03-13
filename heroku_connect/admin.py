@@ -5,7 +5,7 @@ from django.urls import reverse
 from django.utils.html import format_html
 
 from heroku_connect.models import (
-    TRIGGER_LOG_STATE, TriggerLog, TriggerLogArchive, TriggerLogPermanent
+    TRIGGER_LOG_STATE, TriggerLog, TriggerLogArchive
 )
 
 
@@ -114,26 +114,3 @@ class GenericLogModelAdmin(admin.ModelAdmin):
 
 admin.register(TriggerLog)(GenericLogModelAdmin)
 admin.register(TriggerLogArchive)(GenericLogModelAdmin)
-
-
-@admin.register(TriggerLogPermanent)
-class TriggerLogPermanentAdmin(GenericLogModelAdmin):
-
-    readonly_fields = GenericLogModelAdmin.readonly_fields + ('related_logs',)
-
-    def related_logs(self, log):
-        """Make a HTML list of links to the admin pages of related logs."""
-        related_logs = log.related_surrounding()
-        elements = []
-        for related in related_logs:
-            label = '{0.id} {0.action} [{0.state}]'.format(related)
-            if related == log:
-                element = label
-            else:
-                admin_url = reverse(
-                    'admin:heroku_connect_triggerlogpermanent_change', args=(related.id,))
-                element = format_html(
-                    '<a href="{admin_url}">{label}</a>', admin_url=admin_url, label=label)
-            elements.append(element)
-        return '<ul>' + ''.join(format_html('<li>{}</li>', x) for x in elements) + '</ul>'
-    related_logs.allow_tags = True

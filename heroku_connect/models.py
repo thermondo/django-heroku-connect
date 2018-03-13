@@ -1,7 +1,5 @@
 from django.conf import settings
 from django.db import models
-from django.db.models import F, OuterRef, Subquery
-from django.db.models.functions import Coalesce
 from django.utils.translation import ugettext_lazy as _
 from psycopg2 import sql
 
@@ -267,76 +265,3 @@ class TriggerLogArchive(TriggerLogAbstract):
         db_table = '{schema}"."_trigger_log_archive'.format(schema=settings.HEROKU_CONNECT_SCHEMA)
         verbose_name = _('Trigger Log (archived)')
         verbose_name_plural = _('Trigger Logs (archived)')
-
-
-class TriggerLogPermanent(TriggerLogAbstract):
-    """Keep a permanent copy of trigger log data in a table managed by us, not Heroku Connect.
-
-    .. seealso:: :class:`TriggerLogAbstract`
-    """
-
-    class Meta(TriggerLogAbstract.Meta):
-        abstract = False
-        managed = True
-        verbose_name = _('Trigger Log (permanent)')
-        verbose_name_plural = _('Trigger Logs (permanent)')
-        index_together = (
-            ('table_name', 'record_id', 'id'),  # for lookup of related trigger logs
-        )
-
-    @classmethod
-    def create_unknown(cls, logs):
-        """Copy any TriggerLog instance to TriggerLogPermanent, unless it exists already.
-
-        Raises:
-            IntegrityError: if called concurrently for the same TriggerLog instances
-
-        """
-        field_names = [f.name for f in TriggerLogAbstract._meta.get_fields()]
-        existing_ids = set(cls.objects.values_list('id', flat=True))
-        to_create = [log for log in logs if log.id not in existing_ids]
-        TriggerLogPermanent.objects.bulk_create(
-            TriggerLogPermanent(**{name: getattr(log, name) for name in field_names})
-            for log in to_create
-        )
-
-    def related_surrounding(self):
-        """Get a QuerySet for related trigger logs, up to the previous and next successful ones."""
-        related_logs = TriggerLogPermanent.objects.filter(
-            table_name=OuterRef('table_name'),
-            record_id=OuterRef('record_id'),
-        )
-        log_id = self.id
-        return (
-            self
-            .related()
-            .annotate(
-                previous_success_id=Coalesce(
-                    Subquery(
-                        related_logs
-                        .filter(
-                            state=TRIGGER_LOG_STATE['SUCCESS'],
-                            id__lt=log_id,
-                        )
-                        .order_by('-id')  # latest first
-                        .values('id')[:1]
-                    ),
-                    -9223372036854775808,  # min bigint
-                    # https://www.postgresql.org/docs/9.6/static/datatype-numeric.html
-                ),
-                next_success_id=Coalesce(
-                    Subquery(
-                        related_logs
-                        .filter(
-                            state=TRIGGER_LOG_STATE['SUCCESS'],
-                            id__gt=log_id,
-                        )
-                        .order_by('id')  # earliest first
-                        .values('id')[:1]
-                    ),
-                    9223372036854775807,  # max bigint
-                    # https://www.postgresql.org/docs/9.6/static/datatype-numeric.html
-                ),
-            )
-            .filter(id__gte=F('previous_success_id'), id__lte=F('next_success_id'))
-        )
