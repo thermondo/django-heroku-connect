@@ -89,8 +89,10 @@ class TestImportMapping:
         assert ("No associated connections found"
                 " for the current user with the app 'ninja'.") in str(e)
         assert console == (
-            "No associated connections found for the current user with the app 'ninja'."
-            " Linking the current user with Heroku Connect.\n"
+            "Fetching connections.\n"
+            "No associated connections found for the current user with the app 'ninja'.\n"
+            "Linking the current user with Heroku Connect.\n"
+            "Fetching connections.\n"
         )
 
     @httpretty.activate
@@ -120,8 +122,9 @@ class TestImportMapping:
             console = stdout.read()
         assert "Authentication failed" in str(e)
         assert console == (
-            "No associated connections found for the current user with the app 'ninja'."
-            " Linking the current user with Heroku Connect.\n"
+            "Fetching connections.\n"
+            "No associated connections found for the current user with the app 'ninja'.\n"
+            "Linking the current user with Heroku Connect.\n"
         )
 
     @httpretty.activate
@@ -182,7 +185,7 @@ class TestImportMapping:
             status=200,
             content_type='application/json',
         )
-        Command.wait_for_import('1')
+        Command().wait_for_import('1')
 
         httpretty.register_uri(
             httpretty.GET, "https://connect-eu.heroku.com/api/v3/connections/2",
@@ -191,7 +194,7 @@ class TestImportMapping:
             content_type='application/json',
         )
         with pytest.raises(CommandError) as e:
-            Command.wait_for_import('2')
+            Command().wait_for_import('2')
         assert 'Failed to fetch connection information.' in str(e)
 
         httpretty.register_uri(
