@@ -5,6 +5,7 @@ import httpretty
 import pytest
 from django.core.management import CommandError, call_command
 
+from heroku_connect.management.commands.import_mappings import Command
 from tests import fixtures
 
 
@@ -172,3 +173,43 @@ class TestImportMapping:
         with pytest.raises(CommandError) as e:
             call_command('import_mappings', '--app', 'ninja')
         assert "Failed to load connections" in str(e)
+
+    @httpretty.activate
+    def test_waiting(self):
+        httpretty.register_uri(
+            httpretty.GET, "https://connect-eu.heroku.com/api/v3/connections/1",
+            body=json.dumps(fixtures.connection),
+            status=200,
+            content_type='application/json',
+        )
+        Command.wait_for_import('1')
+
+        httpretty.register_uri(
+            httpretty.GET, "https://connect-eu.heroku.com/api/v3/connections/2",
+            data={'error': 'internal server error'},
+            status=500,
+            content_type='application/json',
+        )
+        with pytest.raises(CommandError) as e:
+            Command.wait_for_import('2')
+        assert 'Failed to fetch connection information.' in str(e)
+
+        httpretty.register_uri(
+            httpretty.GET, "https://connect-eu.heroku.com/api/v3/connections/1",
+            body=json.dumps(fixtures.connection),
+            status=200,
+            content_type='application/json',
+        )
+        httpretty.register_uri(
+            httpretty.POST, "https://connect-eu.heroku.com/api/v3/connections/1/actions/import",
+            data={'message': 'success'},
+            status=200,
+            content_type='application/json',
+        )
+        httpretty.register_uri(
+            httpretty.GET, "https://connect-eu.heroku.com/api/v3/connections",
+            body=json.dumps(fixtures.connections),
+            status=200,
+            content_type='application/json',
+        )
+        call_command('import_mappings', '--app', 'ninja', '--wait')

@@ -1,3 +1,5 @@
+import time
+
 import requests
 from django.core.management import BaseCommand, CommandError
 
@@ -17,10 +19,13 @@ class Command(BaseCommand):
                             help="Heroku Connect connection ID. "
                                  "If not provided, the ID of the first connection associated "
                                  "with the app will be used.")
+        parser.add_argument('--wait', '-w', dest='wait', action='store_true', default=False,
+                            help="Wait until mapping import to be completed.")
 
     def handle(self, *args, **options):
         connection_id = options.get('CONNECTION_ID', None)
         app_name = options.get('HEROKU_APP', settings.HEROKU_CONNECT_APP_NAME)
+        wait = options.get('wait', False)
         if not (connection_id or app_name):
             raise CommandError("You need ether specify the application name or "
                                "the connection ID.")
@@ -55,6 +60,32 @@ class Command(BaseCommand):
             utils.import_mapping(connection_id, mapping)
         except requests.HTTPError as e:
             raise CommandError("Failed to upload the mapping") from e
+
+        if wait:
+            self.wait_for_import(connection_id)
+
+    @staticmethod
+    def wait_for_import(connection_id):
+        """
+        Wait until connection state is no longer ``IMPORT_CONFIGURATION``.
+
+        Args:
+            connection_id: Heroku Connect connection to monitor.
+
+        Raises:
+            CommandError: If fetch connection information fails.
+
+        """
+        state = utils.ConnectionStates.IMPORT_CONFIGURATION
+        while state == utils.ConnectionStates.IMPORT_CONFIGURATION:
+            # before you get the first state, the API can be a bit behind
+            time.sleep(1)  # breeze
+            try:
+                connection = utils.get_connection(connection_id)
+            except requests.HTTPError as e:
+                raise CommandError("Failed to fetch connection information.") from e
+            else:
+                state = connection['state']
 
     @staticmethod
     def get_connections(app_name):
