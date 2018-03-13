@@ -48,7 +48,8 @@ TRIGGER_LOG_STATE_CHOICES = sorted((value, value) for value in TRIGGER_LOG_STATE
 
 
 class TriggerLogAbstract(models.Model):
-    """Support for accessing the Heroku Connect Trigger Log data and related actions.
+    """
+    Support for accessing the Heroku Connect Trigger Log data and related actions.
 
     Heroku Connect uses a Trigger Log table to track local changes to connected models (that is,
     in the Heroku database. Such changes are recorded as rows in the trigger log and, for
@@ -112,7 +113,8 @@ class TriggerLogAbstract(models.Model):
 
     @classmethod
     def capture_insert_from_model(cls, table_name, record_id, *, exclude_fields=()):
-        """Create a fresh insert record from the current model state in the database.
+        """
+        Create a fresh insert record from the current model state in the database.
 
         For read-write connected models, this will lead to the attempted creation of a
         corresponding object in Salesforce.
@@ -153,7 +155,8 @@ class TriggerLogAbstract(models.Model):
 
     @classmethod
     def capture_update_from_model(cls, table_name, record_id, *, update_fields=()):
-        """Create a fresh update record from the current model state in the database.
+        """
+        Create a fresh update record from the current model state in the database.
 
         For read-write connected models, this will lead to the attempted update of the values of
         a corresponding object in Salesforce.
@@ -201,7 +204,8 @@ class TriggerLogAbstract(models.Model):
                  record_id=self.record_id, created_at=created_at, state=self.state)
 
     def get_model(self):
-        """Fetch the instance of the connected model referenced by this log record.
+        """
+        Fetch the instance of the connected model referenced by this log record.
 
         Returns:
             The connected instance, or ``None`` if it does not exists.
@@ -211,7 +215,8 @@ class TriggerLogAbstract(models.Model):
         return model_cls._default_manager.filter(id=self.record_id).first()
 
     def related(self, *, exclude_self=False):
-        """Get a QuerySet for all trigger log objects for the same connected model.
+        """
+        Get a QuerySet for all trigger log objects for the same connected model.
 
         Args:
             exclude_self: Whether to exclude this log object from the result list
@@ -241,7 +246,8 @@ class TriggerLogAbstract(models.Model):
 
 
 class TriggerLog(TriggerLogAbstract):
-    """Represents entries in the Heroku Connect trigger log.
+    """
+    Represents entries in the Heroku Connect trigger log.
 
     .. seealso:: :class:`TriggerLogAbstract`
     """
@@ -254,7 +260,8 @@ class TriggerLog(TriggerLogAbstract):
 
 
 class TriggerLogArchive(TriggerLogAbstract):
-    """Represents entries in the Heroku Connect trigger log archive.
+    """
+    Represents entries in the Heroku Connect trigger log archive.
 
     .. seealso:: :class:`TriggerLogAbstract`
     """

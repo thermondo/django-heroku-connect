@@ -46,7 +46,8 @@ class HerokuConnectModelBase(models.base.ModelBase):
 
 
 def get_heroku_connect_table_name(model_cls):
-    """Return the table name (without schema) associated with a model class.
+    """
+    Return the table name (without schema) associated with a model class.
 
     Args:
         model_cls: A connected model class object

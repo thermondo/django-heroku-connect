@@ -10,7 +10,8 @@ from heroku_connect.models import (
 
 
 def _replaced(__values, **__replacements):
-    """Replace elements in iterable with values from an alias dict, suppressing empty values.
+    """
+    Replace elements in iterable with values from an alias dict, suppressing empty values.
 
     Used to consistently enhance how certain fields are displayed in list and detail pages.
     """
@@ -18,7 +19,8 @@ def _replaced(__values, **__replacements):
 
 
 def _get_admin_route_name(model_or_instance):
-    """Get the base name of the admin route for a model or model instance.
+    """
+    Get the base name of the admin route for a model or model instance.
 
     For use with :func:`django.urls.reverse`, although it still needs the specific route suffix
     appended, for example ``_changelist``.

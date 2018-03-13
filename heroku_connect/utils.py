@@ -85,6 +85,7 @@ def get_heroku_connect_models():
 
 @lru_cache(maxsize=128)
 def get_connected_model_for_table_name(table_name):
+    """Return a connected model's table name (which read and written to by Heroku Connect)."""
     for connected_model in get_heroku_connect_models():
         if connected_model.get_heroku_connect_table_name() == table_name:
             return connected_model
