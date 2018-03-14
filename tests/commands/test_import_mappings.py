@@ -185,7 +185,7 @@ class TestImportMapping:
             status=200,
             content_type='application/json',
         )
-        Command().wait_for_import('1')
+        Command().wait_for_import('1', 0)
 
         httpretty.register_uri(
             httpretty.GET, "https://connect-eu.heroku.com/api/v3/connections/2",
@@ -194,7 +194,7 @@ class TestImportMapping:
             content_type='application/json',
         )
         with pytest.raises(CommandError) as e:
-            Command().wait_for_import('2')
+            Command().wait_for_import('2', 0)
         assert 'Failed to fetch connection information.' in str(e)
 
         httpretty.register_uri(
@@ -215,4 +215,4 @@ class TestImportMapping:
             status=200,
             content_type='application/json',
         )
-        call_command('import_mappings', '--app', 'ninja', '--wait')
+        call_command('import_mappings', '--app', 'ninja', '--wait', '--wait-interval', '0')
