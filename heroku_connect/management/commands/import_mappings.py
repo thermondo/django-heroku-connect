@@ -50,7 +50,7 @@ class Command(BaseCommand):
                 else:
                     time.sleep(wait_interval)  # deep breath
                     self.stdout.write(self.style.NOTICE('Fetching connections.'))
-                    self.get_connections(app_name)
+                    connections = self.get_connections(app_name)
 
             if len(connections) == 0:
                 raise CommandError(
