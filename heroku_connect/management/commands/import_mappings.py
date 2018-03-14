@@ -21,11 +21,14 @@ class Command(BaseCommand):
                                  "with the app will be used.")
         parser.add_argument('--wait', '-w', dest='wait', action='store_true', default=False,
                             help="Wait until mapping import to be completed.")
+        parser.add_argument('--wait-interval', dest='wait_interval', type=int, default=10,
+                            help="How frequently to poll in seconds, default 10.")
 
     def handle(self, *args, **options):
         connection_id = options.get('CONNECTION_ID', None)
         app_name = options.get('HEROKU_APP', settings.HEROKU_CONNECT_APP_NAME)
         wait = options.get('wait', False)
+        wait_interval = options.get('wait_interval', 10)
         if not (connection_id or app_name):
             raise CommandError("You need ether specify the application name or "
                                "the connection ID.")
@@ -45,7 +48,7 @@ class Command(BaseCommand):
                 except requests.HTTPError as e:
                     raise CommandError("Authentication failed") from e
                 else:
-                    time.sleep(3)  # deep breath
+                    time.sleep(wait_interval)  # deep breath
                     self.stdout.write(self.style.NOTICE('Fetching connections.'))
                     self.get_connections(app_name)
 
@@ -68,14 +71,15 @@ class Command(BaseCommand):
             raise CommandError("Failed to upload the mapping") from e
 
         if wait:
-            self.wait_for_import(connection_id)
+            self.wait_for_import(connection_id, wait_interval)
 
-    def wait_for_import(self, connection_id):
+    def wait_for_import(self, connection_id, wait_interval):
         """
         Wait until connection state is no longer ``IMPORT_CONFIGURATION``.
 
         Args:
-            connection_id: Heroku Connect connection to monitor.
+            connection_id (str): Heroku Connect connection to monitor.
+            wait_interval (int): How frequently to poll in seconds.
 
         Raises:
             CommandError: If fetch connection information fails.
@@ -86,7 +90,7 @@ class Command(BaseCommand):
         while state == utils.ConnectionStates.IMPORT_CONFIGURATION:
             # before you get the first state, the API can be a bit behind
             self.stdout.write(self.style.NOTICE('.'), ending='')
-            time.sleep(1)  # take a breath
+            time.sleep(wait_interval)  # take a breath
             try:
                 connection = utils.get_connection(connection_id)
             except requests.HTTPError as e:
