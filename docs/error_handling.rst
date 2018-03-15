@@ -1,7 +1,6 @@
 Error handling
 ==============
 
-
 Trigger Log
 -----------
 
