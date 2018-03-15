@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.contrib.postgres.fields import HStoreField
+from django.core import checks
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from psycopg2 import sql
@@ -112,6 +113,20 @@ class TriggerLogAbstract(models.Model):
         ordering = ('id',)
 
     is_archived = False
+
+    @classmethod
+    def check(cls, **kwargs):
+        errors = super().check(**kwargs)
+
+        if 'django.contrib.postgres' not in settings.INSTALLED_APPS:
+            errors.append(checks.Warning(
+                "Cannot use HStore fields on TriggerLog model",
+                hint="Add 'django.contrib.postgres' to INSTALLED_APPS",
+                obj=cls,
+                id='heroku_connect.models.W001',
+            ))
+
+        return errors
 
     @classmethod
     def capture_insert_from_model(cls, table_name, record_id, *, exclude_fields=()):
