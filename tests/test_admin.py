@@ -1,6 +1,5 @@
 import pytest
 from django.contrib.admin import AdminSite
-from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 
 from heroku_connect.admin import GenericLogModelAdmin
@@ -14,13 +13,9 @@ class TestTriggerLogAdmin:
         return GenericLogModelAdmin(TriggerLog, AdminSite())
 
     @pytest.fixture
-    def admin_route_name(self, db):
-        content_type = ContentType.objects.get_for_model(TriggerLog)
-        return 'admin:{0.app_label}_{0.model}'.format(content_type)
-
-    @pytest.fixture
-    def admin_list_url(self, admin_route_name):
-        return reverse(admin_route_name + '_changelist')
+    def admin_list_url(self):
+        route_name = 'admin:{0.app_label}_{0.model_name}'.format(TriggerLog._meta)
+        return reverse(route_name + '_changelist')
 
     def test_table_name_link(self, admin, admin_list_url):
         log = TriggerLog(id=0, table_name='TABLE', record_id=100)

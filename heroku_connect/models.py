@@ -55,7 +55,7 @@ class TriggerLogAbstract(models.Model):
     in the Heroku database. Such changes are recorded as rows in the trigger log and, for
     read-write mappings, eventually written back to Salesforce.
 
-    Old logs are moved to an archive table (usually after 24 hours), from where they are purged
+    Old logs are moved to an archive table (after being processed), from where they are purged
     eventually (currently 30 days for paid plans, 7 days for demo). Recent logs are modeled by
     :class:`TriggerLog`; archived logs by :class:`TriggerLogArchive`.
 
@@ -77,7 +77,7 @@ class TriggerLogAbstract(models.Model):
 
     # I18N / TRANSLATIONS:
     #
-    # Field names and choices don't use translations, because they refer to (English)technical
+    # Field names and choices don't use translations, because they refer to (English) technical
     # terms in Heroku Connect's manual. That connection should be preserved. Trigger Log Models
     # are for technical folks and not intended to be user-facing.
 
@@ -94,16 +94,14 @@ class TriggerLogAbstract(models.Model):
     action = models.CharField(max_length=7, editable=False, choices=TRIGGER_LOG_ACTION_CHOICES)
     sf_message = models.TextField(editable=False, null=True, blank=True)
 
-    # TODO: these are more useful as HStoreFields (if 'django.contrib.postgres' in INSTALLED_APPS)
-    # leave them as textfields for now
-    _values = models.TextField(editable=False, null=True, blank=True, db_column='values')
-    _old = models.TextField(editable=False, null=True, blank=True, db_column='old')
+    # TODO: document 'django.contrib.postgres' in INSTALLED_APPS, add hstore extension in initial
+    # migration
 
     # editable fields
     state = models.CharField(max_length=8, null=False, blank=False,
                              choices=TRIGGER_LOG_STATE_CHOICES)
 
-    objects = models.Manager.from_queryset(TriggerLogQuerySet)()
+    objects = TriggerLogQuerySet.as_manager()
 
     class Meta:
         abstract = True

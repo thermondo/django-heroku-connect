@@ -93,7 +93,7 @@ class GenericLogModelAdmin(admin.ModelAdmin):
         action = log.action
         return format_html('<span class="label label-default">{action}</span>', action=action)
     action_label.allow_tags = True
-    action_label.short_description = 'Action'
+    action_label.short_description = 'Action'  # untranslated: is column name in trigger log table
     action_label.admin_order_field = 'action'
 
     def state_label(self, log):
@@ -110,7 +110,7 @@ class GenericLogModelAdmin(admin.ModelAdmin):
                            css_label_class=css_label_class,
                            state=state)
     state_label.allow_tags = True
-    state_label.short_description = 'State'
+    state_label.short_description = 'State'  # untranslated: is column name in trigger log table
     state_label.admin_order_field = 'state'
 
 
