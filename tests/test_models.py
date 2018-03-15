@@ -15,12 +15,6 @@ from tests.conftest import make_trigger_log_for_model
 @pytest.mark.django_db
 class TestTriggerLog:
 
-    @pytest.fixture()
-    def _hstore_extension(self):
-        from django.db import connection
-        with connection.cursor() as cursor:
-            cursor.execute('CREATE EXTENSION IF NOT EXISTS HSTORE;')
-
     def test_is_archived(self, archived_trigger_log, trigger_log):
         assert archived_trigger_log.is_archived is True
         assert trigger_log.is_archived is False
@@ -43,7 +37,7 @@ class TestTriggerLog:
         assert set(unrelated_trigger_log.related()) == {unrelated_trigger_log}
         assert set(unrelated_trigger_log.related(exclude_self=True)) == set()
 
-    def test_capture_update(self, trigger_log, _hstore_extension):
+    def test_capture_update(self, trigger_log):
         with pytest.raises(db.ProgrammingError):
             try:
                 trigger_log.capture_update()
@@ -57,7 +51,7 @@ class TestTriggerLog:
         with pytest.raises(FieldDoesNotExist):
             trigger_log.capture_update(update_fields=('NOT A FIELD',))
 
-    def test_capture_insert(self, trigger_log, _hstore_extension):
+    def test_capture_insert(self, trigger_log):
         with pytest.raises(db.ProgrammingError):
             try:
                 exclude_fields = ['_hc_lastop', '_hc_err']  # for test coverage
