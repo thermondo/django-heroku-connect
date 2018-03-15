@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.contrib.postgres.fields import HStoreField
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from psycopg2 import sql
@@ -82,7 +83,7 @@ class TriggerLogAbstract(models.Model):
     # are for technical folks and not intended to be user-facing.
 
     # read-only fields
-    # id is a BigAutoField for testing convenience;  in a real environment, id management
+    # `id` is a BigAutoField for testing convenience;  in a real environment, id management
     # is up to Heroku Connect.
     id = models.BigAutoField(primary_key=True, editable=False)
     created_at = models.DateTimeField(editable=False, null=True)
@@ -94,8 +95,9 @@ class TriggerLogAbstract(models.Model):
     action = models.CharField(max_length=7, editable=False, choices=TRIGGER_LOG_ACTION_CHOICES)
     sf_message = models.TextField(editable=False, null=True, blank=True)
 
-    # TODO: document 'django.contrib.postgres' in INSTALLED_APPS, add hstore extension in initial
-    # migration
+    # HStoreFields need 'django.contrib.postgres' in INSTALLED_APPS and hstore postgres extension
+    values = HStoreField(editable=False, null=True, blank=True)
+    old = HStoreField(editable=False, null=True, blank=True)
 
     # editable fields
     state = models.CharField(max_length=8, null=False, blank=False,

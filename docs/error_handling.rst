@@ -12,6 +12,9 @@ Heroku Connect, as Django models :class:`.TriggerLog` and
 :class:`.TriggerLogArchive`. These models also offer access to database stored
 procedures provided by Heroku Connect to `fix sync errors`_.
 
+.. note:: The trigger log models use :class:`django.contrib.postgres.fields.HStoreField` and need
+    your ``INSTALLED_APPS`` to include ``'django.contrib.postgres'``.
+
 .. seealso:: :class:`.TriggerLogAbstract` for how to use trigger log models.
 
 .. _Trigger Log:
