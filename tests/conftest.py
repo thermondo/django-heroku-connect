@@ -87,5 +87,5 @@ def archived_trigger_log(connected_model):
 @pytest.fixture()
 def failed_trigger_log(connected_model):
     return make_trigger_log_for_model(connected_model,
-                                        is_archived=False,
-                                        state=TRIGGER_LOG_STATE['FAILED'])
+                                      is_archived=False,
+                                      state=TRIGGER_LOG_STATE['FAILED'])
