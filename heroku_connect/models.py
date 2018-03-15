@@ -82,7 +82,9 @@ class TriggerLogAbstract(models.Model):
     # are for technical folks and not intended to be user-facing.
 
     # read-only fields
-    id = models.BigIntegerField(primary_key=True, editable=False)
+    # id is a BigAutoField for testing convenience; in a real environment, id management is up to
+    # Heroku Connect.q
+    id = models.BigAutoField(primary_key=True, editable=False)
     created_at = models.DateTimeField(editable=False, null=True)
     updated_at = models.DateTimeField(editable=False, null=True)
     processed_at = models.DateTimeField(editable=False, null=True)

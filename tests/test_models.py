@@ -7,7 +7,7 @@ from django.core.exceptions import FieldDoesNotExist
 from heroku_connect.models import (
     TRIGGER_LOG_STATE, TriggerLog, TriggerLogArchive
 )
-from tests.conftest import create_trigger_log_for_model
+from tests.conftest import make_trigger_log_for_model
 
 
 @pytest.mark.django_db
@@ -29,8 +29,11 @@ class TestTriggerLog:
         assert trigger_log.get_model() is None
 
     def test_related(self, connected_class, connected_model, trigger_log):
-        related_trigger_log = create_trigger_log_for_model(connected_model)
-        unrelated_trigger_log = create_trigger_log_for_model(connected_class.objects.create())
+        related_trigger_log = make_trigger_log_for_model(connected_model)
+        unrelated_trigger_log = make_trigger_log_for_model(connected_class.objects.create())
+        trigger_log.save()
+        related_trigger_log.save()
+        unrelated_trigger_log.save()
 
         assert set(trigger_log.related()) == {trigger_log, related_trigger_log}
         assert set(trigger_log.related(exclude_self=True)) == {related_trigger_log}
@@ -68,17 +71,21 @@ class TestTriggerLog:
             trigger_log.capture_insert(exclude_fields=('NOT A FIELD',))
 
     def test_queryset(self, connected_class, trigger_log, archived_trigger_log):
+        trigger_log.save()
+        archived_trigger_log.save()
         assert list(TriggerLog.objects.all()) == [trigger_log]
         assert list(TriggerLogArchive.objects.all()) == [archived_trigger_log]
 
         connected_model = connected_class.objects.create()
-        failed = create_trigger_log_for_model(connected_model, state=TRIGGER_LOG_STATE['FAILED'])
+        failed = make_trigger_log_for_model(connected_model, state=TRIGGER_LOG_STATE['FAILED'])
+        failed.save()
         assert set(TriggerLog.objects.failed()) == {failed}
         assert TriggerLog.objects.all().count() == 2
         assert set(TriggerLog.objects.all()) == {trigger_log, failed}
         assert list(TriggerLogArchive.objects.all()) == [archived_trigger_log]
 
-        related = create_trigger_log_for_model(connected_model)
+        related = make_trigger_log_for_model(connected_model)
+        related.save()
         assert TriggerLog.objects.related_to(failed).count() == 2
         assert set(TriggerLog.objects.related_to(failed)) == {failed, related}
 
