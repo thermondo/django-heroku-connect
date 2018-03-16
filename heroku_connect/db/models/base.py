@@ -1,3 +1,5 @@
+from functools import wraps
+
 from django.core import checks
 from django.db import models
 
@@ -41,6 +43,22 @@ class HerokuConnectModelBase(models.base.ModelBase):
             new_class._meta.local_fields.remove(is_deleted)
 
         return new_class
+
+
+def get_heroku_connect_table_name(model_cls):
+    """
+    Return the table name (without schema) associated with a model class.
+
+    Args:
+        model_cls: A connected model class object
+
+    Raises:
+        LookupError: if no table name is associated with the given class
+
+    """
+    # strip schema and quotes from _meta.db_table
+    # https://www.postgresql.org/docs/9.6/static/sql-syntax-lexical.html#SQL-SYNTAX-IDENTIFIERS
+    return model_cls._meta.db_table.rsplit('.', 1)[-1].strip('"')
 
 
 class HerokuConnectModel(models.Model, metaclass=HerokuConnectModelBase):
@@ -193,6 +211,8 @@ class HerokuConnectModel(models.Model, metaclass=HerokuConnectModelBase):
             "object_name": cls.sf_object_name,
             "config": config
         }
+
+    get_heroku_connect_table_name = classmethod(get_heroku_connect_table_name)
 
     @classmethod
     def _check_sf_object_name(cls):

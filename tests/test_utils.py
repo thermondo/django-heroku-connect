@@ -251,3 +251,11 @@ def test_link_connection_to_account():
     )
     with pytest.raises(requests.HTTPError):
         utils.link_connection_to_account('ninja')
+
+
+def test_get_connected_model_for_table_name(db, connected_class):
+    table_name = connected_class.get_heroku_connect_table_name()
+    assert connected_class is utils.get_connected_model_for_table_name(table_name)
+
+    with pytest.raises(LookupError):
+        utils.get_connected_model_for_table_name("NOBODY'S_TABLE_NAME")
