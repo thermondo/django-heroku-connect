@@ -44,6 +44,7 @@ jobs:
     - stage: PyPI release  # will run after the default "test" stage succeeds
       script: echo "Deploying to PyPI ..."  # override regular test script; "skip" should also work
       env: TOXENV=isort  # if not set explicitly, build matrix vars will use their first value
+      if: tag IS present
       deploy:
         provider: pypi
         user: codingjoe
