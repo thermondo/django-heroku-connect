@@ -11,8 +11,8 @@ class HerokuConnectRouter:
     methods are called on read-only tables.
 
     .. note::
-        You will need to enable add the router to your ``DATABASE_ROUTERS``
-        setting. For example::
+        You will need to add the router to your ``DATABASE_ROUTERS`` setting.
+        For example::
 
             DATABASE_ROUTERS = ['heroku_connect.db.router.HerokuConnectRouter']
 
