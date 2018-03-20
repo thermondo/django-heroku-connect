@@ -1,11 +1,14 @@
 import os
 import shutil
 
+import pytest
 from django.core import checks
 from django.core.management import call_command
 from django.db import models
+from django.utils import timezone
 
 from heroku_connect.db import models as hc_models
+from heroku_connect.db.exceptions import WriteNotSupportedError
 
 
 class TestHerokuConnectModelMixin:
@@ -351,3 +354,44 @@ class TestHerokuConnectModelMixin:
                 },
             'object_name': 'My_Object__c',
         }
+
+    def test_qs_methods_on_read_only_model(self):
+        class MyReadOnlyModel(hc_models.HerokuConnectModel):
+            sf_object_name = 'My_Object__c'
+            date = hc_models.DateTime(sf_field_name='Date1__c')
+
+            class Meta:
+                app_label = 'test'
+                abstract = True
+
+        data_instance = MyReadOnlyModel(date=timezone.now())
+        with pytest.raises(WriteNotSupportedError) as e:
+            data_instance.save()
+        assert 'is a read-only model.' in str(e)
+
+        data_instance = MyReadOnlyModel(date=timezone.now())
+        with pytest.raises(WriteNotSupportedError) as e:
+            data_instance.delete()
+        assert 'is a read-only model.' in str(e)
+
+    def test_write_methods_on_read_only_model(self):
+        class MyReadOnlyModel(hc_models.HerokuConnectModel):
+            sf_object_name = 'My_Object__c'
+            date = hc_models.DateTime(sf_field_name='Date1__c')
+
+            class Meta:
+                app_label = 'test'
+
+        with pytest.raises(WriteNotSupportedError) as e:
+            MyReadOnlyModel.objects.update(date=timezone.now())
+        assert 'is a read-only model.' in str(e)
+
+        with pytest.raises(WriteNotSupportedError) as e:
+            MyReadOnlyModel.objects.all().delete()
+        assert 'is a read-only model.' in str(e)
+
+        with pytest.raises(WriteNotSupportedError) as e:
+            MyReadOnlyModel.objects.bulk_create([
+                MyReadOnlyModel(date=timezone.now())
+            ])
+        assert 'is a read-only model.' in str(e)

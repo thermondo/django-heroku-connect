@@ -20,6 +20,10 @@ Simply install the PyPi package…
 
 …and add ``heroku_connect`` to the ``INSTALLED_APP`` settings.
 
+You can add :class:`heroku_connect.db.router.HerokuConnectRouter<.HerokuConnectRouter>` to
+your ``DATABASE_ROUTERS`` setting, to prevent you from making
+write access errors.
+
 Last but not least make sure to change the database engine, e.g.:
 
 .. code:: python
