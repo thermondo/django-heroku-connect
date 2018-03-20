@@ -2,7 +2,7 @@ import pytest
 from django.db import connection
 from django.utils import timezone
 
-from heroku_connect.db.models.base import HerokuConnectModel
+from heroku_connect.db.models.base import READ_WRITE, HerokuConnectModel
 from heroku_connect.models import (
     TRIGGER_LOG_ACTION, TRIGGER_LOG_STATE, TriggerLog, TriggerLogArchive
 )
@@ -44,6 +44,7 @@ def connected_class():
         # define the class only once, or django will warn about redefining models
         class ConnectedTestModel(HerokuConnectModel):
             sf_object_name = 'CONNECTED_TEST_MODEL'
+            sf_access = READ_WRITE
 
             class Meta:
                 app_label = 'tests'

@@ -1,12 +1,14 @@
-from functools import wraps
-
 from django.core import checks
 from django.db import models
 
 from . import fields
 from ...conf import settings
 
-__all__ = ('HerokuConnectModel',)
+__all__ = ('HerokuConnectModel', 'READ_ONLY', 'READ_WRITE')
+
+
+READ_ONLY = 'read_only'
+READ_WRITE = 'read_write'
 
 
 class HerokuConnectModelBase(models.base.ModelBase):
@@ -108,7 +110,7 @@ class HerokuConnectModel(models.Model, metaclass=HerokuConnectModelBase):
     sf_object_name = ''
     """Salesforce object API name."""
 
-    sf_access = 'read_only'
+    sf_access = READ_ONLY
     """
     Heroku Connect Object access level.
 
@@ -227,7 +229,7 @@ class HerokuConnectModel(models.Model, metaclass=HerokuConnectModelBase):
 
     @classmethod
     def _check_sf_access(cls):
-        allowed_access_types = ['read_only', 'read_write']
+        allowed_access_types = [READ_ONLY, READ_WRITE]
         if cls.sf_access not in allowed_access_types:
             return [checks.Error(
                 "%s.%s.sf_access must be one of %s" % (

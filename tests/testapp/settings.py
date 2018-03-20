@@ -77,6 +77,8 @@ DATABASES = {
     }
 }
 
+DATABASE_ROUTERS = ['heroku_connect.db.router.HerokuConnectRouter']
+
 
 # Password validation
 # https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators
