@@ -34,3 +34,8 @@ class DateTimeModel(hc_models.HerokuConnectModel):
     sf_object_name = 'DateTime_Object__c'
 
     a_datetime = hc_models.DateTime(_('a date time field'), sf_field_name='A_DateTime__c')
+
+
+class ReadOnlyModel(hc_models.HerokuConnectModel):
+    sf_object_name = 'ReadOnly__c'
+    sf_access = hc_models.READ_ONLY
