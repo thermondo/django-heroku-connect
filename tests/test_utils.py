@@ -1,11 +1,10 @@
+import datetime
 import json
-from urllib.error import URLError
 
 import httpretty
 import pytest
 import requests
 from django.db import models
-from django.utils import timezone
 
 from heroku_connect import utils
 from heroku_connect.db.models import HerokuConnectModel
@@ -45,7 +44,7 @@ def test_get_heroku_connect_models():
 def test_get_mapping(settings):
     settings.HEROKU_CONNECT_APP_NAME = 'ninja'
     settings.HEROKU_CONNECT_ORGANIZATION_ID = '1234567890'
-    exported_at = timezone.datetime(2001, 5, 24)
+    exported_at = datetime.datetime(2001, 5, 24)
     from pprint import pprint
     pprint(utils.get_mapping(exported_at=exported_at))
 
