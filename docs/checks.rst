@@ -44,3 +44,10 @@ the Salesforce ID ``sfid``.
 
 The Salesforce object name must be unique since an object can only mapped to a
 PostgreSQL table once.
+
+
+``heroku_connect.E007``
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Read-write mappings in Heroku Connect need to provide an upsert field to
+identify the record.

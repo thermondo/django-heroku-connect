@@ -268,10 +268,26 @@ class HerokuConnectModel(models.Model, metaclass=HerokuConnectModelBase):
         return []
 
     @classmethod
+    def _check_missing_upsert_field(cls):
+        errors = []
+        if cls.sf_access == READ_WRITE:
+            upsert_fields = [field for field in cls.get_heroku_connect_fields() if field.upsert]
+            if not upsert_fields:
+                errors.append(checks.Error(
+                    "%s.%s does not have an upsert field." % (
+                        cls._meta.app_label, cls.__name__
+                    ),
+                    hint='Read-write models need an upsert field.',
+                    id='heroku_connect.E007',
+                ))
+        return errors
+
+    @classmethod
     def check(cls, **kwargs):
         errors = super().check(**kwargs)
         errors.extend(cls._check_sf_object_name())
         errors.extend(cls._check_sf_access())
         errors.extend(cls._check_unique_sf_field_names())
         errors.extend(cls._check_upsert_field())
+        errors.extend(cls._check_missing_upsert_field())
         return errors

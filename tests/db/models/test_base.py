@@ -302,6 +302,22 @@ class TestHerokuConnectModelMixin:
             id='heroku_connect.E004',
         )]
 
+    def test_check_missing_upsert_field(self):
+        class MyModel(hc_models.HerokuConnectModel):
+            sf_object_name = 'My_Object__c'
+            sf_access = hc_models.READ_WRITE
+
+            class Meta:
+                app_label = 'test'
+                abstract = True
+
+        errors = MyModel.check()
+        assert errors == [checks.Error(
+            "test.MyModel does not have an upsert field.",
+            hint='Read-write models need an upsert field.',
+            id='heroku_connect.E007',
+        )]
+
     def test_inheritance(self):
         class DateMixin(models.Model):
             date = hc_models.DateTime(sf_field_name='Date__c')
