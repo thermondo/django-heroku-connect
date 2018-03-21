@@ -181,7 +181,7 @@ class DateTime(HerokuConnectFieldMixin, models.DateTimeField):
         if value is None:
             return value
         else:
-            return timezone.utc.localize(value)
+            return timezone.make_aware(value, timezone.utc)
 
 
 class Email(HerokuConnectFieldMixin, models.EmailField):
