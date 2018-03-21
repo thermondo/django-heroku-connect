@@ -25,6 +25,7 @@ project = 'Django Heroku Connect'
 copyright = '2017, Thermondo GmbH'
 author = 'Thermondo GmbH'
 
+
 def linkcode_resolve(domain, info):
     """Link source code to GitHub."""
     project = 'django-heroku-connect'
