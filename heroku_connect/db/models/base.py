@@ -149,11 +149,11 @@ class HerokuConnectModel(models.Model, metaclass=HerokuConnectModelBase):
     system_mod_stamp = fields.DateTime(sf_field_name='SystemModstamp', db_index=True)
     is_deleted = fields.Checkbox(sf_field_name='IsDeleted')
     _hc_lastop = models.CharField(
-        max_length=32, editable=False,
+        max_length=32, null=True, editable=False,
         help_text='Indicates the last sync operation Heroku Connect performed on the record',
     )
     _hc_err = models.TextField(
-        max_length=1024, editable=False,
+        max_length=1024, null=True, editable=False,
         help_text='If the last sync operation by Heroku Connect resulted in an error then this'
                   ' column will contain a JSON object containing more'
                   ' information about the error',
