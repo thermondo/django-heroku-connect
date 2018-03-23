@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.contrib.postgres.fields import HStoreField
 from django.core import checks
-from django.db import models
+from django.db import models, transaction
 from django.utils.translation import ugettext_lazy as _
 from psycopg2 import sql
 
@@ -94,15 +94,13 @@ class TriggerLogAbstract(models.Model):
     record_id = models.BigIntegerField(editable=False)
     sf_id = models.CharField(max_length=18, editable=False, null=True, db_column='sfid')
     action = models.CharField(max_length=7, editable=False, choices=TRIGGER_LOG_ACTION_CHOICES)
+    state = models.CharField(max_length=8, editable=False, null=False, blank=False,
+                             choices=TRIGGER_LOG_STATE_CHOICES)
     sf_message = models.TextField(editable=False, null=True, blank=True)
 
     # HStoreFields need 'django.contrib.postgres' in INSTALLED_APPS and hstore postgres extension
     values = HStoreField(editable=False, null=True, blank=True)
     old = HStoreField(editable=False, null=True, blank=True)
-
-    # editable fields
-    state = models.CharField(max_length=8, null=False, blank=False,
-                             choices=TRIGGER_LOG_STATE_CHOICES)
 
     objects = TriggerLogQuerySet.as_manager()
 
@@ -137,9 +135,10 @@ class TriggerLogAbstract(models.Model):
         corresponding object in Salesforce.
 
         Args:
-            table_name: The name of the table backing the connected model (without schema)
-            record_id: The primary id of the connected model
-            exclude_fields: The names of fields that will not be included in the write record
+            table_name (str): The name of the table backing the connected model (without schema)
+            record_id (int): The primary id of the connected model
+            exclude_fields (Iterable[str]): The names of fields that will not be included in the
+                write record
 
         Returns:
             A list of the created TriggerLog entries (usually one).
@@ -179,9 +178,10 @@ class TriggerLogAbstract(models.Model):
         a corresponding object in Salesforce.
 
         Args:
-            table_name: The name of the table backing the connected model (without schema)
-            record_id: The primary id of the connected model
-            update_fields: If given, the names of fields that will be included in the write record
+            table_name (str): The name of the table backing the connected model (without schema)
+            record_id (int): The primary id of the connected model
+            update_fields (Iterable[str]): If given, the names of fields that will be included in
+                the write record
 
         Returns:
             A list of the created TriggerLog entries (usually one).
@@ -236,7 +236,7 @@ class TriggerLogAbstract(models.Model):
         Get a QuerySet for all trigger log objects for the same connected model.
 
         Args:
-            exclude_self: Whether to exclude this log object from the result list
+            exclude_self (bool): Whether to exclude this log object from the result list
         """
         manager = type(self)._default_manager
         queryset = manager.related_to(self)
@@ -275,6 +275,20 @@ class TriggerLog(TriggerLogAbstract):
         db_table = '{schema}"."_trigger_log'.format(schema=settings.HEROKU_CONNECT_SCHEMA)
         verbose_name = _('Trigger Log')
 
+    def redo(self):
+        """
+        Re-sync the change recorded in this trigger log.
+
+        This MAY create new TriggerLog instances, or save changes to this instance.
+
+        Returns:
+            A TriggerLog instance that represents the re-application; possibly ``self``.
+
+        """
+        self.state = TRIGGER_LOG_STATE['NEW']
+        self.save(update_fields=['state'])
+        return self
+
 
 class TriggerLogArchive(TriggerLogAbstract):
     """
@@ -289,3 +303,41 @@ class TriggerLogArchive(TriggerLogAbstract):
         db_table = '{schema}"."_trigger_log_archive'.format(schema=settings.HEROKU_CONNECT_SCHEMA)
         verbose_name = _('Trigger Log (archived)')
         verbose_name_plural = _('Trigger Logs (archived)')
+
+    @transaction.atomic
+    def redo(self):
+        """
+        Re-sync the change recorded in this trigger log.
+
+        Creates a ``NEW`` live trigger log from the data in this archived trigger log and sets
+        the state of this archived instance to ``REQUEUED``.
+
+        .. seealso:: :meth:`.TriggerLog.redo`
+
+        Returns:
+            The :class:`.TriggerLog` instance that was created from the data of this archived log.
+
+        """
+        trigger_log = self._to_live_trigger_log(state=TRIGGER_LOG_STATE['NEW'])
+        trigger_log.save(force_insert=True)  # make sure we get a fresh row
+        self.state = TRIGGER_LOG_STATE['REQUEUED']
+        self.save(update_fields=['state'])
+        return trigger_log
+
+    def _to_live_trigger_log(self, **kwargs):
+        """
+        Make a new, non-archived :class:`.TriggerLog` instance with duplicate data.
+
+        Args:
+            **kwargs: Set as attributes of the new instance, overriding what would otherwise be
+                copied from ``self``.
+
+        Returns:
+            The new (unpersisted) :class:`TriggerLog` instance.
+
+        """
+        field_names = (field.name for field in TriggerLogAbstract._meta.get_fields())
+        attributes = {name: getattr(self, name) for name in field_names}
+        del attributes['id']  # this is a completely new log, it should get its own id on save
+        attributes.update(kwargs)
+        return TriggerLog(**attributes)
