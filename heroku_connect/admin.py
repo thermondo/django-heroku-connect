@@ -1,8 +1,10 @@
 from urllib.parse import parse_qs, urlencode, urlsplit, urlunsplit
 
 from django.contrib import admin
+from django.db import transaction
 from django.urls import reverse
 from django.utils.html import format_html
+from django.utils.translation import ugettext_lazy as _
 
 from heroku_connect.models import (
     TRIGGER_LOG_STATE, TriggerLog, TriggerLogArchive
@@ -29,13 +31,12 @@ def _get_admin_route_name(model_or_instance):
     return 'admin:{meta.app_label}_{meta.model_name}'.format(meta=model._meta)
 
 
-def _build_admin_filter_url(obj, *, fields):
+def _build_admin_filter_url(model, filters):
     """Build a filter URL to an admin changelist of all objects with similar field values."""
-    filter_query = {name: getattr(obj, name) for name in fields}
-    url = reverse(_get_admin_route_name(obj) + '_changelist')
+    url = reverse(_get_admin_route_name(model) + '_changelist')
     parts = urlsplit(url)
     query = parse_qs(parts.query)
-    query.update(filter_query)
+    query.update(filters)
     parts_with_filter = parts._replace(query=urlencode(query))
     return urlunsplit(parts_with_filter)
 
@@ -48,7 +49,8 @@ def _make_admin_link_to_similar(primary_field, *fields, name=None):
     def field_link(self, obj):
         value = getattr(obj, primary_field, None)
         name_or_value = name or value
-        url = _build_admin_filter_url(obj, fields=fields)
+        filters = {field_name: getattr(obj, field_name) for field_name in fields}
+        url = _build_admin_filter_url(obj, filters)
         return format_html(url_template, **locals()) if url else value
     field_link.allow_tags = True
     field_link.short_description = primary_field.replace('_', ' ').capitalize()
@@ -56,6 +58,38 @@ def _make_admin_link_to_similar(primary_field, *fields, name=None):
     field_link.__name__ = field_link.__name__.replace('field', primary_field)
 
     return field_link
+
+
+def _ignore_failed_logs(queryset):
+    failed_logs = queryset.filter(state=TRIGGER_LOG_STATE['FAILED'])
+    return failed_logs.update(state=TRIGGER_LOG_STATE['IGNORED'])
+
+
+@transaction.atomic
+def _retry_failed_log(failed_trigger_log):
+    """
+    Try to re-apply a failed trigger log action.
+
+    Makes sure the argument trigger log is in a FAILED state and acquires a row lock on it.
+
+    Returns:
+          True if the operation succeeded
+
+    """
+    model = type(failed_trigger_log)
+    try:
+        failed_trigger_log = (
+            model.objects
+            .select_for_update()
+            .get(
+                id=failed_trigger_log.id,
+                state=TRIGGER_LOG_STATE['FAILED'],
+            )
+        )
+    except model.DoesNotExist:
+        return False
+    failed_trigger_log.redo()
+    return True
 
 
 class GenericLogModelAdmin(admin.ModelAdmin):
@@ -71,7 +105,7 @@ class GenericLogModelAdmin(admin.ModelAdmin):
     # LIST
     date_hierarchy = 'created_at'
     list_display = _replaced(
-        ('created_at', 'action', 'table_name', 'record_id', 'sf_message', 'state',),
+        ('created_at', 'action', 'table_name', 'record_id', 'sf_message', 'state'),
         **field_overrides)
     list_filter = ('action', 'state', 'table_name')
     list_per_page = 100
@@ -114,5 +148,32 @@ class GenericLogModelAdmin(admin.ModelAdmin):
     state_label.admin_order_field = 'state'
 
 
-admin.register(TriggerLog)(GenericLogModelAdmin)
-admin.register(TriggerLogArchive)(GenericLogModelAdmin)
+class TriggerLogAdmin(GenericLogModelAdmin):
+    actions = ['ignore_failed_logs_action', 'retry_failed_logs_action']
+    actions_on_top = True
+    actions_on_bottom = True
+
+    def ignore_failed_logs_action(self, request, queryset):
+        """Set FAILED trigger logs in queryset to IGNORED."""
+        count = _ignore_failed_logs(queryset)
+        self.message_user(
+            request,
+            _('{count} failed trigger logs marked as ignored.').format(count=count),
+        )
+    ignore_failed_logs_action.short_description = _('Mark failed logs as "ignored"')
+
+    def retry_failed_logs_action(self, request, queryset):
+        """Try to re-apply FAILED trigger log actions in the queryset."""
+        count = 0
+        for trigger_log in queryset:
+            retried = _retry_failed_log(trigger_log)
+            if retried:
+                count += 1
+        self.message_user(
+            request,
+            _('{count} failed trigger logs retried.').format(count=count),
+        )
+    retry_failed_logs_action.short_description = _('Retry failed log actions')
+
+
+admin.site.register([TriggerLog, TriggerLogArchive], TriggerLogAdmin)

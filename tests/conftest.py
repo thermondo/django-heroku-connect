@@ -16,9 +16,13 @@ def make_trigger_log_for_model(model, *, is_archived=False, **kwargs):
     return log
 
 
-def make_trigger_log(*, is_archived, **attrs):
+def make_trigger_log(*, is_archived=False, **attrs):
     """
     Make an unsaved trigger log instance from given attributes.
+
+    Args:
+        is_archived (bool): Make a TriggerLog instance if ``True``, a TriggerLogArchive otherwise
+        **attrs: Attributes of the trigger log instance
 
     Returns:
         An unsaved TriggerLog or TriggerLogArchive instance, depending on whether `is_archived`
@@ -27,6 +31,8 @@ def make_trigger_log(*, is_archived, **attrs):
     model_cls = TriggerLogArchive if is_archived else TriggerLog
     attrs.setdefault('state', TRIGGER_LOG_STATE['NEW'])
     attrs.setdefault('action', TRIGGER_LOG_ACTION['INSERT'])
+    attrs.setdefault('table_name', 'SOME_TABLE')
+    attrs.setdefault('record_id', 12345)
     return model_cls(**attrs)
 
 

@@ -2,15 +2,18 @@ import pytest
 from django.contrib.admin import AdminSite
 from django.urls import reverse
 
-from heroku_connect.admin import GenericLogModelAdmin
-from heroku_connect.models import TRIGGER_LOG_ACTION, TriggerLog
+from heroku_connect import admin
+from heroku_connect.models import (
+    TRIGGER_LOG_ACTION, TRIGGER_LOG_STATE, TriggerLog, TriggerLogArchive
+)
+from tests.conftest import make_trigger_log
 
 
-class TestTriggerLogAdmin:
+class TestGenericLogModelAdmin:
 
     @pytest.fixture
     def admin(self):
-        return GenericLogModelAdmin(TriggerLog, AdminSite())
+        return admin.GenericLogModelAdmin(TriggerLog, AdminSite())
 
     @pytest.fixture
     def admin_list_url(self):
@@ -36,3 +39,105 @@ class TestTriggerLogAdmin:
         log = TriggerLog(id=0, table_name='TABLE', record_id=100,
                          action=TRIGGER_LOG_ACTION['INSERT'])
         assert log.get_state_display() in admin.state_label(log)
+
+
+@pytest.mark.django_db
+class TestAdminActions:
+
+    @staticmethod
+    def admin_changelist_url(model):
+        return reverse(
+            'admin:{meta.app_label}_{meta.model_name}_changelist'.format(meta=model._meta)
+        )
+
+    @staticmethod
+    def action_post_data(action, queryset):
+        return {
+            'action': action.__name__,
+            '_selected_action': queryset.values_list('pk', flat=True)
+        }
+
+    def test_ignore_failed_logs(self, admin_client):
+        failed_logs = TriggerLog.objects.bulk_create([
+            make_trigger_log(
+                state=TRIGGER_LOG_STATE['FAILED'],
+                record_id=i,
+                action=action,
+            )
+            for i, action in enumerate(TRIGGER_LOG_ACTION.values())
+        ])
+        succeeded = make_trigger_log(state=TRIGGER_LOG_STATE['SUCCESS'])
+        succeeded.save()
+
+        admin_client.post(
+            self.admin_changelist_url(TriggerLog),
+            data=self.action_post_data(
+                admin.TriggerLogAdmin.ignore_failed_logs_action,
+                TriggerLog.objects.all()
+            ),
+        )
+
+        for failed_log in failed_logs:
+            failed_log.refresh_from_db()
+            assert failed_log.state == TRIGGER_LOG_STATE['IGNORED']
+        succeeded.refresh_from_db()
+        assert succeeded.state == TRIGGER_LOG_STATE['SUCCESS']
+
+    def test_retry_failed_logs(self, admin_client):
+        failed_logs = TriggerLog.objects.bulk_create([
+            make_trigger_log(
+                state=TRIGGER_LOG_STATE['FAILED'],
+                record_id=i,
+                action=action,
+            )
+            for i, action in enumerate(TRIGGER_LOG_ACTION.values())
+        ])
+        succeeded = make_trigger_log(state=TRIGGER_LOG_STATE['SUCCESS'])
+        succeeded.save()
+
+        admin_client.post(
+            self.admin_changelist_url(TriggerLog),
+            data=self.action_post_data(
+                admin.TriggerLogAdmin.retry_failed_logs_action,
+                TriggerLog.objects.all()
+            ),
+        )
+
+        for failed_log in failed_logs:
+            failed_log.refresh_from_db()
+            assert failed_log.state == TRIGGER_LOG_STATE['NEW']
+        succeeded.refresh_from_db()
+        assert succeeded.state == TRIGGER_LOG_STATE['SUCCESS']
+
+    def test_retry_failed_logs_in_archive(self, admin_client):
+        failed_logs = TriggerLogArchive.objects.bulk_create([
+            make_trigger_log(
+                is_archived=True,
+                state=TRIGGER_LOG_STATE['FAILED'],
+                record_id=i,
+                action=action,
+            )
+            for i, action in enumerate(TRIGGER_LOG_ACTION.values())
+        ])
+        succeeded = make_trigger_log(is_archived=True, state=TRIGGER_LOG_STATE['SUCCESS'])
+        succeeded.save()
+
+        admin_client.post(
+            self.admin_changelist_url(TriggerLogArchive),
+            data=self.action_post_data(
+                admin.TriggerLogAdmin.retry_failed_logs_action,
+                TriggerLogArchive.objects.all()
+            ),
+        )
+
+        for failed_log in failed_logs:
+            failed_log.refresh_from_db()
+            assert failed_log.state == TRIGGER_LOG_STATE['REQUEUED']
+            new_trigger_log = TriggerLog.objects.get(
+                table_name=failed_log.table_name,
+                record_id=failed_log.record_id,
+                action=failed_log.action,
+            )
+            assert new_trigger_log.state == TRIGGER_LOG_STATE['NEW']
+        succeeded.refresh_from_db()
+        assert succeeded.state == TRIGGER_LOG_STATE['SUCCESS']
