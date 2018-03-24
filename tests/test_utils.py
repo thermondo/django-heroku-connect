@@ -45,104 +45,57 @@ def test_get_mapping(settings):
     settings.HEROKU_CONNECT_APP_NAME = 'ninja'
     settings.HEROKU_CONNECT_ORGANIZATION_ID = '1234567890'
     exported_at = datetime.datetime(2001, 5, 24)
-    from pprint import pprint
-    pprint(utils.get_mapping(exported_at=exported_at))
 
-    assert utils.get_mapping(exported_at=exported_at) == {
-        'connection': {
-            'app_name': 'ninja',
-            'exported_at': '2001-05-24T00:00:00',
-            'organization_id': '1234567890',
-        },
-        'mappings': [
-            {
-                'config': {
-                    'access': 'read_write',
-                    'fields': {
-                        'A_Number__c': {},
-                        'External_ID': {},
-                        'Id': {},
-                        'IsDeleted': {},
-                        'SystemModstamp': {},
-                    },
-                    'indexes': {
-                        'Id': {'unique': True},
-                        'SystemModstamp': {'unique': False},
-                        'External_ID': {'unique': True},
-                    },
-                    'sf_max_daily_api_calls': 30000,
-                    'sf_notify_enabled': False,
-                    'sf_polling_seconds': 600,
-                    'upsert_field': 'External_ID',
-                },
-                'object_name': 'Number_Object__c',
-            },
-            {
-                'config': {
-                    'access': 'read_write',
-                    'fields': {
-                        'A_DateTime__c': {},
-                        'Id': {},
-                        'IsDeleted': {},
-                        'SystemModstamp': {}
-                    },
-                    'indexes': {
-                        'Id': {'unique': True},
-                        'SystemModstamp': {'unique': False}
-                    },
-                    'sf_max_daily_api_calls': 30000,
-                    'sf_notify_enabled': False,
-                    'sf_polling_seconds': 600,
-                },
-                'object_name': 'DateTime_Object__c'
-            },
-        ],
-        'version': 1,
+    mapping = utils.get_mapping(exported_at=exported_at)
+    assert mapping['connection'] == {
+        'app_name': 'ninja',
+        'exported_at': '2001-05-24T00:00:00',
+        'organization_id': '1234567890',
     }
 
-    assert utils.get_mapping()['mappings'] == [
-        {
-            'config': {
-                'access': 'read_write',
-                'fields': {
-                    'A_Number__c': {},
-                    'External_ID': {},
-                    'Id': {},
-                    'IsDeleted': {},
-                    'SystemModstamp': {},
-                },
-                'indexes': {
-                    'Id': {'unique': True},
-                    'SystemModstamp': {'unique': False},
-                    'External_ID': {'unique': True},
-                },
-                'sf_max_daily_api_calls': 30000,
-                'sf_notify_enabled': False,
-                'sf_polling_seconds': 600,
-                'upsert_field': 'External_ID',
-            },
-            'object_name': 'Number_Object__c',
-        },
-        {
-            'config': {
-                'access': 'read_write',
-                'fields': {
-                    'A_DateTime__c': {},
-                    'Id': {},
-                    'IsDeleted': {},
-                    'SystemModstamp': {}
-                },
-                'indexes': {
-                    'Id': {'unique': True},
-                    'SystemModstamp': {'unique': False}
-                },
-                'sf_max_daily_api_calls': 30000,
-                'sf_notify_enabled': False,
-                'sf_polling_seconds': 600,
-            },
-            'object_name': 'DateTime_Object__c'
-        },
-    ]
+    assert {
+               'config': {
+                   'access': 'read_write',
+                   'fields': {
+                       'A_Number__c': {},
+                       'External_ID': {},
+                       'Id': {},
+                       'IsDeleted': {},
+                       'SystemModstamp': {},
+                   },
+                   'indexes': {
+                       'Id': {'unique': True},
+                       'SystemModstamp': {'unique': False},
+                       'External_ID': {'unique': True},
+                   },
+                   'sf_max_daily_api_calls': 30000,
+                   'sf_notify_enabled': False,
+                   'sf_polling_seconds': 600,
+                   'upsert_field': 'External_ID',
+               },
+               'object_name': 'Number_Object__c',
+           } in mapping['mappings']
+    assert {
+               'config': {
+                   'access': 'read_write',
+                   'fields': {
+                       'A_DateTime__c': {},
+                       'Id': {},
+                       'IsDeleted': {},
+                       'SystemModstamp': {}
+                   },
+                   'indexes': {
+                       'Id': {'unique': True},
+                       'SystemModstamp': {'unique': False}
+                   },
+                   'sf_max_daily_api_calls': 30000,
+                   'sf_notify_enabled': False,
+                   'sf_polling_seconds': 600,
+               },
+               'object_name': 'DateTime_Object__c'
+           } in mapping['mappings']
+
+    assert mapping['version'] == 1
 
 
 @httpretty.activate

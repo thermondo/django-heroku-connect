@@ -1,9 +1,14 @@
 """Test utilities for Django and Heroku Connect."""
+import copy
 import os
 import shlex
 import stat
 import tempfile
 from contextlib import contextmanager
+
+from django.test import override_settings
+
+__all__ = ('heroku_cli', 'no_heroku_connect_write_restrictions')
 
 
 @contextmanager
@@ -52,3 +57,25 @@ def heroku_cli(stdout='', stderr='', exit_code=0):
     os.chmod(exec_name, st.st_mode | stat.S_IEXEC)
     yield
     os.environ['PATH'] = path
+
+
+@contextmanager
+def no_heroku_connect_write_restrictions():
+    """
+    Allow writing to read-only Heroku Connect tables.
+
+    Can be used to create test data, e.g.::
+
+        def get_test_data():
+            with no_heroku_connect_write_restrictions():
+                return MyReadOnlyModel.objects.create()
+
+    """
+    from ..conf import settings
+    new_settings = copy.copy(getattr(settings, 'DATABASE_ROUTERS', []))
+    try:
+        new_settings.remove('heroku_connect.db.router.HerokuConnectRouter')
+    except ValueError:
+        pass
+    with override_settings(DATABASE_ROUTERS=new_settings):
+        yield
