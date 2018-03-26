@@ -211,3 +211,7 @@ def test_get_connected_model_for_table_name(db, connected_class):
 
     with pytest.raises(LookupError):
         utils.get_connected_model_for_table_name("NOBODY'S_TABLE_NAME")
+
+
+def test_create_trigger_log_tables(db):
+    assert not utils.create_trigger_log_tables(), 'Trigger log tables should have been autocreated'

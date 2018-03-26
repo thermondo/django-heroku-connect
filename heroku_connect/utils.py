@@ -8,6 +8,7 @@ from django.utils import timezone
 from psycopg2.extensions import AsIs
 
 from .conf import settings
+from .db.models.base import get_heroku_connect_table_name
 
 
 class ConnectionStates:
@@ -100,6 +101,14 @@ SELECT exists(
     );
 """
 
+_TABLE_EXISTS_QUERY = """
+SELECT EXISTS (
+    SELECT 1
+    FROM pg_tables
+    WHERE schemaname = %(schema)s AND tablename = %(table)s
+);
+"""
+
 
 def create_heroku_connect_schema(using=DEFAULT_DB_ALIAS):
     """
@@ -144,6 +153,9 @@ def create_trigger_log_tables(using=DEFAULT_DB_ALIAS):
     Args:
         using (str): Alias for database connection.
 
+    Returns:
+        bool: ``True`` if the tables were created, ``False`` if they already exist.
+
     Raises:
         DatabaseError: if any of the tables already exists.
 
@@ -151,9 +163,20 @@ def create_trigger_log_tables(using=DEFAULT_DB_ALIAS):
     from heroku_connect.models import (TriggerLog, TriggerLogArchive)
     connection = connections[using]
 
+    with connection.cursor() as cursor:
+        params = {
+            'schema': settings.HEROKU_CONNECT_SCHEMA,
+            'table': get_heroku_connect_table_name(TriggerLog),
+        }
+        cursor.execute(_TABLE_EXISTS_QUERY, params)
+        table_exists = cursor.fetchone()[0]
+        if table_exists:
+            return False
+
     with connection.schema_editor() as editor:
         for cls in [TriggerLog, TriggerLogArchive]:
             editor.create_model(cls)
+    return True
 
 
 def _get_authorization_headers():
