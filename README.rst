@@ -37,7 +37,7 @@ Last but not least make sure change the database engine, e.g.:
     import dj_database_url
 
     DATABASES['default'] = dj_database_url.config(
-        engine='heroku_connect.db.backends.postgres'
+        engine='heroku_connect.db.backends.postgresql'
     )
 
     # or for PostGIS support:
