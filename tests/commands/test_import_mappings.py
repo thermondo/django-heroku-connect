@@ -83,7 +83,10 @@ class TestImportMapping:
         )
         with io.StringIO() as stdout:
             with pytest.raises(CommandError) as e:
-                call_command('import_mappings', '--app', 'ninja', stdout=stdout)
+                call_command('import_mappings',
+                             '--app', 'ninja',
+                             '--wait-interval', '0',  # don't need to wait when mocking calls
+                             stdout=stdout)
             stdout.seek(0)
             console = stdout.read()
         assert ("No associated connections found"
