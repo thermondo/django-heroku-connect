@@ -19,33 +19,6 @@ Documentation
 Check out the full documentation at here:
 https://django-heroku-connect.readthedocs.io/
 
-Install
--------
-
-Simply install the PyPi package…
-
-.. code:: shell
-
-    pip install django-heroku-connect
-
-…and add ``heroku_connect`` to the ``INSTALLED_APP`` settings.
-
-Last but not least make sure change the database engine, e.g.:
-
-.. code:: python
-
-    import dj_database_url
-
-    DATABASES['default'] = dj_database_url.config(
-        engine='heroku_connect.db.backends.postgres'
-    )
-
-    # or for PostGIS support:
-
-    DATABASES['default'] = dj_database_url.config(
-        engine='heroku_connect.db.backends.postgis'
-    )
-
 
 .. |version| image:: https://img.shields.io/pypi/v/django-heroku-connect.svg
    :target: https://pypi.python.org/pypi/django-heroku-connect/
