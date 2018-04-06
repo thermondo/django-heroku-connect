@@ -3,7 +3,6 @@
 from __future__ import unicode_literals
 
 import django.contrib.postgres.fields.hstore
-from django.contrib.postgres.operations import HStoreExtension
 from django.db import migrations, models
 
 
@@ -17,7 +16,6 @@ class Migration(migrations.Migration):
         # TriggerLog models and operations use the postgres hstore extension
         # Heroku (Connect) should take care that it's installed, however we need to create it
         # manually in the test database.
-        HStoreExtension(),  # Need superuser privileges, which is the case for Heroku
         migrations.CreateModel(
             name='TriggerLog',
             fields=[

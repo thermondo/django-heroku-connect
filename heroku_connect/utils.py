@@ -131,6 +131,10 @@ def create_heroku_connect_schema(using=DEFAULT_DB_ALIAS):
     with connection.schema_editor() as editor:
         for model in get_heroku_connect_models():
             editor.create_model(model)
+
+        # Needs PostgreSQL and database superuser privileges (which is the case on Heroku):
+        editor.execute('CREATE EXTENSION IF NOT EXISTS "hstore";')
+
         from heroku_connect.models import (TriggerLog, TriggerLogArchive)
         for cls in [TriggerLog, TriggerLogArchive]:
             editor.create_model(cls)
