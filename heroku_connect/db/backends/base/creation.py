@@ -1,11 +1,9 @@
 from django.db.backends.postgresql.creation import (
     DatabaseCreation as _DatabaseCreation
 )
-from django.db.models.signals import post_migrate, pre_migrate
+from django.db.models.signals import pre_migrate
 
-from heroku_connect.utils import (
-    create_heroku_connect_schema, create_trigger_log_tables
-)
+from heroku_connect.utils import create_heroku_connect_schema
 
 
 def _create_heroku_connect_schema(sender, app_config, **kwargs):
@@ -13,14 +11,8 @@ def _create_heroku_connect_schema(sender, app_config, **kwargs):
     assert pre_migrate.disconnect(_create_heroku_connect_schema)
 
 
-def _create_trigger_log_models(sender, app_config, **kwargs):
-    create_trigger_log_tables(using=kwargs['using'])
-    assert post_migrate.disconnect(_create_trigger_log_models)
-
-
 class DatabaseCreation(_DatabaseCreation):
 
     def create_test_db(self, *args, **kwargs):
         pre_migrate.connect(_create_heroku_connect_schema)
-        post_migrate.connect(_create_trigger_log_models)
         return super().create_test_db(*args, **kwargs)

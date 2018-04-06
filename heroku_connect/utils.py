@@ -131,29 +131,14 @@ def create_heroku_connect_schema(using=DEFAULT_DB_ALIAS):
     with connection.schema_editor() as editor:
         for model in get_heroku_connect_models():
             editor.create_model(model)
-    return True
 
+        # Needs PostgreSQL and database superuser privileges (which is the case on Heroku):
+        editor.execute('CREATE EXTENSION IF NOT EXISTS "hstore";')
 
-def create_trigger_log_tables(using=DEFAULT_DB_ALIAS):
-    """
-    Create the tables for the trigger log models in :mod:`heroku_connect.models`.
-
-    Creating these tables manually should only be necessary for a local database.
-    In a production environment, they are created and managed by Heroku Connect.
-
-    Args:
-        using (str): Alias for database connection.
-
-    Raises:
-        DatabaseError: if any of the tables already exists.
-
-    """
-    from heroku_connect.models import (TriggerLog, TriggerLogArchive)
-    connection = connections[using]
-
-    with connection.schema_editor() as editor:
+        from heroku_connect.models import (TriggerLog, TriggerLogArchive)
         for cls in [TriggerLog, TriggerLogArchive]:
             editor.create_model(cls)
+    return True
 
 
 def _get_authorization_headers():
