@@ -218,7 +218,7 @@ class HerokuConnectModel(models.Model, metaclass=HerokuConnectModelBase):
 
     @classmethod
     def _check_sf_object_name(cls):
-        if not cls.sf_object_name:
+        if not (cls._meta.abstract or cls.sf_object_name):
             return [checks.Error(
                 "%s.%s must define a \"sf_object_name\"." % (
                     cls._meta.app_label, cls.__name__

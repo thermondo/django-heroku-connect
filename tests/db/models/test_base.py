@@ -239,6 +239,16 @@ class TestHerokuConnectModelMixin:
                 abstract = True
 
         errors = MyModel.check()
+        assert checks.Error(
+            "test.MyModel must define a \"sf_object_name\".",
+            id='heroku_connect.E001',
+        ) not in errors
+
+        class MyModel(hc_models.HerokuConnectModel):
+            class Meta:
+                app_label = 'test'
+
+        errors = MyModel.check()
         assert errors == [checks.Error(
             "test.MyModel must define a \"sf_object_name\".",
             id='heroku_connect.E001',
