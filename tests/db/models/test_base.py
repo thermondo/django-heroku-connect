@@ -411,3 +411,46 @@ class TestHerokuConnectModelMixin:
                 MyReadOnlyModel(date=timezone.now())
             ])
         assert 'is a read-only model.' in str(e)
+
+    def test_multi_table_inheritance(self):
+        class HCModel(hc_models.HerokuConnectModel):
+            sf_object_name = 'My_Object__c'
+            sf_access = hc_models.READ_WRITE
+
+            external_id = hc_models.ExternalID(sf_field_name='My_Id__c')
+
+            class Meta:
+                app_label = 'test'
+                abstract = False
+
+        class RegularModel(HCModel):
+            hc_model = models.OneToOneField(HCModel, on_delete=models.CASCADE,
+                                            to_field='external_id', parent_link=True)
+
+            class Meta:
+                app_label = 'test'
+
+        assert RegularModel._meta.managed
+
+        class OtherHCModel(HCModel, hc_models.HerokuConnectModel):
+            hc_model = models.OneToOneField(HCModel, on_delete=models.CASCADE,
+                                            to_field='external_id', parent_link=True)
+
+            class Meta:
+                app_label = 'test'
+
+        assert not OtherHCModel._meta.managed
+
+        class YetAnotherRegularModelMixin(models.Model):
+            class Meta:
+                app_label = 'test'
+                abstract = True
+
+        class YetAnotherRegularModel(YetAnotherRegularModelMixin, HCModel):
+            hc_model = models.OneToOneField(HCModel, on_delete=models.CASCADE,
+                                            to_field='external_id', parent_link=True)
+
+            class Meta:
+                app_label = 'test'
+
+        assert YetAnotherRegularModel._meta.managed
