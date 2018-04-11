@@ -6,9 +6,7 @@ from django.core import checks
 from django.core.exceptions import FieldDoesNotExist
 from django.test import override_settings
 
-from heroku_connect.models import (
-    TRIGGER_LOG_STATE, TriggerLog, TriggerLogArchive
-)
+from heroku_connect.models import TRIGGER_LOG_STATE, TriggerLog, TriggerLogArchive
 from tests.conftest import make_trigger_log_for_model
 
 

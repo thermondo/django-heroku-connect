@@ -6,9 +6,7 @@ from django.utils import timezone
 
 from heroku_connect.db import models as hc_models
 from heroku_connect.db.exceptions import WriteNotSupportedError
-from heroku_connect.test.utils import (
-    heroku_cli, no_heroku_connect_write_restrictions
-)
+from heroku_connect.test.utils import heroku_cli, no_heroku_connect_write_restrictions
 from tests.testapp.models import ReadOnlyModel
 
 

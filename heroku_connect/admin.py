@@ -6,9 +6,7 @@ from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as _
 
-from heroku_connect.models import (
-    TRIGGER_LOG_STATE, TriggerLog, TriggerLogArchive
-)
+from heroku_connect.models import TRIGGER_LOG_STATE, TriggerLog, TriggerLogArchive
 
 
 def _replaced(__values, **__replacements):
