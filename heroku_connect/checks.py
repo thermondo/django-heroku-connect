@@ -2,7 +2,9 @@ from collections import defaultdict
 
 from django.apps import apps
 from django.core.checks import Error, Warning
-from django.db.models.fields.related import ForeignKey, ManyToManyField, RelatedField
+from django.db.models.fields.related import (
+    ForeignKey, ManyToManyField, RelatedField
+)
 
 from .db.models import HerokuConnectModel
 from .utils import get_heroku_connect_models

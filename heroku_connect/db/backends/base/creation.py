@@ -1,4 +1,6 @@
-from django.db.backends.postgresql.creation import DatabaseCreation as _DatabaseCreation
+from django.db.backends.postgresql.creation import (
+    DatabaseCreation as _DatabaseCreation
+)
 from django.db.models.signals import pre_migrate
 
 from heroku_connect.utils import create_heroku_connect_schema
