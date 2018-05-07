@@ -3,7 +3,10 @@ Django
 Heroku
 Indices
 mixin
+mixins
+multi
 upsert
 Salesforce
 serializable
 subclasses
+superclass

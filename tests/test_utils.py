@@ -36,6 +36,20 @@ def test_get_heroku_connect_models():
                 app_label = 'tests.testapp'
 
         assert MyRegularModel not in list(utils.get_heroku_connect_models())
+
+        class AbstratHCModel(HerokuConnectModel):
+            sf_object_name = 'My_Object__c'
+
+            class Meta:
+                app_label = 'tests.testapp'
+                abstract = False
+
+        class RegularModel(AbstratHCModel):
+            class Meta:
+                app_label = 'tests.testapp'
+
+        assert RegularModel not in list(utils.get_heroku_connect_models())
+
     finally:
         from django.apps import apps
         apps.all_models['tests.testapp'] = {}

@@ -80,6 +80,7 @@ def get_heroku_connect_models():
         for models in apps.all_models.values()
         for model in models.values()
         if issubclass(model, HerokuConnectModel)
+        and not model._meta.managed
     )
 
 

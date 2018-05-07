@@ -11,6 +11,15 @@ READ_ONLY = 'read_only'
 READ_WRITE = 'read_write'
 
 
+class _HerokuConnectSnitchMixin:
+    # This class is needed to bypass a NameError.
+    # All Heroku Connect models need to inherit from the same superclass
+    # which needs to be referenced in HerokuConnectModelBase.
+    # Since HerokuConnectModelBase is the metaclass for  HerokuConnectModel
+    # we need to invent a new one before defining both class and metaclass.
+    pass
+
+
 class HerokuConnectModelBase(models.base.ModelBase):
     """
     Custom model base class to set ``Meta`` attributes.
@@ -21,11 +30,20 @@ class HerokuConnectModelBase(models.base.ModelBase):
 
     def __new__(mcs, name, bases, attrs):
         super_new = super(HerokuConnectModelBase, mcs).__new__
+        has_abstract_parent = any(
+            base._meta.abstract
+            for base in bases
+            if issubclass(base, _HerokuConnectSnitchMixin)
+            and base is not _HerokuConnectSnitchMixin
+        )
+        if not has_abstract_parent:
+            # Only models with abstract HerokuConnectModel parents are considered
+            # Heroku Connect tables. Everything else, is considered multi-table-
+            # inheritance.
+            return super_new(mcs, name, bases, attrs)
         _meta = attrs.get('Meta', None)
         if _meta is None:
-            class Meta:
-                pass
-            _meta = Meta
+            _meta = type('Meta', tuple(), {})
             attrs['Meta'] = _meta
         _meta.managed = False
         if not hasattr(_meta, 'db_table') or not _meta.db_table:
@@ -63,7 +81,8 @@ def get_heroku_connect_table_name(model_cls):
     return model_cls._meta.db_table.rsplit('.', 1)[-1].strip('"')
 
 
-class HerokuConnectModel(models.Model, metaclass=HerokuConnectModelBase):
+class HerokuConnectModel(_HerokuConnectSnitchMixin, models.Model,
+                         metaclass=HerokuConnectModelBase):
     """
     Base model for Heroku Connect enabled ORM models in Django.
 
