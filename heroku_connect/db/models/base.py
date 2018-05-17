@@ -57,6 +57,7 @@ class HerokuConnectModelBase(models.base.ModelBase):
         objects_without_is_deleted = [
             'User',
             'RecordType',
+            'EmailTemplate'
         ]
         if new_class.sf_object_name in objects_without_is_deleted:
             is_deleted = [x for x in new_class._meta.local_fields if x.name == 'is_deleted'][0]
