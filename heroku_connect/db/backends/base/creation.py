@@ -8,7 +8,7 @@ from heroku_connect.utils import create_heroku_connect_schema
 
 def _create_heroku_connect_schema(sender, app_config, **kwargs):
     create_heroku_connect_schema(using=kwargs['using'])
-    assert pre_migrate.disconnect(_create_heroku_connect_schema)
+    assert pre_migrate.disconnect(_create_heroku_connect_schema)  # nosec
 
 
 class DatabaseCreation(_DatabaseCreation):

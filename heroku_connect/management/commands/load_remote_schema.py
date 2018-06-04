@@ -1,6 +1,6 @@
 import os
 import re
-import subprocess
+import subprocess  # nosec
 
 from django.core.management.base import BaseCommand, CommandError
 
@@ -51,7 +51,7 @@ class Command(BaseCommand):
             run_args += ['-a', heroku_app]
 
         try:
-            output = subprocess.check_output(run_args)
+            output = subprocess.check_output(run_args)  # nosec
         except subprocess.SubprocessError as e:
             raise CommandError("Please provide the correct Heroku app name.") from e
         else:
@@ -80,7 +80,7 @@ class Command(BaseCommand):
         ]
 
         try:
-            output = subprocess.check_output(run_args, env=env)
+            output = subprocess.check_output(run_args, env=env)  # nosec
         except subprocess.SubprocessError as e:
             raise CommandError("Schema not found.") from e
         else:
