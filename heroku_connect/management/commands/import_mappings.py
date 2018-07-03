@@ -85,7 +85,7 @@ class Command(BaseCommand):
             CommandError: If fetch connection information fails.
 
         """
-        self.stdout.write(self.style.NOTICE('Warning for import'), ending='')
+        self.stdout.write(self.style.NOTICE('Waiting for import'), ending='')
         state = utils.ConnectionStates.IMPORT_CONFIGURATION
         while state == utils.ConnectionStates.IMPORT_CONFIGURATION:
             # before you get the first state, the API can be a bit behind
