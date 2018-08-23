@@ -7,7 +7,7 @@ __all__ = ('settings',)
 
 
 class HerokuConnectAppConf(AppConf):
-    HEROKU_CONNECT_SCHEMA = 'salesforce'
+    HEROKU_CONNECT_SCHEMA = os.environ.get('HEROKU_CONNECT_SCHEMA', 'salesforce')
     """Database schema used by the Heroku Connect add-on."""
 
     HEROKU_CONNECT_ORGANIZATION_ID = os.environ.get('HEROKU_CONNECT_ORGANIZATION_ID', '')
