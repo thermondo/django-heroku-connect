@@ -11,8 +11,8 @@ class HerokuConnectAppConf(AppConf):
     """
     Database schema used by the Heroku Connect add-on.
 
-    This setting is OPTIONAL and based on the environment variable ``HEROKU_CONNECT_SCHEMA``. 
-    It is required only if you chose a different schema for Heroku Connect tables. 
+    This setting is OPTIONAL and based on the environment variable ``HEROKU_CONNECT_SCHEMA``.
+    It is required only if you chose a different schema for Heroku Connect tables.
     Default is ``salesforce`` -
     https://devcenter.heroku.com/articles/heroku-connect#completing-configuration
 
