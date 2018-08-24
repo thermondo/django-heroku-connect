@@ -15,7 +15,7 @@ class HerokuConnectAppConf(AppConf):
     ``HEROKU_CONNECT_SCHEMA``.
     It is required only if you chose a different schema for Heroku Connect
     tables. Default is ``salesforce``.
-    
+
     .. seealso::
         https://devcenter.heroku.com/articles/heroku-connect#completing-configuration
 
