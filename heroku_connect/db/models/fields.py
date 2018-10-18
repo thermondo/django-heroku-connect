@@ -103,7 +103,7 @@ class ExternalID(HerokuConnectFieldMixin, models.UUIDField):
             value = self.to_python(value)
         return value.hex
 
-    def from_db_value(self, value, expression, connection, context):
+    def from_db_value(self, value, *args, **kwargs):
         return self.to_python(value)
 
 
@@ -139,7 +139,7 @@ class Number(HerokuConnectFieldMixin, models.DecimalField):
             value = float(self.to_python(value))
         return value
 
-    def from_db_value(self, value, expression, connection, context):
+    def from_db_value(self, value, *args, **kwargs):
         return self.to_python(value)
 
 
