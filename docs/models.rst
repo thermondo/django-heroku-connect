@@ -60,6 +60,9 @@ Example:
                                         to_field='external_id', parent_link=True,
                                         db_constraint=False)
         more_data = models.TextField()
+        
+        class Meta:
+            managed = True
 
 In this scenario ``SFObjectModel`` is managed by Heroku Connect and ``CompoundModel``
 a hybrid where ``CompoundModel.data`` is manged by Heroku Connect and
