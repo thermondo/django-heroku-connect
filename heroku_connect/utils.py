@@ -268,7 +268,7 @@ def link_connection_to_account(app):
     """
     Link the connection to your Heroku user account.
 
-    https://devcenter.heroku.com/articles/heroku-connect-api#step-3-link-the-connection-to-your-heroku-user-account
+    https://devcenter.heroku.com/articles/heroku-connect-api#step-3-link-the-new-add-on-to-your-heroku-user-account
     """
     url = os.path.join(settings.HEROKU_CONNECT_API_ENDPOINT, 'users', 'me', 'apps', app, 'auth')
     response = requests.post(
