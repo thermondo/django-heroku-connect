@@ -59,7 +59,7 @@ class TestImportMapping:
         )
         with pytest.raises(CommandError) as e:
             call_command('import_mappings')
-        assert "You need ether specify the application name or the connection ID." in str(e)
+        assert "You need ether specify the application name or the connection ID." in str(e.value)
 
     @httpretty.activate
     def test_no_connections(self):
@@ -90,7 +90,7 @@ class TestImportMapping:
             stdout.seek(0)
             console = stdout.read()
         assert ("No associated connections found"
-                " for the current user with the app 'ninja'.") in str(e)
+                " for the current user with the app 'ninja'.") in str(e.value)
         assert console == (
             "Fetching connections.\n"
             "No associated connections found for the current user with the app 'ninja'.\n"
@@ -123,7 +123,7 @@ class TestImportMapping:
                 call_command('import_mappings', '--app', 'ninja', stdout=stdout)
             stdout.seek(0)
             console = stdout.read()
-        assert "Authentication failed" in str(e)
+        assert "Authentication failed" in str(e.value)
         assert console == (
             "Fetching connections.\n"
             "No associated connections found for the current user with the app 'ninja'.\n"
@@ -148,7 +148,7 @@ class TestImportMapping:
             call_command('import_mappings', '--app', 'ninja')
         assert ("More than one associated connections found"
                 " for the current user with the app 'ninja'."
-                " Please specify the connection ID.") in str(e)
+                " Please specify the connection ID.") in str(e.value)
 
     @httpretty.activate
     def test_upload_failed(self):
@@ -166,7 +166,7 @@ class TestImportMapping:
         )
         with pytest.raises(CommandError) as e:
             call_command('import_mappings', '--app', 'ninja')
-        assert "Failed to upload the mapping" in str(e)
+        assert "Failed to upload the mapping" in str(e.value)
 
     @httpretty.activate
     def test_load_connection_failed(self):
@@ -178,7 +178,7 @@ class TestImportMapping:
         )
         with pytest.raises(CommandError) as e:
             call_command('import_mappings', '--app', 'ninja')
-        assert "Failed to load connections" in str(e)
+        assert "Failed to load connections" in str(e.value)
 
     @httpretty.activate
     def test_waiting(self):
@@ -198,7 +198,7 @@ class TestImportMapping:
         )
         with pytest.raises(CommandError) as e:
             Command().wait_for_import('2', 0)
-        assert 'Failed to fetch connection information.' in str(e)
+        assert 'Failed to fetch connection information.' in str(e.value)
 
         httpretty.register_uri(
             httpretty.GET, "https://connect-eu.heroku.com/api/v3/connections/1",

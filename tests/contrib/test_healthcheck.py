@@ -49,7 +49,7 @@ def test_check_status():
     with pytest.raises(ServiceReturnedUnexpectedResult) as e:
         hc.check_status()
 
-    assert 'Unable to retrieve connection state' in str(e)
+    assert 'Unable to retrieve connection state' in str(e.value)
 
 
 def test_settings_exception(settings):

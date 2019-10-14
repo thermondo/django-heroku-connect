@@ -19,7 +19,7 @@ class TestCreateDevelopmentSchema:
         with pytest.raises(CommandError) as e:
             call_command('create_development_schema')
 
-        assert 'Schema salesforce already exists.' in str(e)
+        assert 'Schema salesforce already exists.' in str(e.value)
 
     def test_force(self, db):
         with StringIO() as sql:

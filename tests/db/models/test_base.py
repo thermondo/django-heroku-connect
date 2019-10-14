@@ -393,12 +393,12 @@ class TestHerokuConnectModelMixin:
         data_instance = MyReadOnlyModel(date=timezone.now())
         with pytest.raises(WriteNotSupportedError) as e:
             data_instance.save()
-        assert 'is a read-only model.' in str(e)
+        assert 'is a read-only model.' in str(e.value)
 
         data_instance = MyReadOnlyModel(date=timezone.now())
         with pytest.raises(WriteNotSupportedError) as e:
             data_instance.delete()
-        assert 'is a read-only model.' in str(e)
+        assert 'is a read-only model.' in str(e.value)
 
     def test_write_methods_on_read_only_model(self):
         class MyReadOnlyModel(hc_models.HerokuConnectModel):
@@ -410,17 +410,17 @@ class TestHerokuConnectModelMixin:
 
         with pytest.raises(WriteNotSupportedError) as e:
             MyReadOnlyModel.objects.update(date=timezone.now())
-        assert 'is a read-only model.' in str(e)
+        assert 'is a read-only model.' in str(e.value)
 
         with pytest.raises(WriteNotSupportedError) as e:
             MyReadOnlyModel.objects.all().delete()
-        assert 'is a read-only model.' in str(e)
+        assert 'is a read-only model.' in str(e.value)
 
         with pytest.raises(WriteNotSupportedError) as e:
             MyReadOnlyModel.objects.bulk_create([
                 MyReadOnlyModel(date=timezone.now())
             ])
-        assert 'is a read-only model.' in str(e)
+        assert 'is a read-only model.' in str(e.value)
 
     def test_multi_table_inheritance(self):
         class HCModel(hc_models.HerokuConnectModel):

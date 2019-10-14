@@ -16,7 +16,7 @@ class TestLoadRemoteSchema:
             with pytest.raises(CommandError) as e:
                 Command.get_database_url(None)
 
-        assert 'Please provide the correct Heroku app name.' in str(e)
+        assert 'Please provide the correct Heroku app name.' in str(e.value)
 
         with heroku_cli(self.pg_url, exit_code=0):
             assert self.pg_url in Command.get_database_url(None)
@@ -35,7 +35,7 @@ class TestLoadRemoteSchema:
 
         with pytest.raises(CommandError) as e:
             Command().parse_credentials('not.a.valid.url')
-        assert 'Could not parse DATABASE_URL.' in str(e)
+        assert 'Could not parse DATABASE_URL.' in str(e.value)
 
     def test_get_schema(self):
         os.system('echo \'DROP SCHEMA IF EXISTS "salesforce" CASCADE;\''
@@ -43,7 +43,7 @@ class TestLoadRemoteSchema:
         with pytest.raises(CommandError) as e:
             Command.get_schema('', 'localhost', '5432',
                                'heroku_connect_test', '', 'salesforce')
-        assert 'Schema not found.' in str(e)
+        assert 'Schema not found.' in str(e.value)
         os.system('echo \'CREATE SCHEMA IF NOT EXISTS "salesforce";\''
                   ' | psql -d heroku_connect_test -a')
         response = Command.get_schema('', 'localhost', '5432',
