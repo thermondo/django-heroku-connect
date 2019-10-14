@@ -1,8 +1,8 @@
 from django.core import checks
 from django.db import models
 
-from . import fields
 from ...conf import settings
+from . import fields
 
 __all__ = ('HerokuConnectModel', 'READ_ONLY', 'READ_WRITE')
 
