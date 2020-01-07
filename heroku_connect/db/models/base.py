@@ -167,7 +167,7 @@ class HerokuConnectModel(_HerokuConnectSnitchMixin, models.Model,
 
     sf_id = fields.ID(sf_field_name='Id', db_column='sfid')
     system_mod_stamp = fields.DateTime(sf_field_name='SystemModstamp', db_index=True)
-    is_deleted = fields.Checkbox(sf_field_name='IsDeleted')
+    is_deleted = fields.Checkbox(sf_field_name='IsDeleted', db_index=True)
     _hc_lastop = models.CharField(
         max_length=32, null=True, editable=False,
         help_text='Indicates the last sync operation Heroku Connect performed on the record',
