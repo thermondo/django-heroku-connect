@@ -82,6 +82,7 @@ class TestHerokuConnectModelMixin:
                     },
                     'indexes': {
                         'Id': {'unique': True},
+                        'IsDeleted': {'unique': False},
                         'SystemModstamp': {'unique': False},
                     },
                     'sf_max_daily_api_calls': 30000,
@@ -118,6 +119,7 @@ class TestHerokuConnectModelMixin:
                     },
                     'indexes': {
                         'Id': {'unique': True},
+                        'IsDeleted': {'unique': False},
                         'SystemModstamp': {'unique': False},
                         'Date1__c': {'unique': False},
                         'Date2__c': {'unique': True},
@@ -153,6 +155,7 @@ class TestHerokuConnectModelMixin:
                     },
                     'indexes': {
                         'Id': {'unique': True},
+                        'IsDeleted': {'unique': False},
                         'SystemModstamp': {'unique': False},
                         'Date__c': {'unique': True},
                     },
@@ -185,6 +188,7 @@ class TestHerokuConnectModelMixin:
                     },
                     'indexes': {
                         'Id': {'unique': True},
+                        'IsDeleted': {'unique': False},
                         'SystemModstamp': {'unique': False},
                     },
                     'sf_max_daily_api_calls': 30000,
@@ -370,6 +374,7 @@ class TestHerokuConnectModelMixin:
                     },
                     'indexes': {
                         'Id': {'unique': True},
+                        'IsDeleted': {'unique': False},
                         'SystemModstamp': {'unique': False},
                         'Number__c': {'unique': True},
                     },

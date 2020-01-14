@@ -79,6 +79,7 @@ def test_get_mapping(settings):
                    },
                    'indexes': {
                        'Id': {'unique': True},
+                       'IsDeleted': {'unique': False},
                        'SystemModstamp': {'unique': False},
                        'External_ID': {'unique': True},
                    },
@@ -100,6 +101,7 @@ def test_get_mapping(settings):
                    },
                    'indexes': {
                        'Id': {'unique': True},
+                       'IsDeleted': {'unique': False},
                        'SystemModstamp': {'unique': False}
                    },
                    'sf_max_daily_api_calls': 30000,
