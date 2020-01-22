@@ -4,8 +4,8 @@ import logging
 
 import requests
 
-from ... import utils
-from ...conf import settings
+from heroku_connect import utils
+from heroku_connect.conf import settings
 
 try:
     from health_check.backends import BaseHealthCheckBackend

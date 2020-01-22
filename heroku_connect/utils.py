@@ -7,7 +7,7 @@ from django.db import DEFAULT_DB_ALIAS, connections
 from django.utils import timezone
 from psycopg2.extensions import AsIs
 
-from .conf import settings
+from heroku_connect.conf import settings
 
 
 class ConnectionStates:

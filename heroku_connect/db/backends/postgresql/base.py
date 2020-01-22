@@ -1,6 +1,8 @@
 from django.db.backends.postgresql.base import *  # NoQA
 
-from ..base.base import HerokuConnectDatabaseWrapperMixin
+from heroku_connect.db.backends.base.base import (
+    HerokuConnectDatabaseWrapperMixin
+)
 
 
 class DatabaseWrapper(HerokuConnectDatabaseWrapperMixin, DatabaseWrapper):

@@ -1,6 +1,6 @@
 from django.db import models
 
-from .fields import HerokuConnectFieldMixin
+from heroku_connect.db.models.fields import HerokuConnectFieldMixin
 
 __all__ = ('ConstraintlessForeignObjectMixin', 'Lookup', 'MasterDetail')
 
