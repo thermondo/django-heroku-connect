@@ -12,12 +12,12 @@ python:
 services:
   - postgresql
 addons:
+  postgresql: '10'
   apt:
     packages:
       - python3-enchant
       - graphviz
-      - postgresql-9.6-postgis-2.3
-  postgresql: '9.6'
+      - postgresql-10-postgis-2.5
 env:
   matrix:
     - TOXENV=isort
@@ -34,6 +34,7 @@ install:
   - pip install tox-travis
   - pip install -U codecov
 before_script:
+  - psql template1 -c "create extension postgis;"
   - createdb heroku_connect_test
 script:
   - tox -v
