@@ -1,8 +1,8 @@
 from django.core import checks
 from django.db import models
 
-from ...conf import settings
-from . import fields
+from heroku_connect.conf import settings
+from heroku_connect.db.models import fields
 
 __all__ = ('HerokuConnectModel', 'READ_ONLY', 'READ_WRITE')
 

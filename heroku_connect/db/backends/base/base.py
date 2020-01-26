@@ -1,5 +1,5 @@
-from ....conf import settings
-from .creation import DatabaseCreation
+from heroku_connect.conf import settings
+from heroku_connect.db.backends.base.creation import DatabaseCreation
 
 
 class HerokuConnectDatabaseWrapperMixin:

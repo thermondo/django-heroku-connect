@@ -1,5 +1,5 @@
-from .exceptions import WriteNotSupportedError
-from .models import READ_ONLY
+from heroku_connect.db.exceptions import WriteNotSupportedError
+from heroku_connect.db.models import READ_ONLY
 
 
 class HerokuConnectRouter:

@@ -6,8 +6,8 @@ from django.db.models.fields.related import (
     ForeignKey, ManyToManyField, RelatedField
 )
 
-from .db.models import HerokuConnectModel
-from .utils import get_heroku_connect_models
+from heroku_connect.db.models import HerokuConnectModel
+from heroku_connect.utils import get_heroku_connect_models
 
 
 def _check_foreign_key(app_configs, **kwargs):
