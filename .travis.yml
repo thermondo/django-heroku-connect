@@ -21,7 +21,6 @@ matrix:
   fast_finish: true
   allow_failures:
     - env: TOXENV=py36-djmaster
-    - env: TOXENV=py36-dj30
 install:
   - pip install tox-travis
   - pip install -U codecov
