@@ -1,47 +1,36 @@
+dist: bionic
 language: python
 branches:
   only:
-  - master
+    - master
 cache:
-- pip
-- apt
+  - pip
+  - apt
 python:
-- '3.6'
+  - '3.6'
 services:
-- postgresql
+  - postgresql
 addons:
+  postgresql: '10'
   apt:
     packages:
-    - python3-enchant
-    - graphviz
-    - postgresql-9.6-postgis-2.3
-  postgresql: '9.6'
-env:
-  matrix:
-  - TOXENV=isort
-  - TOXENV=docs
-  - DJANGO=111
-  - DJANGO=20
-  - DJANGO=21
-  - DJANGO=master
+      - python3-enchant
+      - graphviz
+      - postgresql-10-postgis-2.5
 matrix:
   fast_finish: true
   allow_failures:
-  - env: DJANGO=master
+    - env: TOXENV=py36-djmaster
 install:
-- pip install --upgrade pip tox
-- pip install -U codecov
+  - pip install tox-travis
+  - pip install -U codecov
 before_script:
-- createdb heroku_connect_test
-- |
-  if [[ -z $TOXENV ]]; then
-    export TOXENV=py$(echo $TRAVIS_PYTHON_VERSION | sed -e 's/\.//g')-dj$DJANGO
-  fi
-- echo $TOXENV
+  - psql template1 -c "create extension postgis;"
+  - createdb heroku_connect_test
 script:
-- tox -e $TOXENV
+  - tox -v
 after_success:
-- codecov
+  - codecov
 jobs:
   include:
     - stage: PyPI release  # will run after the default "test" stage succeeds
