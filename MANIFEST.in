@@ -1,0 +1,7 @@
+include README.rst
+include CONTRIBUTING.md
+include .travis.yml
+include tox.ini
+recursive-include tests *
+recursive-include docs *
+include LICENSE

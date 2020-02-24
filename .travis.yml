@@ -14,10 +14,6 @@ addons:
       - python3-enchant
       - graphviz
       - postgresql-10-postgis-2.5
-matrix:
-  fast_finish: true
-  allow_failures:
-    - env: TOXENV=py36-djmaster
 install:
   - pip install tox-travis
   - pip install -U codecov
