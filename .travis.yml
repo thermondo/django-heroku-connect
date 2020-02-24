@@ -1,8 +1,5 @@
 dist: bionic
 language: python
-branches:
-  only:
-    - master
 cache:
   - pip
   - apt
