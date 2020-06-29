@@ -65,14 +65,21 @@ def _check_many_to_many_target(field):
 
 
 def _check_foreign_key_constraint(field):
-    warnings = []
     if field.db_constraint:
-        warnings.append(Warning(
-            "%s should not have database constraints to a Heroku Connect model." % field,
-            hint="Set 'db_constraint' to False.",
-            id='heroku_connect.W001',
-        ))
-    return warnings
+        return [
+            Warning(
+                "%s should not have database constraints to a Heroku Connect model." % field,
+                hint="Set 'db_constraint' to False.",
+                id='heroku_connect.W001',
+            ),
+            Error(
+                "%s should not have database constraints to a Heroku Connect model." % field,
+                hint="Set 'db_constraint' to False.",
+                id='heroku_connect.E008',
+            ),
+        ]
+    else:
+        return []
 
 
 def _check_many_to_many_constraint(field):

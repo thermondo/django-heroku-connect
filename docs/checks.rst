@@ -52,3 +52,15 @@ PostgreSQL table once.
 
 Read-write mappings in Heroku Connect need to provide an upsert field to
 identify the record.
+
+``heroku_connect.E008``
+~~~~~~~~~~~~~~~~~~~~~~~
+
+A related field (:class:`ForeignKey<django.db.models.ForeignKey>` or
+:class:`ManyToManyField<django.db.models.ManyToManyField>`) pointing to
+a Heroku Connect model should not use database-constraints.
+
+In some cases like version updates Heroku Connect does recreate the tables,
+which breaks if there are database constraints pointing to them.
+
+(previously ``heroku_connect.W001``)
