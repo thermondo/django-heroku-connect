@@ -58,9 +58,9 @@ identify the record.
 
 A related field (:class:`ForeignKey<django.db.models.ForeignKey>` or
 :class:`ManyToManyField<django.db.models.ManyToManyField>`) pointing to
-a Heroku Connect model should not use database-constraints.
+a Heroku Connect model may not use database-constraints.
 
-In some cases like version updates Heroku Connect does recreate the tables,
-which breaks if there are database constraints pointing to them.
+In some cases, such as version updates, Heroku Connect recreates the tables,
+which will break if there are database constraints pointing to them.
 
 (previously ``heroku_connect.W001``)

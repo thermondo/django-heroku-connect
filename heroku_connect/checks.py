@@ -73,7 +73,7 @@ def _check_foreign_key_constraint(field):
                 id='heroku_connect.W001',
             ),
             Error(
-                "%s should not have database constraints to a Heroku Connect model." % field,
+                "%s may not have database constraints to a Heroku Connect model." % field,
                 hint="Set 'db_constraint' to False.",
                 id='heroku_connect.E008',
             ),
