@@ -64,3 +64,11 @@ In some cases, such as version updates, Heroku Connect recreates the tables,
 which will break if there are database constraints pointing to them.
 
 (previously ``heroku_connect.W001``)
+
+``heroku_connect.W001``
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Deprecated, changed to ``heroku_connect.E008``.
+
+There are situations where Heroku Connect sync breaks if there is a database constraint
+pointing to a Heroku-Connect table.
