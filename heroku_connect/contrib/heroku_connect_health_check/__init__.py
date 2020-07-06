@@ -10,6 +10,7 @@ Simply add the following to your ``INSTALLED_APPS`` setting::
     ]
 
 Note:
+
     This features requires `django-health-check`_ to be installed.
 
 .. _`django-health-check`: https://github.com/KristianOellegaard/django-health-check
