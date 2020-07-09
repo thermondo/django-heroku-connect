@@ -88,6 +88,7 @@ class HerokuConnectModel(_HerokuConnectSnitchMixin, models.Model,
     Base model for Heroku Connect enabled ORM models in Django.
 
     Example::
+
         from heroku_connect.db import models as hc_models
 
 
@@ -97,6 +98,7 @@ class HerokuConnectModel(_HerokuConnectSnitchMixin, models.Model,
             custom_date = hc_models.DateTime(sf_field_name='Custom_Date__c')
 
     Note:
+
         Subclasses have :attr:`Meta.managed<django.db.models.Options.managed>` set to ``False``.
 
         A default value for :attr:`Meta.db_table<django.db.models.Options.db_table>` is set based
@@ -104,11 +106,13 @@ class HerokuConnectModel(_HerokuConnectSnitchMixin, models.Model,
         and :attr:`.sf_object_name`.
 
     Note:
+
         A model mixin must inherit from :class:`Meta.managed<django.db.models.Model>`
         not `.HerokuConnectModel`. Only the final (not abstract) models should inherit
         from `.HerokuConnectModel` otherwise build-in fields will clash.
 
     Warning:
+
         The Salesforce `User`_ and `RecordType`_ objects have no ``IsDeleted`` field. Therefore
         if :attr:`.sf_object_name` is set to ``User`` or ``RecordType``
         the Django ORM representation does not have this field either.
@@ -163,7 +167,7 @@ class HerokuConnectModel(_HerokuConnectSnitchMixin, models.Model,
 
     sf_id = fields.ID(sf_field_name='Id', db_column='sfid')
     system_mod_stamp = fields.DateTime(sf_field_name='SystemModstamp', db_index=True)
-    is_deleted = fields.Checkbox(sf_field_name='IsDeleted', db_index=True)
+    is_deleted = fields.Checkbox(sf_field_name='IsDeleted')
     _hc_lastop = models.CharField(
         max_length=32, null=True, editable=False,
         help_text='Indicates the last sync operation Heroku Connect performed on the record',
