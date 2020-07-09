@@ -60,10 +60,13 @@ A related field (:class:`ForeignKey<django.db.models.ForeignKey>` or
 :class:`ManyToManyField<django.db.models.ManyToManyField>`) pointing to
 a Heroku Connect model may not use database-constraints.
 
-In some cases, such as version updates, Heroku Connect recreates the tables,
-which will break if there are database constraints pointing to them.
-
 (previously ``heroku_connect.W001``)
+
+.. note::
+    Sometimes Heroku Connect needs to recreate the table, which breaks when
+    if there are database constraints pointing to them.
+
+    see: https://devcenter.heroku.com/articles/heroku-connect-logs-errors#error-during-sync-psycopg2-integrityerror-update-or-delete-on-table-mycustomobject__c-violates-foreign-key-constraint
 
 ``heroku_connect.W001``
 ~~~~~~~~~~~~~~~~~~~~~~~
