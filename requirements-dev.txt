@@ -3,7 +3,7 @@ coverage
 django-health-check
 httpretty
 isort
-psycopg2
+psycopg2-binary
 pyenchant
 pytest
 pytest-django

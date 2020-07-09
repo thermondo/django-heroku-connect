@@ -52,3 +52,26 @@ PostgreSQL table once.
 
 Read-write mappings in Heroku Connect need to provide an upsert field to
 identify the record.
+
+``heroku_connect.E008``
+~~~~~~~~~~~~~~~~~~~~~~~
+
+A related field (:class:`ForeignKey<django.db.models.ForeignKey>` or
+:class:`ManyToManyField<django.db.models.ManyToManyField>`) pointing to
+a Heroku Connect model may not use database-constraints.
+
+(previously ``heroku_connect.W001``)
+
+.. note::
+    Sometimes Heroku Connect needs to recreate the table, which breaks when
+    if there are database constraints pointing to them.
+
+    see: https://devcenter.heroku.com/articles/heroku-connect-logs-errors#error-during-sync-psycopg2-integrityerror-update-or-delete-on-table-mycustomobject__c-violates-foreign-key-constraint
+
+``heroku_connect.W001``
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Deprecated, changed to ``heroku_connect.E008``.
+
+There are situations where Heroku Connect sync breaks if there is a database constraint
+pointing to a Heroku-Connect table.
