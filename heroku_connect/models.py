@@ -254,6 +254,18 @@ class TriggerLogAbstract(models.Model):
         return self.capture_update_from_model(self.table_name, self.record_id,
                                               update_fields=update_fields)
 
+    def _recapture(self):
+        if self.action == 'INSERT': 
+            self.capture_insert()
+            return True
+
+        elif self.action == 'UPDATE':
+            self.capture_update() 
+            return True 
+
+        else:
+            return False
+
     @staticmethod
     def _fieldnames_to_colnames(model_cls, fieldnames):
         """Get the names of columns referenced by the given model fields."""
@@ -275,6 +287,7 @@ class TriggerLog(TriggerLogAbstract):
         db_table = '{schema}"."_trigger_log'.format(schema=settings.HEROKU_CONNECT_SCHEMA)
         verbose_name = _('Trigger Log')
 
+    @transaction.atomic()
     def redo(self):
         """
         Re-sync the change recorded in this trigger log.
@@ -285,9 +298,13 @@ class TriggerLog(TriggerLogAbstract):
             A TriggerLog instance that represents the re-application; possibly ``self``.
 
         """
-        self.state = TRIGGER_LOG_STATE['NEW']
-        self.save(update_fields=['state'])
-        return self
+        if get_unique_connection_write_mode() == WriteAlgorithm.ORDERED_WRITES:
+            self._recapture()
+            self.state = TRIGGER_LOG_STATE['REQUEUED']
+            self.save(update_fields=['state'])
+        else:
+            self.state = TRIGGER_LOG_STATE['NEW']
+            self.save(update_fields=['state'])
 
 
 class TriggerLogArchive(TriggerLogAbstract):
@@ -318,11 +335,15 @@ class TriggerLogArchive(TriggerLogAbstract):
             The :class:`.TriggerLog` instance that was created from the data of this archived log.
 
         """
-        trigger_log = self._to_live_trigger_log(state=TRIGGER_LOG_STATE['NEW'])
-        trigger_log.save(force_insert=True)  # make sure we get a fresh row
-        self.state = TRIGGER_LOG_STATE['REQUEUED']
-        self.save(update_fields=['state'])
-        return trigger_log
+        if get_unique_connection_write_mode() == WriteAlgorithm.ORDERED_WRITES:
+            self._recapture()
+            self.state = TRIGGER_LOG_STATE['REQUEUED']
+            self.save(update_fields=['state'])
+        else:
+            trigger_log = self._to_live_trigger_log(state=TRIGGER_LOG_STATE['NEW'])
+            trigger_log.save(force_insert=True)  # make sure we get a fresh row
+            self.state = TRIGGER_LOG_STATE['REQUEUED']
+            self.save(update_fields=['state'])
 
     def _to_live_trigger_log(self, **kwargs):
         """
