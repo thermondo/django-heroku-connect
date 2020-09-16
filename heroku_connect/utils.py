@@ -269,7 +269,7 @@ def get_connection_write_mode(connection_id):
 @lru_cache
 def get_unique_connection_write_mode(app_name=None):
     app_name = app_name or settings.HEROKU_CONNECT_APP_NAME
-    mode, = set(get_all_connections_write_modes(app_name))
+    mode, = set(get_all_connections_write_modes(app_name).values())
 
     return mode
 

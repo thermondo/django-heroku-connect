@@ -9,6 +9,9 @@ from heroku_connect import admin
 from heroku_connect.models import (
     TRIGGER_LOG_ACTION, TRIGGER_LOG_STATE, TriggerLog, TriggerLogArchive
 )
+from heroku_connect.utils import (
+    WriteAlgorithm, get_unique_connection_write_mode
+)
 from tests import fixtures
 from tests.conftest import make_trigger_log
 
@@ -87,15 +90,35 @@ class TestAdminActions:
         succeeded.refresh_from_db()
         assert succeeded.state == TRIGGER_LOG_STATE['SUCCESS']
 
-    @httpretty.activate
-    def test_retry_failed_logs(self, admin_client):
-        httpretty.register_uri(
-            httpretty.GET,
-            'https://connect-eu.heroku.com/api/v3/connections',
-            body=json.dumps(fixtures.connections),
-            status=200,
-            content_type='application/json',
+    def test_retry_failed_logs(self, admin_client, set_write_mode_merge):
+        failed_logs = TriggerLog.objects.bulk_create([
+            make_trigger_log(
+                state=TRIGGER_LOG_STATE['FAILED'],
+                record_id=i,
+                action=action,
+            )
+            for i, action in enumerate(TRIGGER_LOG_ACTION.values())
+        ])
+        succeeded = make_trigger_log(state=TRIGGER_LOG_STATE['SUCCESS'])
+        succeeded.save()
+
+        admin_client.post(
+            self.admin_changelist_url(TriggerLog),
+            data=self.action_post_data(
+                admin.TriggerLogAdmin.retry_failed_logs_action,
+                TriggerLog.objects.all()
+            ),
         )
+
+        for failed_log in failed_logs:
+            failed_log.refresh_from_db()
+            assert failed_log.state == TRIGGER_LOG_STATE['NEW']
+        succeeded.refresh_from_db()
+        assert succeeded.state == TRIGGER_LOG_STATE['SUCCESS']
+
+    def test_retry_failed_logs_ordered_write(self, admin_client, set_write_mode_ordered):
+        assert get_unique_connection_write_mode() == WriteAlgorithm.ORDERED_WRITES
+
         failed_logs = TriggerLog.objects.bulk_create([
             make_trigger_log(
                 state=TRIGGER_LOG_STATE['FAILED'],
@@ -122,6 +145,43 @@ class TestAdminActions:
         assert succeeded.state == TRIGGER_LOG_STATE['SUCCESS']
 
     def test_retry_failed_logs_in_archive(self, admin_client, set_write_mode_merge):
+        failed_logs = TriggerLogArchive.objects.bulk_create([
+            make_trigger_log(
+                is_archived=True,
+                state=TRIGGER_LOG_STATE['FAILED'],
+                record_id=i,
+                action=action,
+            )
+            for i, action in enumerate(TRIGGER_LOG_ACTION.values())
+        ])
+        succeeded = make_trigger_log(is_archived=True, state=TRIGGER_LOG_STATE['SUCCESS'])
+        succeeded.save()
+
+        admin_client.post(
+            self.admin_changelist_url(TriggerLogArchive),
+            data=self.action_post_data(
+                admin.TriggerLogAdmin.retry_failed_logs_action,
+                TriggerLogArchive.objects.all()
+            ),
+        )
+
+        for failed_log in failed_logs:
+            failed_log.refresh_from_db()
+            assert failed_log.state == TRIGGER_LOG_STATE['REQUEUED']
+            new_trigger_log = TriggerLog.objects.get(
+                table_name=failed_log.table_name,
+                record_id=failed_log.record_id,
+                action=failed_log.action,
+            )
+            assert new_trigger_log.state == TRIGGER_LOG_STATE['NEW']
+        succeeded.refresh_from_db()
+        assert succeeded.state == TRIGGER_LOG_STATE['SUCCESS']
+
+    def test_retry_failed_logs_in_archive_ordered_write(
+            self, admin_client, set_write_mode_ordered
+    ):
+        assert get_unique_connection_write_mode() == WriteAlgorithm.ORDERED_WRITES
+
         failed_logs = TriggerLogArchive.objects.bulk_create([
             make_trigger_log(
                 is_archived=True,

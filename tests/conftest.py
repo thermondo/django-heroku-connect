@@ -1,3 +1,4 @@
+import copy
 import json
 
 import httpretty
@@ -8,6 +9,9 @@ from django.utils import timezone
 from heroku_connect.db.models.base import READ_WRITE, HerokuConnectModel
 from heroku_connect.models import (
     TRIGGER_LOG_ACTION, TRIGGER_LOG_STATE, TriggerLog, TriggerLogArchive
+)
+from heroku_connect.utils import (
+    get_connected_model_for_table_name, get_unique_connection_write_mode
 )
 from tests import fixtures
 
@@ -104,19 +108,30 @@ def failed_trigger_log(connected_model):
 
 @pytest.yield_fixture
 def set_write_mode_merge():
-    httpretty.register_uri(
-        httpretty.GET,
-        'https://connect-eu.heroku.com/api/v3/connections',
-        body=json.dumps(fixtures.connection),
-        status=200,
-        content_type='application/json',
-    )
+    get_unique_connection_write_mode.cache_clear()
     with httpretty.enabled():
+        httpretty.register_uri(
+            httpretty.GET,
+            'https://connect-eu.heroku.com/api/v3/connections',
+            body=json.dumps(fixtures.connections),
+            status=200,
+            content_type='application/json',
+        )
         yield
 
-    # httpretty.register_uri(
-    #     httpretty.GET, "https://connect-eu.heroku.com/api/v3/connections",
-    #     body=json.dumps(fixtures.connections),
-    #     status=200,
-    #     content_type='application/json',
-    # )
+
+@pytest.yield_fixture
+def set_write_mode_ordered():
+    get_unique_connection_write_mode.cache_clear()
+    connections = copy.deepcopy(fixtures.connections)
+    connections['results'][0]['features'] = dict(poll_db_no_merge=True)
+
+    with httpretty.enabled():
+        httpretty.register_uri(
+            httpretty.GET,
+            'https://connect-eu.heroku.com/api/v3/connections',
+            body=json.dumps(connections),
+            status=200,
+            content_type='application/json',
+        )
+        yield
