@@ -1,3 +1,6 @@
+import json
+
+import httpretty
 import pytest
 from django.db import connection
 from django.utils import timezone
@@ -6,6 +9,7 @@ from heroku_connect.db.models.base import READ_WRITE, HerokuConnectModel
 from heroku_connect.models import (
     TRIGGER_LOG_ACTION, TRIGGER_LOG_STATE, TriggerLog, TriggerLogArchive
 )
+from tests import fixtures
 
 
 def make_trigger_log_for_model(model, *, is_archived=False, **kwargs):
@@ -96,3 +100,23 @@ def failed_trigger_log(connected_model):
     return make_trigger_log_for_model(connected_model,
                                       is_archived=False,
                                       state=TRIGGER_LOG_STATE['FAILED'])
+
+
+@pytest.yield_fixture
+def set_write_mode_merge():
+    httpretty.register_uri(
+        httpretty.GET,
+        'https://connect-eu.heroku.com/api/v3/connections',
+        body=json.dumps(fixtures.connection),
+        status=200,
+        content_type='application/json',
+    )
+    with httpretty.enabled():
+        yield
+
+    # httpretty.register_uri(
+    #     httpretty.GET, "https://connect-eu.heroku.com/api/v3/connections",
+    #     body=json.dumps(fixtures.connections),
+    #     status=200,
+    #     content_type='application/json',
+    # )

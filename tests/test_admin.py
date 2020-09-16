@@ -1,3 +1,6 @@
+import json
+
+import httpretty
 import pytest
 from django.contrib.admin import AdminSite
 from django.urls import reverse
@@ -6,6 +9,7 @@ from heroku_connect import admin
 from heroku_connect.models import (
     TRIGGER_LOG_ACTION, TRIGGER_LOG_STATE, TriggerLog, TriggerLogArchive
 )
+from tests import fixtures
 from tests.conftest import make_trigger_log
 
 
@@ -83,7 +87,15 @@ class TestAdminActions:
         succeeded.refresh_from_db()
         assert succeeded.state == TRIGGER_LOG_STATE['SUCCESS']
 
+    @httpretty.activate
     def test_retry_failed_logs(self, admin_client):
+        httpretty.register_uri(
+            httpretty.GET,
+            'https://connect-eu.heroku.com/api/v3/connections',
+            body=json.dumps(fixtures.connections),
+            status=200,
+            content_type='application/json',
+        )
         failed_logs = TriggerLog.objects.bulk_create([
             make_trigger_log(
                 state=TRIGGER_LOG_STATE['FAILED'],
@@ -109,7 +121,7 @@ class TestAdminActions:
         succeeded.refresh_from_db()
         assert succeeded.state == TRIGGER_LOG_STATE['SUCCESS']
 
-    def test_retry_failed_logs_in_archive(self, admin_client):
+    def test_retry_failed_logs_in_archive(self, admin_client, set_write_mode_merge):
         failed_logs = TriggerLogArchive.objects.bulk_create([
             make_trigger_log(
                 is_archived=True,

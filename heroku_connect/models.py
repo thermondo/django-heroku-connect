@@ -5,7 +5,10 @@ from django.db import models, transaction
 from django.utils.translation import ugettext_lazy as _
 from psycopg2 import sql
 
-from heroku_connect.utils import get_connected_model_for_table_name
+from heroku_connect.utils import (
+    WriteAlgorithm, get_connected_model_for_table_name,
+    get_unique_connection_write_mode
+)
 
 
 class TriggerLogQuerySet(models.QuerySet):
@@ -255,13 +258,13 @@ class TriggerLogAbstract(models.Model):
                                               update_fields=update_fields)
 
     def _recapture(self):
-        if self.action == 'INSERT': 
+        if self.action == 'INSERT':
             self.capture_insert()
             return True
 
         elif self.action == 'UPDATE':
-            self.capture_update() 
-            return True 
+            self.capture_update()
+            return True
 
         else:
             return False
