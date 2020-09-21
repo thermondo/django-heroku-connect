@@ -302,12 +302,13 @@ class TriggerLog(TriggerLogAbstract):
 
         """
         if get_unique_connection_write_mode() == WriteAlgorithm.ORDERED_WRITES:
-            self._recapture()
-            self.state = TRIGGER_LOG_STATE['REQUEUED']
-            self.save(update_fields=['state'])
-        else:
-            self.state = TRIGGER_LOG_STATE['NEW']
-            self.save(update_fields=['state'])
+            if self._recapture():
+                self.state = TRIGGER_LOG_STATE['REQUEUED']
+                self.save(update_fields=['state'])
+                return
+
+        self.state = TRIGGER_LOG_STATE['NEW']
+        self.save(update_fields=['state'])
 
 
 class TriggerLogArchive(TriggerLogAbstract):
@@ -339,14 +340,15 @@ class TriggerLogArchive(TriggerLogAbstract):
 
         """
         if get_unique_connection_write_mode() == WriteAlgorithm.ORDERED_WRITES:
-            self._recapture()
-            self.state = TRIGGER_LOG_STATE['REQUEUED']
-            self.save(update_fields=['state'])
-        else:
-            trigger_log = self._to_live_trigger_log(state=TRIGGER_LOG_STATE['NEW'])
-            trigger_log.save(force_insert=True)  # make sure we get a fresh row
-            self.state = TRIGGER_LOG_STATE['REQUEUED']
-            self.save(update_fields=['state'])
+            if self._recapture():
+                self.state = TRIGGER_LOG_STATE['REQUEUED']
+                self.save(update_fields=['state'])
+                return
+
+        trigger_log = self._to_live_trigger_log(state=TRIGGER_LOG_STATE['NEW'])
+        trigger_log.save(force_insert=True)  # make sure we get a fresh row
+        self.state = TRIGGER_LOG_STATE['REQUEUED']
+        self.save(update_fields=['state'])
 
     def _to_live_trigger_log(self, **kwargs):
         """

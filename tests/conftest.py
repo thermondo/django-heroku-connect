@@ -44,6 +44,20 @@ def make_trigger_log(*, is_archived=False, **attrs):
     return model_cls(**attrs)
 
 
+@pytest.fixture 
+def hc_capture_stored_procedured(db):
+    pass
+    # method code taken from a database with enabled HC, not necessarily 
+    # updated
+
+    # with connection.cursor() as cursor:
+    #     cursor.execute("UPDATE bar SET foo = 1 WHERE baz = %s", [self.baz])
+    #     cursor.execute("SELECT foo FROM bar WHERE baz = %s", [self.baz])
+
+
+
+
+
 @pytest.fixture()
 def connected_class():
     """Get a HerokuConnectedModel subclass"""

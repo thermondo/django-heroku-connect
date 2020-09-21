@@ -122,6 +122,7 @@ class TestAdminActions:
         failed_logs = TriggerLog.objects.bulk_create([
             make_trigger_log(
                 state=TRIGGER_LOG_STATE['FAILED'],
+                table_name='number_object__c',
                 record_id=i,
                 action=action,
             )
