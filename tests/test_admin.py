@@ -119,7 +119,7 @@ class TestAdminActions:
 
     @pytest.mark.parametrize('log_action', TRIGGER_LOG_ACTION.values())
     def test_retry_failed_logs_ordered_write(
-            self, log_action, admin_client, set_write_mode_ordered, 
+            self, log_action, admin_client, set_write_mode_ordered,
             hc_capture_stored_procedures):
 
         assert get_unique_connection_write_mode() == WriteAlgorithm.ORDERED_WRITES
@@ -204,7 +204,7 @@ class TestAdminActions:
 
     @pytest.mark.parametrize('log_action', TRIGGER_LOG_ACTION.values())
     def test_retry_failed_logs_in_archive_ordered_write(
-            self, log_action, admin_client, set_write_mode_ordered, 
+            self, log_action, admin_client, set_write_mode_ordered,
             hc_capture_stored_procedures):
 
         assert get_unique_connection_write_mode() == WriteAlgorithm.ORDERED_WRITES

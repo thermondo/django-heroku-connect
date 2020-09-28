@@ -56,7 +56,7 @@ class TestTriggerLog:
 
         with pytest.raises(TriggerLog.DoesNotExist):
             failed_log.capture_update()
-            
+
     def test_capture_update_wrong_update_field(self, trigger_log, hc_capture_stored_procedures):
         with pytest.raises(FieldDoesNotExist):
             trigger_log.capture_update(update_fields=('NOT A FIELD',))
