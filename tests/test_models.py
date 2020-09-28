@@ -9,7 +9,7 @@ from django.test import override_settings
 from heroku_connect.models import (
     TRIGGER_LOG_STATE, TriggerLog, TriggerLogArchive
 )
-from tests.conftest import make_trigger_log_for_model
+from tests.conftest import make_trigger_log, make_trigger_log_for_model
 
 
 @pytest.mark.django_db
@@ -37,32 +37,51 @@ class TestTriggerLog:
         assert set(unrelated_trigger_log.related()) == {unrelated_trigger_log}
         assert set(unrelated_trigger_log.related(exclude_self=True)) == set()
 
-    def test_capture_update(self, trigger_log):
-        with pytest.raises(db.ProgrammingError):
-            try:
-                trigger_log.capture_update()
-            except db.ProgrammingError as error:
-                regex = 'function {schema}hc_capture_update_from_row{args} does not exist'.format(
-                    schema=r'(?:[^.]+\.)?',
-                    args=re.escape('(hstore, unknown, text[])')
-                )
-                assert re.search(regex, str(error))
-                raise
+    def test_capture_update_ok(self, trigger_log, hc_capture_stored_procedures):
+        trigger_log.save()
+        TriggerLog.objects.get()
+
+        trigger_log.capture_update()
+
+        assert TriggerLog.objects.count() == 2
+
+    def test_capture_update_without_record(self, hc_capture_stored_procedures):
+        failed_log = make_trigger_log(
+            state=TRIGGER_LOG_STATE['FAILED'],
+            table_name='number_object__c',
+            record_id=666,
+            action='UPDATE',
+        )
+        failed_log.save()
+
+        with pytest.raises(TriggerLog.DoesNotExist):
+            failed_log.capture_update()
+            
+    def test_capture_update_wrong_update_field(self, trigger_log, hc_capture_stored_procedures):
         with pytest.raises(FieldDoesNotExist):
             trigger_log.capture_update(update_fields=('NOT A FIELD',))
 
-    def test_capture_insert(self, trigger_log):
-        with pytest.raises(db.ProgrammingError):
-            try:
-                exclude_fields = ['_hc_lastop', '_hc_err']  # for test coverage
-                trigger_log.capture_insert(exclude_fields=exclude_fields)
-            except db.ProgrammingError as error:
-                regex = 'function {schema}hc_capture_insert_from_row{args} does not exist'.format(
-                    schema=r'(?:[^.]+\.)?',
-                    args=re.escape('(hstore, unknown, text[])')
-                )
-                assert re.search(regex, str(error))
-                raise
+    def test_capture_insert_ok(self, trigger_log, hc_capture_stored_procedures):
+        trigger_log.save()
+        TriggerLog.objects.get()
+
+        trigger_log.capture_insert()
+
+        assert TriggerLog.objects.count() == 2
+
+    def test_capture_insert_without_record(self, hc_capture_stored_procedures):
+        failed_log = make_trigger_log(
+            state=TRIGGER_LOG_STATE['FAILED'],
+            table_name='number_object__c',
+            record_id=666,
+            action='INSERT',
+        )
+        failed_log.save()
+
+        with pytest.raises(TriggerLog.DoesNotExist):
+            failed_log.capture_insert()
+
+    def test_capture_insert_wrong_field(self, trigger_log, hc_capture_stored_procedures):
         with pytest.raises(FieldDoesNotExist):
             trigger_log.capture_insert(exclude_fields=('NOT A FIELD',))
 

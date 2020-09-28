@@ -90,6 +90,7 @@ class TriggerLogAbstract(models.Model):
     # `id` is a BigAutoField for testing convenience;  in a real environment, id management
     # is up to Heroku Connect.
     id = models.BigAutoField(primary_key=True, editable=False)
+    txid = models.BigIntegerField(editable=False, null=True)
     created_at = models.DateTimeField(editable=False, null=True)
     updated_at = models.DateTimeField(editable=False, null=True)
     processed_at = models.DateTimeField(editable=False, null=True)
@@ -170,6 +171,9 @@ class TriggerLogAbstract(models.Model):
         )
         params = {'record_id': record_id, 'table_name': table_name}
         result_qs = TriggerLog.objects.raw(raw_query, params)
+        if not result_qs:
+            raise TriggerLog.DoesNotExist("TriggerLog was not created after re-capturing INSERT")
+
         return list(result_qs)  # don't expose raw query; clients only care about the log entries
 
     @classmethod
@@ -212,6 +216,8 @@ class TriggerLogAbstract(models.Model):
         )
         params = {'record_id': record_id, 'table_name': table_name}
         result_qs = TriggerLog.objects.raw(raw_query, params)
+        if not result_qs:
+            raise TriggerLog.DoesNotExist("TriggerLog was not created after re-capturing UPDATE")
         return list(result_qs)  # don't expose raw query; clients only care about the log entries
 
     def __str__(self):

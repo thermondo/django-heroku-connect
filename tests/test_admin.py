@@ -14,6 +14,7 @@ from heroku_connect.utils import (
 )
 from tests import fixtures
 from tests.conftest import make_trigger_log
+from tests.testapp.models import NumberModel
 
 
 class TestGenericLogModelAdmin:
@@ -116,20 +117,32 @@ class TestAdminActions:
         succeeded.refresh_from_db()
         assert succeeded.state == TRIGGER_LOG_STATE['SUCCESS']
 
-    def test_retry_failed_logs_ordered_write(self, admin_client, set_write_mode_ordered):
+    @pytest.mark.parametrize('log_action', TRIGGER_LOG_ACTION.values())
+    def test_retry_failed_logs_ordered_write(
+            self, log_action, admin_client, set_write_mode_ordered, 
+            hc_capture_stored_procedures):
+
         assert get_unique_connection_write_mode() == WriteAlgorithm.ORDERED_WRITES
 
-        failed_logs = TriggerLog.objects.bulk_create([
-            make_trigger_log(
-                state=TRIGGER_LOG_STATE['FAILED'],
-                table_name='number_object__c',
-                record_id=i,
-                action=action,
-            )
-            for i, action in enumerate(TRIGGER_LOG_ACTION.values())
-        ])
+        testrecord = NumberModel.objects.create()
+
+        failed_log = make_trigger_log(
+            state=TRIGGER_LOG_STATE['FAILED'],
+            table_name='number_object__c',
+            record_id=testrecord.id,
+            action=log_action,
+        )
+        failed_log.save()
+
         succeeded = make_trigger_log(state=TRIGGER_LOG_STATE['SUCCESS'])
         succeeded.save()
+
+        qs = TriggerLog.objects.all()
+        assert qs.count() == 2
+        assert set(qs.values_list('state', flat=True)) == {
+            TRIGGER_LOG_STATE['SUCCESS'],
+            TRIGGER_LOG_STATE['FAILED'],
+        }
 
         admin_client.post(
             self.admin_changelist_url(TriggerLog),
@@ -139,9 +152,20 @@ class TestAdminActions:
             ),
         )
 
-        for failed_log in failed_logs:
-            failed_log.refresh_from_db()
-            assert failed_log.state == TRIGGER_LOG_STATE['NEW']
+        if log_action == 'DELETE':
+            assert qs.count() == 2
+            assert set(qs.values_list('state', flat=True)) == {
+                TRIGGER_LOG_STATE['SUCCESS'],
+                TRIGGER_LOG_STATE['NEW'],
+            }
+        else:
+            assert qs.count() == 3
+            assert set(qs.values_list('state', flat=True)) == {
+                TRIGGER_LOG_STATE['SUCCESS'],
+                TRIGGER_LOG_STATE['REQUEUED'],
+                TRIGGER_LOG_STATE['NEW'],
+            }
+
         succeeded.refresh_from_db()
         assert succeeded.state == TRIGGER_LOG_STATE['SUCCESS']
 
@@ -178,22 +202,33 @@ class TestAdminActions:
         succeeded.refresh_from_db()
         assert succeeded.state == TRIGGER_LOG_STATE['SUCCESS']
 
+    @pytest.mark.parametrize('log_action', TRIGGER_LOG_ACTION.values())
     def test_retry_failed_logs_in_archive_ordered_write(
-            self, admin_client, set_write_mode_ordered
-    ):
+            self, log_action, admin_client, set_write_mode_ordered, 
+            hc_capture_stored_procedures):
+
         assert get_unique_connection_write_mode() == WriteAlgorithm.ORDERED_WRITES
 
-        failed_logs = TriggerLogArchive.objects.bulk_create([
-            make_trigger_log(
-                is_archived=True,
-                state=TRIGGER_LOG_STATE['FAILED'],
-                record_id=i,
-                action=action,
-            )
-            for i, action in enumerate(TRIGGER_LOG_ACTION.values())
-        ])
+        testrecord = NumberModel.objects.create()
+
+        failed_log = make_trigger_log(
+            is_archived=True,
+            state=TRIGGER_LOG_STATE['FAILED'],
+            table_name='number_object__c',
+            record_id=testrecord.id,
+            action=log_action,
+        )
+        failed_log.save()
+
         succeeded = make_trigger_log(is_archived=True, state=TRIGGER_LOG_STATE['SUCCESS'])
         succeeded.save()
+
+        assert TriggerLog.objects.count() == 0
+        assert TriggerLogArchive.objects.count() == 2
+        assert set(TriggerLogArchive.objects.values_list('state', flat=True)) == {
+            TRIGGER_LOG_STATE['SUCCESS'],
+            TRIGGER_LOG_STATE['FAILED'],
+        }
 
         admin_client.post(
             self.admin_changelist_url(TriggerLogArchive),
@@ -203,14 +238,13 @@ class TestAdminActions:
             ),
         )
 
-        for failed_log in failed_logs:
-            failed_log.refresh_from_db()
-            assert failed_log.state == TRIGGER_LOG_STATE['REQUEUED']
-            new_trigger_log = TriggerLog.objects.get(
-                table_name=failed_log.table_name,
-                record_id=failed_log.record_id,
-                action=failed_log.action,
-            )
-            assert new_trigger_log.state == TRIGGER_LOG_STATE['NEW']
+        assert TriggerLog.objects.get().state == TRIGGER_LOG_STATE['NEW']
+
+        assert TriggerLogArchive.objects.count() == 2
+        assert set(TriggerLogArchive.objects.values_list('state', flat=True)) == {
+            TRIGGER_LOG_STATE['SUCCESS'],
+            TRIGGER_LOG_STATE['REQUEUED'],
+        }
+
         succeeded.refresh_from_db()
         assert succeeded.state == TRIGGER_LOG_STATE['SUCCESS']
