@@ -5,7 +5,10 @@ from django.db import models, transaction
 from django.utils.translation import ugettext_lazy as _
 from psycopg2 import sql
 
-from heroku_connect.utils import get_connected_model_for_table_name
+from heroku_connect.utils import (
+    WriteAlgorithm, get_connected_model_for_table_name,
+    get_unique_connection_write_mode
+)
 
 
 class TriggerLogQuerySet(models.QuerySet):
@@ -87,6 +90,7 @@ class TriggerLogAbstract(models.Model):
     # `id` is a BigAutoField for testing convenience;  in a real environment, id management
     # is up to Heroku Connect.
     id = models.BigAutoField(primary_key=True, editable=False)
+    txid = models.BigIntegerField(editable=False, null=True)
     created_at = models.DateTimeField(editable=False, null=True)
     updated_at = models.DateTimeField(editable=False, null=True)
     processed_at = models.DateTimeField(editable=False, null=True)
@@ -167,6 +171,9 @@ class TriggerLogAbstract(models.Model):
         )
         params = {'record_id': record_id, 'table_name': table_name}
         result_qs = TriggerLog.objects.raw(raw_query, params)
+        if not result_qs:
+            raise TriggerLog.DoesNotExist("TriggerLog was not created after re-capturing INSERT")
+
         return list(result_qs)  # don't expose raw query; clients only care about the log entries
 
     @classmethod
@@ -209,6 +216,8 @@ class TriggerLogAbstract(models.Model):
         )
         params = {'record_id': record_id, 'table_name': table_name}
         result_qs = TriggerLog.objects.raw(raw_query, params)
+        if not result_qs:
+            raise TriggerLog.DoesNotExist("TriggerLog was not created after re-capturing UPDATE")
         return list(result_qs)  # don't expose raw query; clients only care about the log entries
 
     def __str__(self):
@@ -254,6 +263,18 @@ class TriggerLogAbstract(models.Model):
         return self.capture_update_from_model(self.table_name, self.record_id,
                                               update_fields=update_fields)
 
+    def _recapture(self):
+        if self.action == 'INSERT':
+            self.capture_insert()
+            return True
+
+        elif self.action == 'UPDATE':
+            self.capture_update()
+            return True
+
+        else:
+            return False
+
     @staticmethod
     def _fieldnames_to_colnames(model_cls, fieldnames):
         """Get the names of columns referenced by the given model fields."""
@@ -275,6 +296,7 @@ class TriggerLog(TriggerLogAbstract):
         db_table = '{schema}"."_trigger_log'.format(schema=settings.HEROKU_CONNECT_SCHEMA)
         verbose_name = _('Trigger Log')
 
+    @transaction.atomic()
     def redo(self):
         """
         Re-sync the change recorded in this trigger log.
@@ -285,9 +307,14 @@ class TriggerLog(TriggerLogAbstract):
             A TriggerLog instance that represents the re-application; possibly ``self``.
 
         """
+        if get_unique_connection_write_mode() == WriteAlgorithm.ORDERED_WRITES:
+            if self._recapture():
+                self.state = TRIGGER_LOG_STATE['REQUEUED']
+                self.save(update_fields=['state'])
+                return
+
         self.state = TRIGGER_LOG_STATE['NEW']
         self.save(update_fields=['state'])
-        return self
 
 
 class TriggerLogArchive(TriggerLogAbstract):
@@ -318,11 +345,16 @@ class TriggerLogArchive(TriggerLogAbstract):
             The :class:`.TriggerLog` instance that was created from the data of this archived log.
 
         """
+        if get_unique_connection_write_mode() == WriteAlgorithm.ORDERED_WRITES:
+            if self._recapture():
+                self.state = TRIGGER_LOG_STATE['REQUEUED']
+                self.save(update_fields=['state'])
+                return
+
         trigger_log = self._to_live_trigger_log(state=TRIGGER_LOG_STATE['NEW'])
         trigger_log.save(force_insert=True)  # make sure we get a fresh row
         self.state = TRIGGER_LOG_STATE['REQUEUED']
         self.save(update_fields=['state'])
-        return trigger_log
 
     def _to_live_trigger_log(self, **kwargs):
         """

@@ -1,5 +1,6 @@
 """Utility methods for Django Heroku Connect."""
 import os
+from enum import Enum
 from functools import lru_cache
 
 import requests
@@ -25,6 +26,18 @@ class ConnectionStates:
         IMPORT_CONFIGURATION,
         BUSY,
     )
+
+
+class WriteAlgorithm(Enum):
+    MERGE_WRITES = 1
+    ORDERED_WRITES = 2
+
+
+def _write_algorithm_from_connection_info(info):
+    if info.get('features', {}).get('poll_db_no_merge', False):
+        return WriteAlgorithm.ORDERED_WRITES
+    else:
+        return WriteAlgorithm.MERGE_WRITES
 
 
 def get_mapping(version=1, exported_at=None, app_name=None):
@@ -186,6 +199,13 @@ def get_connections(app):
     return response.json()['results']
 
 
+def get_all_connections_write_modes(app):
+    return {
+        info['id']: _write_algorithm_from_connection_info(info)
+        for info in get_connections(app)
+    }
+
+
 def get_connection(connection_id, deep=False):
     """
     Get Heroku Connection connection information.
@@ -238,6 +258,20 @@ def get_connection(connection_id, deep=False):
     response = requests.get(url, params=payload, headers=_get_authorization_headers())
     response.raise_for_status()
     return response.json()
+
+
+def get_connection_write_mode(connection_id):
+    return _write_algorithm_from_connection_info(
+        get_connection(connection_id)
+    )
+
+
+@lru_cache()
+def get_unique_connection_write_mode(app_name=None):
+    app_name = app_name or settings.HEROKU_CONNECT_APP_NAME
+    mode, = set(get_all_connections_write_modes(app_name).values())
+
+    return mode
 
 
 def import_mapping(connection_id, mapping):
