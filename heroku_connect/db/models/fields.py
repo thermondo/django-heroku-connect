@@ -107,10 +107,12 @@ class ExternalID(HerokuConnectFieldMixin, models.UUIDField):
         return self.to_python(value)
 
 
-class Checkbox(HerokuConnectFieldMixin, models.NullBooleanField):
+class Checkbox(HerokuConnectFieldMixin, models.BooleanField):
     """Salesforce ``Checkbox`` field."""
 
-    pass
+    def __init__(self, *args, **kwargs):
+        kwargs['null'] = True
+        super().__init__(*args, **kwargs)
 
 
 class Number(HerokuConnectFieldMixin, models.DecimalField):
