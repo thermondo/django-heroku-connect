@@ -15,9 +15,9 @@ from django.db import models
 from django.utils import timezone
 
 __all__ = (
-    'HerokuConnectFieldMixin', 'AnyType', 'ID', 'Checkbox', 'Currency',
-    'Date', 'DateTime', 'Email', 'EncryptedString', 'Number', 'Percent',
-    'Phone', 'Picklist', 'Text', 'TextArea', 'Time', 'URL', 'ExternalID',
+    'HerokuConnectFieldMixin', 'AnyType', 'ID', 'ExternalID', 'Checkbox', 'Number', 'Currency',
+    'Date', 'DateTime', 'Email', 'EncryptedString', 'Percent',
+    'Phone', 'Picklist', 'Text', 'TextArea', 'TextAreaLong', 'Time', 'URL',
 )
 
 
