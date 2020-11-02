@@ -189,7 +189,7 @@ class TriggerLogAbstract(models.Model):
             table_name (str): The name of the table backing the connected model (without schema)
             record_id (int): The primary id of the connected model
             update_fields (Iterable[str]): If given, the names of fields that will be included in
-                the write record. These will be convert into database column names.
+                the write record. These will be converted into database column names.
             update_columns (Iterable[str]): If given, the names of database column names that will
                 be included in the write record.
 
