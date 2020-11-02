@@ -4,6 +4,7 @@ from django.core import checks
 from django.db import models, transaction
 from django.utils.translation import ugettext_lazy as _
 from psycopg2 import sql
+from psycopg2.extensions import quote_ident
 
 from heroku_connect.utils import (
     WriteAlgorithm, get_connected_model_for_table_name,
@@ -177,7 +178,7 @@ class TriggerLogAbstract(models.Model):
         return list(result_qs)  # don't expose raw query; clients only care about the log entries
 
     @classmethod
-    def capture_update_from_model(cls, table_name, record_id, *, update_fields=()):
+    def capture_update_from_model(cls, table_name, record_id, *, update_fields=(), update_columns=()):
         """
         Create a fresh update record from the current model state in the database.
 
@@ -188,7 +189,8 @@ class TriggerLogAbstract(models.Model):
             table_name (str): The name of the table backing the connected model (without schema)
             record_id (int): The primary id of the connected model
             update_fields (Iterable[str]): If given, the names of fields that will be included in
-                the write record
+                the write record. These will be convert into database column names.
+            update_columns (Iterable[str]): If given, the names of database column names that will be included in the write record
 
         Returns:
             A list of the created TriggerLog entries (usually one).
@@ -197,24 +199,28 @@ class TriggerLogAbstract(models.Model):
             LookupError: if ``table_name`` does not belong to a connected model
 
         """
-        include_cols = ()
+        include_cols = set(update_columns)
         if update_fields:
             model_cls = get_connected_model_for_table_name(table_name)
-            include_cols = cls._fieldnames_to_colnames(model_cls, update_fields)
+            include_cols.update(cls._fieldnames_to_colnames(model_cls, update_fields))
+
         raw_query = sql.SQL("""
             SELECT {schema}.hc_capture_update_from_row(
               hstore({schema}.{table_name}.*),
               %(table_name)s,
-              ARRAY[{include_cols}]::text[]  -- cast to type expected by stored procedure
+              ARRAY[%(include_cols)s]
             ) AS id
             FROM {schema}.{table_name}
             WHERE id = %(record_id)s
         """).format(
             schema=sql.Identifier(settings.HEROKU_CONNECT_SCHEMA),
             table_name=sql.Identifier(table_name),
-            include_cols=sql.SQL(', ').join(sql.Identifier(col) for col in include_cols),
         )
-        params = {'record_id': record_id, 'table_name': table_name}
+        params = {
+            'record_id': record_id, 
+            'table_name': table_name, 
+            'include_cols': list(include_cols)
+        }
         result_qs = TriggerLog.objects.raw(raw_query, params)
         if not result_qs:
             raise TriggerLog.DoesNotExist("TriggerLog was not created after re-capturing UPDATE")
@@ -258,10 +264,11 @@ class TriggerLogAbstract(models.Model):
         return self.capture_insert_from_model(self.table_name, self.record_id,
                                               exclude_fields=exclude_fields)
 
-    def capture_update(self, *, update_fields=()):
+    def capture_update(self, *, update_fields=(), update_columns=()):
         """Apply :meth:`.TriggerLogAbstract.capture_insert_from_model` for this log."""
         return self.capture_update_from_model(self.table_name, self.record_id,
-                                              update_fields=update_fields)
+                                              update_fields=update_fields, 
+                                              update_columns=update_columns)
 
     def _recapture(self):
         if self.action == 'INSERT':
@@ -269,7 +276,12 @@ class TriggerLogAbstract(models.Model):
             return True
 
         elif self.action == 'UPDATE':
-            self.capture_update()
+            if self.values:
+                update_columns = tuple(self.values.keys())
+            else:
+                update_columns = ()
+
+            self.capture_update(update_columns=update_columns)
             return True
 
         else:

@@ -248,3 +248,38 @@ class TestAdminActions:
 
         succeeded.refresh_from_db()
         assert succeeded.state == TRIGGER_LOG_STATE['SUCCESS']
+
+    def test_retry_failed_logs_ordered_write_field_subset(self, admin_client, set_write_mode_ordered, hc_capture_stored_procedures):
+        assert get_unique_connection_write_mode() == WriteAlgorithm.ORDERED_WRITES
+
+        testrecord = NumberModel.objects.create()
+
+        failed_log = make_trigger_log(
+            state=TRIGGER_LOG_STATE['FAILED'],
+            table_name='number_object__c',
+            record_id=testrecord.id,
+            action='UPDATE',
+            values={
+                'a_number__c': '333',
+            }
+        )
+        failed_log.save()
+
+        admin_client.post(
+            self.admin_changelist_url(TriggerLog),
+            data=self.action_post_data(
+                admin.TriggerLogAdmin.retry_failed_logs_action,
+                TriggerLog.objects.all()
+            ),
+        )
+
+        qs = TriggerLog.objects.all()
+        assert qs.count() == 2
+        assert set(qs.values_list('state', flat=True)) == {
+            TRIGGER_LOG_STATE['REQUEUED'],
+            TRIGGER_LOG_STATE['NEW'],
+        }
+
+        new_log = qs.exclude(id=failed_log.id).get()
+
+        assert set(new_log.values.keys()) == {'a_number__c'}
