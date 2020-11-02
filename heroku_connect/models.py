@@ -4,7 +4,6 @@ from django.core import checks
 from django.db import models, transaction
 from django.utils.translation import ugettext_lazy as _
 from psycopg2 import sql
-from psycopg2.extensions import quote_ident
 
 from heroku_connect.utils import (
     WriteAlgorithm, get_connected_model_for_table_name,
