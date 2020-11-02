@@ -249,7 +249,9 @@ class TestAdminActions:
         succeeded.refresh_from_db()
         assert succeeded.state == TRIGGER_LOG_STATE['SUCCESS']
 
-    def test_retry_failed_logs_ordered_write_field_subset(self, admin_client, set_write_mode_ordered, hc_capture_stored_procedures):
+    def test_retry_failed_logs_ordered_write_field_subset(self, admin_client,
+                                                          set_write_mode_ordered,
+                                                          hc_capture_stored_procedures):
         assert get_unique_connection_write_mode() == WriteAlgorithm.ORDERED_WRITES
 
         testrecord = NumberModel.objects.create()
