@@ -114,6 +114,10 @@ class TriggerLogAbstract(models.Model):
 
     is_archived = False
 
+    @property 
+    def values_as_dict(self):
+        return hstore_text_to_dict(self.values)
+
     @classmethod
     def capture_insert_from_model(cls, table_name, record_id, *, exclude_fields=()):
         """
@@ -262,7 +266,7 @@ class TriggerLogAbstract(models.Model):
 
         elif self.action == 'UPDATE':
             if self.values:
-                update_columns = tuple(self.values.keys())
+                update_columns = tuple(self.values_as_dict().keys())
             else:
                 update_columns = ()
 
