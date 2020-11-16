@@ -21,7 +21,6 @@ install:
   - pip install -U codecov
 before_script:
   - psql template1 -c "create extension postgis;"
-  - psql template1 -c "create extension hstore;"
   - createdb heroku_connect_test
 script:
   - tox -v
