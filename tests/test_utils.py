@@ -227,11 +227,10 @@ def test_get_connected_model_for_table_name(db, connected_class):
         utils.get_connected_model_for_table_name("NOBODY'S_TABLE_NAME")
 
 
-
 @pytest.mark.parametrize("input_,expected", [
     ("", {}),
     (
-        '"id"=>"429161", "name"=>"Kalkenbergerstr,43 "', 
+        '"id"=>"429161", "name"=>"Kalkenbergerstr,43 "',
         {"id": "429161", "name": "Kalkenbergerstr,43 "}
     ),
     (

@@ -114,7 +114,7 @@ class TriggerLogAbstract(models.Model):
 
     is_archived = False
 
-    @property 
+    @property
     def values_as_dict(self):
         return hstore_text_to_dict(self.values)
 
