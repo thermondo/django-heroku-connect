@@ -6,7 +6,7 @@ from psycopg2 import sql
 
 from heroku_connect.utils import (
     WriteAlgorithm, get_connected_model_for_table_name,
-    get_unique_connection_write_mode
+    get_unique_connection_write_mode, hstore_text_to_dict
 )
 
 
@@ -266,7 +266,7 @@ class TriggerLogAbstract(models.Model):
 
         elif self.action == 'UPDATE':
             if self.values:
-                update_columns = tuple(self.values_as_dict().keys())
+                update_columns = tuple(self.values_as_dict.keys())
             else:
                 update_columns = ()
 

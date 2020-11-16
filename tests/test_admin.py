@@ -261,9 +261,7 @@ class TestAdminActions:
             table_name='number_object__c',
             record_id=testrecord.id,
             action='UPDATE',
-            values={
-                'a_number__c': '333',
-            }
+            values='"a_number__c"=>"333"',
         )
         failed_log.save()
 
@@ -284,4 +282,4 @@ class TestAdminActions:
 
         new_log = qs.exclude(id=failed_log.id).get()
 
-        assert set(new_log.values.keys()) == {'a_number__c'}
+        assert set(new_log.values_as_dict.keys()) == {'a_number__c'}
