@@ -23,8 +23,8 @@ jobs:
       postgresql:
         image: postgis/postgis:10-2.5
         env:
-          POSTGRES_USER: ${DATABASE_USER}
-          POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
           POSTGRES_DB: heroku_connect_test
         ports:
         - 5432:5432
@@ -47,4 +47,4 @@ jobs:
         pip install tox tox-gh-actions
 
     - name: Test with tox
-      run: tox -v
+      run: tox
