@@ -12,19 +12,30 @@ jobs:
   tests:
     runs-on: latest
     strategy:
+      max-parallel: 5
       matrix:
-        tox_env: [
-            isort, docs,
-            py36-dj22, py36-dj30,
-            py37-dj22, py37-dj30,
-            py38-dj22, py38-dj30,
-            py39-dj22, py39-dj30
-        ]
+        python-version: [3.6, 3.7, 3.8, 3.9]
+
+    # strategy:
+    #   matrix:
+    #     tox_env: [
+    #         isort, docs,
+    #         py36-dj22, py36-dj30,
+    #         py37-dj22, py37-dj30,
+    #         py38-dj22, py38-dj30,
+    #         py39-dj22, py39-dj30
+    #     ]
 
     steps:
     - uses: actions/checkout@v2
-    - name: Run tests
-      id: test
-      uses: fedora-python/tox-github-action@master
-      with:
-        tox_env: ${{ matrix.tox_env }}
+    - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install tox tox-gh-actions
+    - name: Test with tox
+      run: tox
