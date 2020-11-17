@@ -43,16 +43,16 @@ class TestLoadRemoteSchema:
 
     def _psql(self, sql):
         env = os.environ.copy()
-        env['PGPASSWORD'] = self.db["PASSWORD"] 
+        env['PGPASSWORD'] = self.db["PASSWORD"]
 
         subprocess.check_output(
             [
                 'psql',
-                '-U', self.db["USER"], 
-                '-h', self.db["HOST"], 
-                '-p', self.db["PORT"], 
-                '-d', self.db["NAME"], 
-            ], 
+                '-U', self.db["USER"],
+                '-h', self.db["HOST"],
+                '-p', self.db["PORT"],
+                '-d', self.db["NAME"],
+            ],
             input=sql.encode("UTF-8"),
             env=env,
         )
@@ -61,11 +61,11 @@ class TestLoadRemoteSchema:
         self._psql('DROP SCHEMA IF EXISTS "salesforce" CASCADE')
 
         get_schema_args = dict(
-            user=self.db["USER"], 
-            host=self.db["HOST"], 
-            port=self.db["PORT"], 
-            dbname=self.db["NAME"], 
-            passwd=self.db["PASSWORD"], 
+            user=self.db["USER"],
+            host=self.db["HOST"],
+            port=self.db["PORT"],
+            dbname=self.db["NAME"],
+            passwd=self.db["PASSWORD"],
             schema_name="salesforce",
         )
 
