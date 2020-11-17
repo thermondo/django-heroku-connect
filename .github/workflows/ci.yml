@@ -18,7 +18,7 @@ jobs:
 
     services:
       postgresql:
-        image: postgis:10-2.5
+        image: postgis/postgis:10-2.5
         env:
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: heroku_connect_test
