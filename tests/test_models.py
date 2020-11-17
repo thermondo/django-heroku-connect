@@ -107,14 +107,3 @@ class TestTriggerLog:
     def test_str(self, trigger_log, archived_trigger_log):
         assert str(trigger_log)
         assert str(archived_trigger_log)
-
-    def test_check_hstore_fields(self):
-        with override_settings(INSTALLED_APPS=[]):
-            assert TriggerLog.check() == [checks.Warning(
-                "Cannot use HStore fields on TriggerLog model",
-                hint="Add 'django.contrib.postgres' to INSTALLED_APPS",
-                obj=TriggerLog,
-                id='heroku_connect.models.W001',
-            )]
-        with override_settings(INSTALLED_APPS=['django.contrib.postgres']):
-            assert TriggerLog.check() == []
