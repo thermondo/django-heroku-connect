@@ -30,6 +30,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+
+    - name: Install package dependencies
+      run: |
+        sudo apt-get install -y gdal-bin
+
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
