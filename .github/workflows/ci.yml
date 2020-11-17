@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  tests:
+    runs-on: latest
+    strategy:
+      matrix:
+        tox_env: [
+            isort, docs,
+            py36-dj22, py36-dj30,
+            py37-dj22, py37-dj30,
+            py38-dj22, py38-dj30,
+            py39-dj22, py39-dj30
+        ]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Run tests
+      id: test
+      uses: fedora-python/tox-github-action@master
+      with:
+        tox_env: ${{ matrix.tox_env }}
