@@ -74,6 +74,8 @@ DATABASES = {
         'NAME': 'heroku_connect_test',
         'HOST': '127.0.0.1',
         'PORT': '5432',
+        'USER': os.getenv("DATABASE_USER", ""),
+        'PASSWORD': os.getenv("DATABASE_PASSWORD", ""),
     }
 }
 
