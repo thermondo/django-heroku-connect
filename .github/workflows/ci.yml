@@ -10,7 +10,7 @@ on:
 
 jobs:
   tests:
-    runs-on: latest
+    runs-on: ubuntu-latest
     strategy:
       max-parallel: 5
       matrix:
