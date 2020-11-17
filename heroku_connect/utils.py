@@ -7,6 +7,7 @@ import requests
 from django.db import DEFAULT_DB_ALIAS, connections
 from django.utils import timezone
 from psycopg2.extensions import AsIs
+from psycopg2.extras import HstoreAdapter
 
 from heroku_connect.conf import settings
 
@@ -310,3 +311,7 @@ def link_connection_to_account(app):
         headers=_get_authorization_headers()
     )
     response.raise_for_status()
+
+
+def hstore_text_to_dict(text):
+    return HstoreAdapter.parse(text, None)
