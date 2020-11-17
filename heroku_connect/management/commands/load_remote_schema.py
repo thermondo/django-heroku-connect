@@ -79,7 +79,6 @@ class Command(BaseCommand):
             '-d', dbname,
         ]
 
-        import pdb;pdb.set_trace()
         try:
             output = subprocess.check_output(run_args, env=env)  # nosec
         except subprocess.SubprocessError as e:
