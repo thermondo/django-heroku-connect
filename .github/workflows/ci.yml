@@ -50,7 +50,7 @@ jobs:
       run: tox
 
     - name: installing coveragepy for codecov upload
-      # the codecov github action needs this package to fine the reports
+      # the codecov github action needs this package to find the reports
       run: pip install coverage
 
     - uses: codecov/codecov-action@v1
