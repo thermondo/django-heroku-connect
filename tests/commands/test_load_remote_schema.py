@@ -1,7 +1,9 @@
 import os
+import subprocess
 from io import StringIO
 
 import pytest
+from django.conf import settings
 from django.core.management import CommandError, call_command
 
 from heroku_connect.management.commands.load_remote_schema import Command
@@ -10,6 +12,8 @@ from heroku_connect.test.utils import heroku_cli
 
 class TestLoadRemoteSchema:
     pg_url = 'postgres://brucewayne:batman@secret.server.gov:1234/gotham'
+
+    db = settings.DATABASES['default']
 
     def test_get_database_url(self):
         with heroku_cli('▸    No app specified', exit_code=1):
@@ -37,23 +41,54 @@ class TestLoadRemoteSchema:
             Command().parse_credentials('not.a.valid.url')
         assert 'Could not parse DATABASE_URL.' in str(e.value)
 
+    def _psql(self, sql):
+        env = os.environ.copy()
+        env['PGPASSWORD'] = self.db["PASSWORD"]
+
+        subprocess.check_output(
+            [
+                'psql',
+                '-U', self.db["USER"],
+                '-h', self.db["HOST"],
+                '-p', self.db["PORT"],
+                '-d', self.db["NAME"],
+            ],
+            input=sql.encode("UTF-8"),
+            env=env,
+        )
+
     def test_get_schema(self):
-        os.system('echo \'DROP SCHEMA IF EXISTS "salesforce" CASCADE;\''
-                  ' | psql -d heroku_connect_test -a')
+        self._psql('DROP SCHEMA IF EXISTS "salesforce" CASCADE')
+
+        get_schema_args = dict(
+            user=self.db["USER"],
+            host=self.db["HOST"],
+            port=self.db["PORT"],
+            dbname=self.db["NAME"],
+            passwd=self.db["PASSWORD"],
+            schema_name="salesforce",
+        )
+
         with pytest.raises(CommandError) as e:
-            Command.get_schema('', 'localhost', '5432',
-                               'heroku_connect_test', '', 'salesforce')
+            Command.get_schema(**get_schema_args)
         assert 'Schema not found.' in str(e.value)
-        os.system('echo \'CREATE SCHEMA IF NOT EXISTS "salesforce";\''
-                  ' | psql -d heroku_connect_test -a')
-        response = Command.get_schema('', 'localhost', '5432',
-                                      'heroku_connect_test', '', 'salesforce')
+
+        self._psql('CREATE SCHEMA IF NOT EXISTS "salesforce"')
+
+        response = Command.get_schema(**get_schema_args)
         assert 'PostgreSQL database dump' in response
 
     def test_call_command(self):
-        os.system('echo \'CREATE SCHEMA IF NOT EXISTS "salesforce";\''
-                  ' | psql -d heroku_connect_test -a')
-        with heroku_cli('postgres://:@localhost:5432/heroku_connect_test', exit_code=0):
+        self._psql('CREATE SCHEMA IF NOT EXISTS "salesforce"')
+
+        database_url = (
+            'postgres://'
+            f'{self.db["USER"]}:{self.db["PASSWORD"]}'
+            f'@{self.db["HOST"]}'
+            f':{self.db["PORT"]}'
+            f'/{self.db["NAME"]}'
+        )
+        with heroku_cli(database_url, exit_code=0):
             with StringIO() as sql:
                 call_command('load_remote_schema', stdout=sql)
                 sql.seek(0)
