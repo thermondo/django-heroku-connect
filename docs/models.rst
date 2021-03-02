@@ -80,16 +80,14 @@ each other.
 
 .. _`Multi-table inheritance`: https://docs.djangoproject.com/en/stable/topics/db/models/#multi-table-inheritance
 
-
 Signals
 -------
 
-Standard `Django model signals`_ won't be triggered in case of changes coming from Salesforce. This is happening because
-Heroku Connect operates on a database level.
-If you want to hook up to changes coming from Salesforce, there are several possible solutions:
+Standard `Django model signals`_ won't be triggered for changes made on Salesforce, because Heroku Connect operates on a database-level.
+If you want to hook into to changes coming from Salesforce, there are several possible solutions:
 
 * Use `Salesforce PushTopic Events`_
-* Set up `Salesforce Outbound message`_ (triggered on object change) and a Django SOAP endpoint listening to it. From there You could make a Django signal to hook up.
+* Set up a `Salesforce Outbound message`_ (triggered on object change) and a Django SOAP endpoint listening to it. From there, a Django signal can be triggered.
 * Use database triggers and set up a a task queue listening to it.
 
 .. _`Salesforce PushTopic Events`: https://developer.salesforce.com/docs/atlas.en-us.api_streaming.meta/api_streaming/pushtopic_events_intro.htm
