@@ -79,3 +79,19 @@ It is also possible to have two concrete Heroku Connect models to Inherit from
 each other.
 
 .. _`Multi-table inheritance`: https://docs.djangoproject.com/en/stable/topics/db/models/#multi-table-inheritance
+
+Signals
+-------
+
+Standard `Django model signals`_ won't be triggered for changes made on Salesforce, because Heroku Connect operates on a database-level.
+If you want to hook into to changes coming from Salesforce, there are several possible solutions:
+
+* Use `Salesforce PushTopic Events`_
+* Set up a `Salesforce Outbound message`_ (triggered on object change) and a Django SOAP endpoint listening to it. From there, a custom Django signal can be triggered.
+* Use PostgreSQL ``LISTEN`` and ``NOTIFY`` features. See related `documentation`_ and `an example Python library`_
+
+.. _`Salesforce PushTopic Events`: https://developer.salesforce.com/docs/atlas.en-us.api_streaming.meta/api_streaming/pushtopic_events_intro.htm
+.. _`Django model signals`: https://docs.djangoproject.com/en/3.1/ref/signals/#module-django.db.models.signals
+.. _`Salesforce Outbound message`: https://developer.salesforce.com/docs/atlas.en-us.api.meta/api/sforce_api_om_outboundmessaging_understanding.htm
+.. _`documentation`: https://www.postgresql.org/docs/13/sql-notify.html
+.. _`an example Python library`: https://github.com/djrobstep/pgnotify
