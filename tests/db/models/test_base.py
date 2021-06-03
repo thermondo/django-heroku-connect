@@ -246,11 +246,11 @@ class TestHerokuConnectModelMixin:
         ) not in errors
 
     def test_check_sf_object_name_concrete(self):
-        # the check for concrete models breaks when we try to use a 
-        # temporary `MyClass`, because `model._meta.app_config` is 
-        # invalid when just definiting `Meta.app_label`. 
-        # So for this test we just use an existing model and break 
-        # it. 
+        # the check for concrete models breaks when we try to use a
+        # temporary `MyClass`, because `model._meta.app_config` is
+        # invalid when just definiting `Meta.app_label`.
+        # So for this test we just use an existing model and break
+        # it.
         setattr(NumberModel, 'sf_object_name', None)
 
         errors = NumberModel.check()
