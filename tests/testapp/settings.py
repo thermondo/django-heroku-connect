@@ -120,6 +120,8 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
 
 HEROKU_CONNECT_APP_NAME = 'ninja'
 HEROKU_CONNECT_ORGANIZATION_ID = '1234567890'
