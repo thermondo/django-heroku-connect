@@ -1,9 +1,14 @@
 -e .
+bandit!=1.6.3,!=1.7.0"
+black
 coverage
 django-health-check
+flake8
 httpretty
 isort
+pre-commit
 psycopg2-binary
+pydocstyle
 pyenchant
 pytest
 pytest-django

@@ -4,11 +4,11 @@ from django.db import models
 from heroku_connect.conf import settings
 from heroku_connect.db.models import fields
 
-__all__ = ('HerokuConnectModel', 'READ_ONLY', 'READ_WRITE')
+__all__ = ("HerokuConnectModel", "READ_ONLY", "READ_WRITE")
 
 
-READ_ONLY = 'read_only'
-READ_WRITE = 'read_write'
+READ_ONLY = "read_only"
+READ_WRITE = "read_write"
 
 
 class _HerokuConnectSnitchMixin:
@@ -41,26 +41,28 @@ class HerokuConnectModelBase(models.base.ModelBase):
             # Heroku Connect tables. Everything else, is considered multi-table-
             # inheritance.
             return super_new(mcs, name, bases, attrs)
-        _meta = attrs.get('Meta', None)
+        _meta = attrs.get("Meta", None)
         if _meta is None:
-            _meta = type('Meta', tuple(), {})
-            attrs['Meta'] = _meta
+            _meta = type("Meta", tuple(), {})
+            attrs["Meta"] = _meta
         _meta.managed = False
-        if not hasattr(_meta, 'db_table') or not _meta.db_table:
+        if not hasattr(_meta, "db_table") or not _meta.db_table:
             _meta.db_table = '{schema}"."{table}'.format(
                 schema=settings.HEROKU_CONNECT_SCHEMA,
-                table=attrs.get('sf_object_name', '').lower(),
+                table=attrs.get("sf_object_name", "").lower(),
             )
         new_class = super_new(mcs, name, bases, attrs)
 
         # Some objects in Heroku Connect has no is_deleted field.
         objects_without_is_deleted = [
-            'User',
-            'RecordType',
-            'EmailTemplate',
+            "User",
+            "RecordType",
+            "EmailTemplate",
         ]
         if new_class.sf_object_name in objects_without_is_deleted:
-            is_deleted = [x for x in new_class._meta.local_fields if x.name == 'is_deleted'][0]
+            is_deleted = [
+                x for x in new_class._meta.local_fields if x.name == "is_deleted"
+            ][0]
             new_class._meta.local_fields.remove(is_deleted)
 
         return new_class
@@ -79,11 +81,12 @@ def get_heroku_connect_table_name(model_cls):
     """
     # strip schema and quotes from _meta.db_table
     # https://www.postgresql.org/docs/9.6/static/sql-syntax-lexical.html#SQL-SYNTAX-IDENTIFIERS
-    return model_cls._meta.db_table.rsplit('.', 1)[-1].strip('"')
+    return model_cls._meta.db_table.rsplit(".", 1)[-1].strip('"')
 
 
-class HerokuConnectModel(_HerokuConnectSnitchMixin, models.Model,
-                         metaclass=HerokuConnectModelBase):
+class HerokuConnectModel(
+    _HerokuConnectSnitchMixin, models.Model, metaclass=HerokuConnectModelBase
+):
     """
     Base model for Heroku Connect enabled ORM models in Django.
 
@@ -123,7 +126,7 @@ class HerokuConnectModel(_HerokuConnectSnitchMixin, models.Model,
 
     """
 
-    sf_object_name = ''
+    sf_object_name = ""
     """Salesforce object API name."""
 
     sf_access = READ_ONLY
@@ -161,18 +164,22 @@ class HerokuConnectModel(_HerokuConnectSnitchMixin, models.Model,
 
     sf_max_daily_api_calls = 30000
 
-    sf_id = fields.ID(sf_field_name='Id', db_column='sfid')
-    system_mod_stamp = fields.DateTime(sf_field_name='SystemModstamp', db_index=True)
-    is_deleted = fields.Checkbox(sf_field_name='IsDeleted')
+    sf_id = fields.ID(sf_field_name="Id", db_column="sfid")
+    system_mod_stamp = fields.DateTime(sf_field_name="SystemModstamp", db_index=True)
+    is_deleted = fields.Checkbox(sf_field_name="IsDeleted")
     _hc_lastop = models.CharField(
-        max_length=32, null=True, editable=False,
-        help_text='Indicates the last sync operation Heroku Connect performed on the record',
+        max_length=32,
+        null=True,
+        editable=False,
+        help_text="Indicates the last sync operation Heroku Connect performed on the record",
     )
     _hc_err = models.TextField(
-        max_length=1024, null=True, editable=False,
-        help_text='If the last sync operation by Heroku Connect resulted in an error then this'
-                  ' column will contain a JSON object containing more'
-                  ' information about the error',
+        max_length=1024,
+        null=True,
+        editable=False,
+        help_text="If the last sync operation by Heroku Connect resulted in an error then this"
+        " column will contain a JSON object containing more"
+        " information about the error",
     )
 
     class Meta:
@@ -182,7 +189,8 @@ class HerokuConnectModel(_HerokuConnectSnitchMixin, models.Model,
     @classmethod
     def get_heroku_connect_fields(cls):
         return [
-            field for field in cls._meta.fields
+            field
+            for field in cls._meta.fields
             if isinstance(field, fields.HerokuConnectFieldMixin)
         ]
 
@@ -197,7 +205,7 @@ class HerokuConnectModel(_HerokuConnectSnitchMixin, models.Model,
 
         indexes = {
             field.sf_field_name: {
-                'unique': field.unique,
+                "unique": field.unique,
             }
             for field in sf_fields
             if field.db_index
@@ -225,77 +233,87 @@ class HerokuConnectModel(_HerokuConnectSnitchMixin, models.Model,
 
         if upsert_field is not None:
             config["upsert_field"] = upsert_field
-        return {
-            "object_name": cls.sf_object_name,
-            "config": config
-        }
+        return {"object_name": cls.sf_object_name, "config": config}
 
     get_heroku_connect_table_name = classmethod(get_heroku_connect_table_name)
 
     @classmethod
     def _check_sf_object_name(cls):
         if not (cls._meta.abstract or cls.sf_object_name):
-            return [checks.Error(
-                "%s.%s must define a \"sf_object_name\"." % (
-                    cls._meta.app_label, cls.__name__
-                ),
-                id='heroku_connect.E001',
-            )]
+            return [
+                checks.Error(
+                    '%s.%s must define a "sf_object_name".'
+                    % (cls._meta.app_label, cls.__name__),
+                    id="heroku_connect.E001",
+                )
+            ]
         return []
 
     @classmethod
     def _check_sf_access(cls):
         allowed_access_types = [READ_ONLY, READ_WRITE]
         if cls.sf_access not in allowed_access_types:
-            return [checks.Error(
-                "%s.%s.sf_access must be one of %s" % (
-                    cls._meta.app_label, cls.__name__, allowed_access_types
-                ),
-                hint=cls.sf_access,
-                id='heroku_connect.E002',
-            )]
+            return [
+                checks.Error(
+                    "%s.%s.sf_access must be one of %s"
+                    % (cls._meta.app_label, cls.__name__, allowed_access_types),
+                    hint=cls.sf_access,
+                    id="heroku_connect.E002",
+                )
+            ]
         return []
 
     @classmethod
     def _check_unique_sf_field_names(cls):
-        sf_field_names = [field.sf_field_name for field in cls.get_heroku_connect_fields()]
-        duplicates = [x for n, x in enumerate(sf_field_names) if x in sf_field_names[:n]]
+        sf_field_names = [
+            field.sf_field_name for field in cls.get_heroku_connect_fields()
+        ]
+        duplicates = [
+            x for n, x in enumerate(sf_field_names) if x in sf_field_names[:n]
+        ]
         if duplicates:
-            return [checks.Error(
-                "%s.%s has duplicate Salesforce field names." % (
-                    cls._meta.app_label, cls.__name__
-                ),
-                hint=duplicates,
-                id='heroku_connect.E003',
-            )]
+            return [
+                checks.Error(
+                    "%s.%s has duplicate Salesforce field names."
+                    % (cls._meta.app_label, cls.__name__),
+                    hint=duplicates,
+                    id="heroku_connect.E003",
+                )
+            ]
         return []
 
     @classmethod
     def _check_upsert_field(cls):
-        upsert_fields = [field for field in cls.get_heroku_connect_fields() if field.upsert]
+        upsert_fields = [
+            field for field in cls.get_heroku_connect_fields() if field.upsert
+        ]
         if len(upsert_fields) > 1:
-            return [checks.Error(
-                "%s.%s can only have a single upsert field." % (
-                    cls._meta.app_label, cls.__name__
-                ),
-                hint=upsert_fields,
-                id='heroku_connect.E004',
-            )]
+            return [
+                checks.Error(
+                    "%s.%s can only have a single upsert field."
+                    % (cls._meta.app_label, cls.__name__),
+                    hint=upsert_fields,
+                    id="heroku_connect.E004",
+                )
+            ]
         return []
 
     @classmethod
     def _check_missing_upsert_field(cls):
         errors = []
         if cls.sf_access == READ_WRITE:
-            upsert_fields = [field for field in cls.get_heroku_connect_fields() if field.upsert]
+            upsert_fields = [
+                field for field in cls.get_heroku_connect_fields() if field.upsert
+            ]
             if not upsert_fields:
-                errors.append(checks.Error(
-                    "%s.%s does not have an upsert field." % (
-                        cls._meta.app_label, cls.__name__
-                    ),
-                    hint='Read-write models need an upsert field.',
-                    id='heroku_connect.E007',
-                ))
+                errors.append(
+                    checks.Error(
+                        "%s.%s does not have an upsert field."
+                        % (cls._meta.app_label, cls.__name__),
+                        hint="Read-write models need an upsert field.",
+                        id="heroku_connect.E007",
+                    )
+                )
         return errors
 
     @classmethod

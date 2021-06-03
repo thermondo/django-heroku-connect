@@ -15,9 +15,25 @@ from django.db import models
 from django.utils import timezone
 
 __all__ = (
-    'HerokuConnectFieldMixin', 'AnyType', 'ID', 'ExternalID', 'Checkbox', 'Number', 'Currency',
-    'Date', 'DateTime', 'Email', 'EncryptedString', 'Percent',
-    'Phone', 'Picklist', 'Text', 'TextArea', 'TextAreaLong', 'Time', 'URL',
+    "HerokuConnectFieldMixin",
+    "AnyType",
+    "ID",
+    "ExternalID",
+    "Checkbox",
+    "Number",
+    "Currency",
+    "Date",
+    "DateTime",
+    "Email",
+    "EncryptedString",
+    "Percent",
+    "Phone",
+    "Picklist",
+    "Text",
+    "TextArea",
+    "TextAreaLong",
+    "Time",
+    "URL",
 )
 
 
@@ -30,15 +46,17 @@ class HerokuConnectFieldMixin:
     upsert = False
 
     def __init__(self, *args, **kwargs):
-        self.sf_field_name = kwargs.pop('sf_field_name')
-        kwargs.setdefault('db_column', self.sf_field_name.lower())
-        kwargs.setdefault('null', True)
-        self.upsert = kwargs.pop('upsert', False)
+        self.sf_field_name = kwargs.pop("sf_field_name")
+        kwargs.setdefault("db_column", self.sf_field_name.lower())
+        kwargs.setdefault("null", True)
+        self.upsert = kwargs.pop("upsert", False)
         if self.upsert:
-            kwargs.update({
-                'unique': True,
-                'db_index': True,
-            })
+            kwargs.update(
+                {
+                    "unique": True,
+                    "db_index": True,
+                }
+            )
         super().__init__(*args, **kwargs)
         if self.unique:
             # unique fields must be indexed in Heroku Connect
@@ -46,25 +64,23 @@ class HerokuConnectFieldMixin:
 
     def deconstruct(self):
         name, path, args, kwargs = super().deconstruct()
-        kwargs['sf_field_name'] = self.sf_field_name
-        kwargs['upsert'] = self.upsert
+        kwargs["sf_field_name"] = self.sf_field_name
+        kwargs["upsert"] = self.upsert
         return name, path, args, kwargs
 
 
 class AnyType(HerokuConnectFieldMixin, models.TextField):
     """Salesforce ``AnyType`` field."""
 
-    pass
-
 
 class ID(HerokuConnectFieldMixin, models.CharField):
     """Salesforce ``ID`` field."""
 
     def __init__(self, *args, **kwargs):
-        kwargs['max_length'] = 18
-        kwargs['editable'] = False
-        kwargs['null'] = True
-        kwargs.setdefault('unique', True)
+        kwargs["max_length"] = 18
+        kwargs["editable"] = False
+        kwargs["null"] = True
+        kwargs.setdefault("unique", True)
         super().__init__(*args, **kwargs)
 
 
@@ -89,12 +105,12 @@ class ExternalID(HerokuConnectFieldMixin, models.UUIDField):
     """
 
     def __init__(self, *args, **kwargs):
-        kwargs.setdefault('upsert', True)
-        kwargs.setdefault('default', uuid.uuid4)
+        kwargs.setdefault("upsert", True)
+        kwargs.setdefault("default", uuid.uuid4)
         super().__init__(*args, **kwargs)
 
     def get_internal_type(self):
-        return 'CharField'
+        return "CharField"
 
     def get_db_prep_value(self, value, connection, prepared=False):
         if value is None:
@@ -111,7 +127,7 @@ class Checkbox(HerokuConnectFieldMixin, models.BooleanField):
     """Salesforce ``Checkbox`` field."""
 
     def __init__(self, *args, **kwargs):
-        kwargs['null'] = True
+        kwargs["null"] = True
         super().__init__(*args, **kwargs)
 
 
@@ -129,7 +145,7 @@ class Number(HerokuConnectFieldMixin, models.DecimalField):
     """
 
     def get_internal_type(self):
-        return 'FloatField'
+        return "FloatField"
 
     def get_db_prep_save(self, value, connection):
         if value is not None:
@@ -158,13 +174,9 @@ class Currency(Number):
         https://developer.salesforce.com/docs/atlas.en-us.api.meta/api/field_types.htm#i1435541
     """
 
-    pass
-
 
 class Date(HerokuConnectFieldMixin, models.DateField):
     """Salesforce ``Date`` field."""
-
-    pass
 
 
 class DateTime(HerokuConnectFieldMixin, models.DateTimeField):
@@ -177,7 +189,7 @@ class DateTime(HerokuConnectFieldMixin, models.DateTimeField):
     """
 
     def db_type(self, connection):
-        return 'timestamp without time zone'
+        return "timestamp without time zone"
 
     def from_db_value(self, value, *args, **kwargs):
         if value is None:
@@ -190,7 +202,7 @@ class Email(HerokuConnectFieldMixin, models.EmailField):
     """Salesforce ``Email`` field."""
 
     def __init__(self, *args, **kwargs):
-        kwargs['max_length'] = 80
+        kwargs["max_length"] = 80
         super().__init__(*args, **kwargs)
 
 
@@ -214,20 +226,16 @@ class EncryptedString(HerokuConnectFieldMixin, models.CharField):
         https://devcenter.heroku.com/articles/heroku-connect-database-tables#encrypted-strings
     """
 
-    pass
-
 
 class Percent(Number):
     """Salesforce ``Percent`` field."""
-
-    pass
 
 
 class Phone(HerokuConnectFieldMixin, models.CharField):
     """Salesforce ``Phone`` field."""
 
     def __init__(self, *args, **kwargs):
-        kwargs['max_length'] = 40
+        kwargs["max_length"] = 40
         super().__init__(*args, **kwargs)
 
 
@@ -235,34 +243,32 @@ class Picklist(HerokuConnectFieldMixin, models.CharField):
     """Salesforce ``Picklist`` field."""
 
     def __init__(self, *args, **kwargs):
-        self.choices = kwargs['choices']
+        self.choices = kwargs["choices"]
         longest_choice = max(self.flatchoices, key=lambda choice: len(choice[0]))
         max_length = len(longest_choice[0])
         max_length = max(255, max_length)
-        kwargs.setdefault('max_length', max_length)
+        kwargs.setdefault("max_length", max_length)
         super().__init__(*args, **kwargs)
 
 
 class Text(HerokuConnectFieldMixin, models.CharField):
     """Salesforce ``Text`` field."""
 
-    pass
-
 
 class TextArea(HerokuConnectFieldMixin, models.CharField):
     """Salesforce ``Text Area`` field."""
 
     def __init__(self, *args, **kwargs):
-        kwargs.setdefault('max_length', 255)
+        kwargs.setdefault("max_length", 255)
         super().__init__(*args, **kwargs)
 
     def formfield(self, **kwargs):
         # Passing max_length to forms.CharField means that the value's length
         # will be validated twice. This is considered acceptable since we want
         # the value in the form field (to pass into widget for example).
-        defaults = {'max_length': self.max_length}
+        defaults = {"max_length": self.max_length}
         if not self.choices:
-            defaults['widget'] = forms.Textarea
+            defaults["widget"] = forms.Textarea
         defaults.update(kwargs)
         return super().formfield(**defaults)
 
@@ -270,18 +276,14 @@ class TextArea(HerokuConnectFieldMixin, models.CharField):
 class TextAreaLong(HerokuConnectFieldMixin, models.TextField):
     """Salesforce ``Text Area (Long)`` and ``Text Area (Rich)`` field."""
 
-    pass
-
 
 class Time(HerokuConnectFieldMixin, models.TimeField):
     """Salesforce ``Time`` field."""
-
-    pass
 
 
 class URL(HerokuConnectFieldMixin, models.URLField):
     """Salesforce ``URL`` field."""
 
     def __init__(self, *args, **kwargs):
-        kwargs.setdefault('max_length', 255)
+        kwargs.setdefault("max_length", 255)
         super().__init__(*args, **kwargs)

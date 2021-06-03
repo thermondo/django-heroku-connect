@@ -27,18 +27,31 @@ class Command(BaseCommand):
 
     help = __doc__.strip().splitlines()[0]
 
-    url_pattern = r'postgres://(?P<user>[\d\w]*):(?P<passwd>[\d\w]*)' \
-                  r'@(?P<host>[^:]+):(?P<port>\d+)/(?P<dbname>[\d\w]+)'
+    url_pattern = (
+        r"postgres://(?P<user>[\d\w]*):(?P<passwd>[\d\w]*)"
+        r"@(?P<host>[^:]+):(?P<port>\d+)/(?P<dbname>[\d\w]+)"
+    )
 
     def add_arguments(self, parser):
-        parser.add_argument('--app', '-a', dest='HEROKU_APP', type=str,
-                            help="Heroku app name that the schema will be pulled from.")
-        parser.add_argument('--schema', '-s', dest='SCHEMA_NAME', type=str, default='salesforce',
-                            help="Name of schema that you want to load.")
+        parser.add_argument(
+            "--app",
+            "-a",
+            dest="HEROKU_APP",
+            type=str,
+            help="Heroku app name that the schema will be pulled from.",
+        )
+        parser.add_argument(
+            "--schema",
+            "-s",
+            dest="SCHEMA_NAME",
+            type=str,
+            default="salesforce",
+            help="Name of schema that you want to load.",
+        )
 
     def handle(self, *args, **options):
-        heroku_app = options.get('HEROKU_APP')
-        schema_name = options['SCHEMA_NAME']
+        heroku_app = options.get("HEROKU_APP")
+        schema_name = options["SCHEMA_NAME"]
         url = self.get_database_url(heroku_app)
         credentials = self.parse_credentials(url)
         schema = self.get_schema(**credentials, schema_name=schema_name)
@@ -46,16 +59,16 @@ class Command(BaseCommand):
 
     @staticmethod
     def get_database_url(heroku_app):
-        run_args = ['heroku', 'pg:credentials:url']
+        run_args = ["heroku", "pg:credentials:url"]
         if heroku_app:
-            run_args += ['-a', heroku_app]
+            run_args += ["-a", heroku_app]
 
         try:
             output = subprocess.check_output(run_args)  # nosec
         except subprocess.SubprocessError as e:
             raise CommandError("Please provide the correct Heroku app name.") from e
         else:
-            return output.decode('utf-8')
+            return output.decode("utf-8")
 
     def parse_credentials(self, url):
         match = re.search(self.url_pattern, url)
@@ -67,16 +80,21 @@ class Command(BaseCommand):
     @staticmethod
     def get_schema(user, host, port, dbname, passwd, schema_name):
         env = os.environ.copy()
-        env['PGPASSWORD'] = passwd
+        env["PGPASSWORD"] = passwd
 
         run_args = [
-            'pg_dump',
-            '-sO',
-            '-n', schema_name,
-            '-U', user,
-            '-h', host,
-            '-p', port,
-            '-d', dbname,
+            "pg_dump",
+            "-sO",
+            "-n",
+            schema_name,
+            "-U",
+            user,
+            "-h",
+            host,
+            "-p",
+            port,
+            "-d",
+            dbname,
         ]
 
         try:
@@ -84,4 +102,4 @@ class Command(BaseCommand):
         except subprocess.SubprocessError as e:
             raise CommandError("Schema not found.") from e
         else:
-            return output.decode('utf-8')
+            return output.decode("utf-8")

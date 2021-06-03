@@ -23,13 +23,14 @@ class Command(BaseCommand):
     """
 
     def add_arguments(self, parser):
-        parser.add_argument('-o', metavar='file_name', dest='output',
-                            help='Output file name.')
+        parser.add_argument(
+            "-o", metavar="file_name", dest="output", help="Output file name."
+        )
 
     def handle(self, *args, **options):
-        output = options.get('output', None)
+        output = options.get("output", None)
         if output:
-            f = open(output, 'w+')
+            f = open(output, "w+")
         else:
             f = self.stdout
 

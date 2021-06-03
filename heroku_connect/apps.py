@@ -5,7 +5,7 @@ from django.core import checks
 class HerokuConnectAppConfig(AppConfig):
     """Heroku Connect Django App configuration."""
 
-    name = 'heroku_connect'
+    name = "heroku_connect"
     verbose_name = "Heroku Connect"
 
     def ready(self):
