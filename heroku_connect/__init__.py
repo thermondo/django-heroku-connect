@@ -8,4 +8,4 @@ in the Heroku database in sync with Salesforce.
 .. _`Heroku Connect`: https://devcenter.heroku.com/categories/heroku-connect
 """
 
-default_app_config = 'heroku_connect.apps.HerokuConnectAppConfig'
+default_app_config = "heroku_connect.apps.HerokuConnectAppConfig"

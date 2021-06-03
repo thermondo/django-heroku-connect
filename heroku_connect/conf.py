@@ -3,11 +3,11 @@ import os
 from appconf import AppConf
 from django.conf import settings
 
-__all__ = ('settings',)
+__all__ = ("settings",)
 
 
 class HerokuConnectAppConf(AppConf):
-    HEROKU_CONNECT_SCHEMA = os.environ.get('HEROKU_CONNECT_SCHEMA', 'salesforce')
+    HEROKU_CONNECT_SCHEMA = os.environ.get("HEROKU_CONNECT_SCHEMA", "salesforce")
     """
     Database schema used by the Heroku Connect add-on.
 
@@ -21,7 +21,9 @@ class HerokuConnectAppConf(AppConf):
 
     """
 
-    HEROKU_CONNECT_ORGANIZATION_ID = os.environ.get('HEROKU_CONNECT_ORGANIZATION_ID', '')
+    HEROKU_CONNECT_ORGANIZATION_ID = os.environ.get(
+        "HEROKU_CONNECT_ORGANIZATION_ID", ""
+    )
     """
     `Salesforce Organization ID`_.
 
@@ -36,7 +38,7 @@ class HerokuConnectAppConf(AppConf):
 
     """
 
-    HEROKU_CONNECT_APP_NAME = os.environ.get('HEROKU_APP_NAME', '')
+    HEROKU_CONNECT_APP_NAME = os.environ.get("HEROKU_APP_NAME", "")
     """
     Heroku application name.
 
@@ -48,7 +50,7 @@ class HerokuConnectAppConf(AppConf):
 
     """
 
-    HEROKU_AUTH_TOKEN = os.environ.get('HEROKU_AUTH_TOKEN', '')
+    HEROKU_AUTH_TOKEN = os.environ.get("HEROKU_AUTH_TOKEN", "")
     """
     Heroku Platform API's Direct Authorization token.
 
@@ -68,8 +70,9 @@ class HerokuConnectAppConf(AppConf):
     https://devcenter.heroku.com/articles/oauth#direct-authorization-token-exchange.
     """
 
-    HEROKU_CONNECT_API_ENDPOINT = os.environ.get('HEROKU_CONNECT_API_ENDPOINT',
-                                                 'https://connect-eu.heroku.com/api/v3')
+    HEROKU_CONNECT_API_ENDPOINT = os.environ.get(
+        "HEROKU_CONNECT_API_ENDPOINT", "https://connect-eu.heroku.com/api/v3"
+    )
     """
     Heroku Connect API Endpoint.
 

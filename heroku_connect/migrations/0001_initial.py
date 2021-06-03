@@ -9,84 +9,157 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         # TriggerLog models and operations use the postgres hstore extension
         # Heroku (Connect) should take care that it's installed, however we need to create it
         # manually in the test database.
         migrations.CreateModel(
-            name='TriggerLog',
+            name="TriggerLog",
             fields=[
-                ('id', models.BigAutoField(editable=False, primary_key=True, serialize=False)),
-                ('created_at', models.DateTimeField(editable=False, null=True)),
-                ('updated_at', models.DateTimeField(editable=False, null=True)),
-                ('processed_at', models.DateTimeField(editable=False, null=True)),
-                ('table_name', models.CharField(editable=False, max_length=128)),
-                ('record_id', models.BigIntegerField(editable=False)),
-                ('sf_id',
-                 models.CharField(db_column='sfid', editable=False, max_length=18, null=True)),
-                ('action', models.CharField(
-                    choices=[('DELETE', 'DELETE'), ('INSERT', 'INSERT'), ('UPDATE', 'UPDATE')],
-                    editable=False, max_length=7)),
-                ('sf_message', models.TextField(blank=True, editable=False, null=True)),
-                ('values',
-                 django.contrib.postgres.fields.hstore.HStoreField(blank=True, editable=False,
-                                                                   null=True)),
-                ('old',
-                 django.contrib.postgres.fields.hstore.HStoreField(blank=True, editable=False,
-                                                                   null=True)),
-                ('state', models.CharField(
-                    choices=[('FAILED', 'FAILED'), ('IGNORE', 'IGNORE'), ('IGNORED', 'IGNORED'),
-                             ('MERGED', 'MERGED'), ('NEW', 'NEW'), ('PENDING', 'PENDING'),
-                             ('READONLY', 'READONLY'), ('REQUEUE', 'REQUEUE'),
-                             ('REQUEUED', 'REQUEUED'), ('SUCCESS', 'SUCCESS')], max_length=8)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        editable=False, primary_key=True, serialize=False
+                    ),
+                ),
+                ("created_at", models.DateTimeField(editable=False, null=True)),
+                ("updated_at", models.DateTimeField(editable=False, null=True)),
+                ("processed_at", models.DateTimeField(editable=False, null=True)),
+                ("table_name", models.CharField(editable=False, max_length=128)),
+                ("record_id", models.BigIntegerField(editable=False)),
+                (
+                    "sf_id",
+                    models.CharField(
+                        db_column="sfid", editable=False, max_length=18, null=True
+                    ),
+                ),
+                (
+                    "action",
+                    models.CharField(
+                        choices=[
+                            ("DELETE", "DELETE"),
+                            ("INSERT", "INSERT"),
+                            ("UPDATE", "UPDATE"),
+                        ],
+                        editable=False,
+                        max_length=7,
+                    ),
+                ),
+                ("sf_message", models.TextField(blank=True, editable=False, null=True)),
+                (
+                    "values",
+                    django.contrib.postgres.fields.hstore.HStoreField(
+                        blank=True, editable=False, null=True
+                    ),
+                ),
+                (
+                    "old",
+                    django.contrib.postgres.fields.hstore.HStoreField(
+                        blank=True, editable=False, null=True
+                    ),
+                ),
+                (
+                    "state",
+                    models.CharField(
+                        choices=[
+                            ("FAILED", "FAILED"),
+                            ("IGNORE", "IGNORE"),
+                            ("IGNORED", "IGNORED"),
+                            ("MERGED", "MERGED"),
+                            ("NEW", "NEW"),
+                            ("PENDING", "PENDING"),
+                            ("READONLY", "READONLY"),
+                            ("REQUEUE", "REQUEUE"),
+                            ("REQUEUED", "REQUEUED"),
+                            ("SUCCESS", "SUCCESS"),
+                        ],
+                        max_length=8,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Trigger Log',
-                'db_table': 'salesforce"."_trigger_log',
-                'ordering': ('id',),
-                'get_latest_by': 'created_at',
-                'abstract': False,
-                'managed': False,
+                "verbose_name": "Trigger Log",
+                "db_table": 'salesforce"."_trigger_log',
+                "ordering": ("id",),
+                "get_latest_by": "created_at",
+                "abstract": False,
+                "managed": False,
             },
         ),
         migrations.CreateModel(
-            name='TriggerLogArchive',
+            name="TriggerLogArchive",
             fields=[
-                ('id', models.BigAutoField(editable=False, primary_key=True, serialize=False)),
-                ('created_at', models.DateTimeField(editable=False, null=True)),
-                ('updated_at', models.DateTimeField(editable=False, null=True)),
-                ('processed_at', models.DateTimeField(editable=False, null=True)),
-                ('table_name', models.CharField(editable=False, max_length=128)),
-                ('record_id', models.BigIntegerField(editable=False)),
-                ('sf_id',
-                 models.CharField(db_column='sfid', editable=False, max_length=18, null=True)),
-                ('action', models.CharField(
-                    choices=[('DELETE', 'DELETE'), ('INSERT', 'INSERT'), ('UPDATE', 'UPDATE')],
-                    editable=False, max_length=7)),
-                ('sf_message', models.TextField(blank=True, editable=False, null=True)),
-                ('values',
-                 django.contrib.postgres.fields.hstore.HStoreField(blank=True, editable=False,
-                                                                   null=True)),
-                ('old',
-                 django.contrib.postgres.fields.hstore.HStoreField(blank=True, editable=False,
-                                                                   null=True)),
-                ('state', models.CharField(
-                    choices=[('FAILED', 'FAILED'), ('IGNORE', 'IGNORE'), ('IGNORED', 'IGNORED'),
-                             ('MERGED', 'MERGED'), ('NEW', 'NEW'), ('PENDING', 'PENDING'),
-                             ('READONLY', 'READONLY'), ('REQUEUE', 'REQUEUE'),
-                             ('REQUEUED', 'REQUEUED'), ('SUCCESS', 'SUCCESS')], max_length=8)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        editable=False, primary_key=True, serialize=False
+                    ),
+                ),
+                ("created_at", models.DateTimeField(editable=False, null=True)),
+                ("updated_at", models.DateTimeField(editable=False, null=True)),
+                ("processed_at", models.DateTimeField(editable=False, null=True)),
+                ("table_name", models.CharField(editable=False, max_length=128)),
+                ("record_id", models.BigIntegerField(editable=False)),
+                (
+                    "sf_id",
+                    models.CharField(
+                        db_column="sfid", editable=False, max_length=18, null=True
+                    ),
+                ),
+                (
+                    "action",
+                    models.CharField(
+                        choices=[
+                            ("DELETE", "DELETE"),
+                            ("INSERT", "INSERT"),
+                            ("UPDATE", "UPDATE"),
+                        ],
+                        editable=False,
+                        max_length=7,
+                    ),
+                ),
+                ("sf_message", models.TextField(blank=True, editable=False, null=True)),
+                (
+                    "values",
+                    django.contrib.postgres.fields.hstore.HStoreField(
+                        blank=True, editable=False, null=True
+                    ),
+                ),
+                (
+                    "old",
+                    django.contrib.postgres.fields.hstore.HStoreField(
+                        blank=True, editable=False, null=True
+                    ),
+                ),
+                (
+                    "state",
+                    models.CharField(
+                        choices=[
+                            ("FAILED", "FAILED"),
+                            ("IGNORE", "IGNORE"),
+                            ("IGNORED", "IGNORED"),
+                            ("MERGED", "MERGED"),
+                            ("NEW", "NEW"),
+                            ("PENDING", "PENDING"),
+                            ("READONLY", "READONLY"),
+                            ("REQUEUE", "REQUEUE"),
+                            ("REQUEUED", "REQUEUED"),
+                            ("SUCCESS", "SUCCESS"),
+                        ],
+                        max_length=8,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Trigger Log (archived)',
-                'verbose_name_plural': 'Trigger Logs (archived)',
-                'db_table': 'salesforce"."_trigger_log_archive',
-                'ordering': ('id',),
-                'get_latest_by': 'created_at',
-                'abstract': False,
-                'managed': False,
+                "verbose_name": "Trigger Log (archived)",
+                "verbose_name_plural": "Trigger Logs (archived)",
+                "db_table": 'salesforce"."_trigger_log_archive',
+                "ordering": ("id",),
+                "get_latest_by": "created_at",
+                "abstract": False,
+                "managed": False,
             },
         ),
     ]

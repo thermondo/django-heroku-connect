@@ -8,11 +8,11 @@ from contextlib import contextmanager
 
 from django.test import override_settings
 
-__all__ = ('heroku_cli', 'no_heroku_connect_write_restrictions')
+__all__ = ("heroku_cli", "no_heroku_connect_write_restrictions")
 
 
 @contextmanager
-def heroku_cli(stdout='', stderr='', exit_code=0):
+def heroku_cli(stdout="", stderr="", exit_code=0):
     r"""
     Context manager to mock the Heroku CLI command.
 
@@ -38,25 +38,18 @@ def heroku_cli(stdout='', stderr='', exit_code=0):
 
     """
     bin_dir = tempfile.mkdtemp()
-    path = os.environ.get('PATH', '')
-    os.environ['PATH'] = ':'.join([bin_dir, path])
-    exec_name = os.path.join(bin_dir, 'heroku')
-    script = (
-        '#!/bin/bash\n'
-        'echo %s 1>&1\n'
-        'echo %s 1>&2\n'
-        'exit %i\n'
-    )
-    script %= (
-        shlex.quote(stdout), shlex.quote(stderr), exit_code
-    )
-    with open(exec_name, 'wb+') as f:
+    path = os.environ.get("PATH", "")
+    os.environ["PATH"] = ":".join([bin_dir, path])
+    exec_name = os.path.join(bin_dir, "heroku")
+    script = "#!/bin/bash\n" "echo %s 1>&1\n" "echo %s 1>&2\n" "exit %i\n"
+    script %= (shlex.quote(stdout), shlex.quote(stderr), exit_code)
+    with open(exec_name, "wb+") as f:
         f.seek(0)
-        f.write(script.encode('utf-8'))
+        f.write(script.encode("utf-8"))
     st = os.stat(exec_name)
     os.chmod(exec_name, st.st_mode | stat.S_IEXEC)
     yield
-    os.environ['PATH'] = path
+    os.environ["PATH"] = path
 
 
 @contextmanager
@@ -72,9 +65,10 @@ def no_heroku_connect_write_restrictions():
 
     """
     from ..conf import settings
-    new_settings = copy.copy(getattr(settings, 'DATABASE_ROUTERS', []))
+
+    new_settings = copy.copy(getattr(settings, "DATABASE_ROUTERS", []))
     try:
-        new_settings.remove('heroku_connect.db.router.HerokuConnectRouter')
+        new_settings.remove("heroku_connect.db.router.HerokuConnectRouter")
     except ValueError:
         pass
     with override_settings(DATABASE_ROUTERS=new_settings):
