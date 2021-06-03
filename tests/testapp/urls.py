@@ -1,4 +1,4 @@
-"""testapp URL Configuration
+"""testapp URL Configuration.
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/1.11/topics/http/urls/
@@ -24,6 +24,6 @@ except ImportError:
 
 
 urlpatterns = [
-    url(r'^admin/', admin.site.urls),
-    url(r'^ht/', include('health_check.urls')),
+    url(r"^admin/", admin.site.urls),
+    url(r"^ht/", include("health_check.urls")),
 ]

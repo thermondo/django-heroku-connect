@@ -13,13 +13,13 @@ from heroku_connect.conf import settings
 
 
 class ConnectionStates:
-    IDLE = 'IDLE'
-    POLLING_DB_CHANGES = 'POLLING_DB_CHANGES'
-    IMPORT_CONFIGURATION = 'IMPORT_CONFIGURATION'
-    BUSY = 'BUSY'
-    NEED_AUTHENTICATION = 'NEED_AUTHENTICATION'
-    INACTIVE_ORG = 'INACTIVE_ORG'
-    PAUSED = 'PAUSED'
+    IDLE = "IDLE"
+    POLLING_DB_CHANGES = "POLLING_DB_CHANGES"
+    IMPORT_CONFIGURATION = "IMPORT_CONFIGURATION"
+    BUSY = "BUSY"
+    NEED_AUTHENTICATION = "NEED_AUTHENTICATION"
+    INACTIVE_ORG = "INACTIVE_ORG"
+    PAUSED = "PAUSED"
 
     OK_STATES = (
         IDLE,
@@ -35,7 +35,7 @@ class WriteAlgorithm(Enum):
 
 
 def _write_algorithm_from_connection_info(info):
-    if info.get('features', {}).get('poll_db_no_merge', False):
+    if info.get("features", {}).get("poll_db_no_merge", False):
         return WriteAlgorithm.ORDERED_WRITES
     else:
         return WriteAlgorithm.MERGE_WRITES
@@ -62,16 +62,15 @@ def get_mapping(version=1, exported_at=None, app_name=None):
         exported_at = timezone.now()
     app_name = app_name or settings.HEROKU_CONNECT_APP_NAME
     return {
-        'version': version,
-        'connection': {
-            'organization_id': settings.HEROKU_CONNECT_ORGANIZATION_ID,
-            'app_name': app_name,
-            'exported_at': exported_at.isoformat(),
+        "version": version,
+        "connection": {
+            "organization_id": settings.HEROKU_CONNECT_ORGANIZATION_ID,
+            "app_name": app_name,
+            "exported_at": exported_at.isoformat(),
         },
-        'mappings': [
-            model.get_heroku_connect_mapping()
-            for model in get_heroku_connect_models()
-        ]
+        "mappings": [
+            model.get_heroku_connect_mapping() for model in get_heroku_connect_models()
+        ],
     }
 
 
@@ -86,6 +85,7 @@ def get_heroku_connect_models():
 
     """
     from django.apps import apps
+
     apps.check_models_ready()
     from heroku_connect.db.models import HerokuConnectModel
 
@@ -93,8 +93,7 @@ def get_heroku_connect_models():
         model
         for models in apps.all_models.values()
         for model in models.values()
-        if issubclass(model, HerokuConnectModel)
-        and not model._meta.managed
+        if issubclass(model, HerokuConnectModel) and not model._meta.managed
     )
 
 
@@ -104,7 +103,7 @@ def get_connected_model_for_table_name(table_name):
     for connected_model in get_heroku_connect_models():
         if connected_model.get_heroku_connect_table_name() == table_name:
             return connected_model
-    raise LookupError('No connected model found for table %r' % (table_name,))
+    raise LookupError("No connected model found for table %r" % (table_name,))
 
 
 _SCHEMA_EXISTS_QUERY = """
@@ -151,15 +150,14 @@ def create_heroku_connect_schema(using=DEFAULT_DB_ALIAS):
         editor.execute('CREATE EXTENSION IF NOT EXISTS "hstore";')
 
         from heroku_connect.models import TriggerLog, TriggerLogArchive
+
         for cls in [TriggerLog, TriggerLogArchive]:
             editor.create_model(cls)
     return True
 
 
 def _get_authorization_headers():
-    return {
-        'Authorization': 'Bearer %s' % settings.HEROKU_AUTH_TOKEN
-    }
+    return {"Authorization": "Bearer %s" % settings.HEROKU_AUTH_TOKEN}
 
 
 def get_connections(app):
@@ -193,16 +191,16 @@ def get_connections(app):
         ValueError: If response is not a valid JSON.
 
     """
-    payload = {'app': app}
-    url = os.path.join(settings.HEROKU_CONNECT_API_ENDPOINT, 'connections')
+    payload = {"app": app}
+    url = os.path.join(settings.HEROKU_CONNECT_API_ENDPOINT, "connections")
     response = requests.get(url, params=payload, headers=_get_authorization_headers())
     response.raise_for_status()
-    return response.json()['results']
+    return response.json()["results"]
 
 
 def get_all_connections_write_modes(app):
     return {
-        info['id']: _write_algorithm_from_connection_info(info)
+        info["id"]: _write_algorithm_from_connection_info(info)
         for info in get_connections(app)
     }
 
@@ -254,23 +252,23 @@ def get_connection(connection_id, deep=False):
         ValueError: If response is not a valid JSON.
 
     """
-    url = os.path.join(settings.HEROKU_CONNECT_API_ENDPOINT, 'connections', connection_id)
-    payload = {'deep': deep}
+    url = os.path.join(
+        settings.HEROKU_CONNECT_API_ENDPOINT, "connections", connection_id
+    )
+    payload = {"deep": deep}
     response = requests.get(url, params=payload, headers=_get_authorization_headers())
     response.raise_for_status()
     return response.json()
 
 
 def get_connection_write_mode(connection_id):
-    return _write_algorithm_from_connection_info(
-        get_connection(connection_id)
-    )
+    return _write_algorithm_from_connection_info(get_connection(connection_id))
 
 
 @lru_cache()
 def get_unique_connection_write_mode(app_name=None):
     app_name = app_name or settings.HEROKU_CONNECT_APP_NAME
-    mode, = set(get_all_connections_write_modes(app_name).values())
+    (mode,) = set(get_all_connections_write_modes(app_name).values())
 
     return mode
 
@@ -288,13 +286,16 @@ def import_mapping(connection_id, mapping):
         ValueError: If the mapping is not JSON serializable.
 
     """
-    url = os.path.join(settings.HEROKU_CONNECT_API_ENDPOINT,
-                       'connections', connection_id, 'actions', 'import')
+    url = os.path.join(
+        settings.HEROKU_CONNECT_API_ENDPOINT,
+        "connections",
+        connection_id,
+        "actions",
+        "import",
+    )
 
     response = requests.post(
-        url=url,
-        json=mapping,
-        headers=_get_authorization_headers()
+        url=url, json=mapping, headers=_get_authorization_headers()
     )
     response.raise_for_status()
 
@@ -305,11 +306,10 @@ def link_connection_to_account(app):
 
     https://devcenter.heroku.com/articles/heroku-connect-api#step-3-link-the-new-add-on-to-your-heroku-user-account
     """
-    url = os.path.join(settings.HEROKU_CONNECT_API_ENDPOINT, 'users', 'me', 'apps', app, 'auth')
-    response = requests.post(
-        url=url,
-        headers=_get_authorization_headers()
+    url = os.path.join(
+        settings.HEROKU_CONNECT_API_ENDPOINT, "users", "me", "apps", app, "auth"
     )
+    response = requests.post(url=url, headers=_get_authorization_headers())
     response.raise_for_status()
 
 

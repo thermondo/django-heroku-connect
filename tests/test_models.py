@@ -1,20 +1,12 @@
-import re
-
 import pytest
-from django import db
-from django.core import checks
 from django.core.exceptions import FieldDoesNotExist
-from django.test import override_settings
 
-from heroku_connect.models import (
-    TRIGGER_LOG_STATE, TriggerLog, TriggerLogArchive
-)
+from heroku_connect.models import TRIGGER_LOG_STATE, TriggerLog, TriggerLogArchive
 from tests.conftest import make_trigger_log, make_trigger_log_for_model
 
 
 @pytest.mark.django_db
 class TestTriggerLog:
-
     def test_is_archived(self, archived_trigger_log, trigger_log):
         assert archived_trigger_log.is_archived is True
         assert trigger_log.is_archived is False
@@ -26,7 +18,9 @@ class TestTriggerLog:
 
     def test_related(self, connected_class, connected_model, trigger_log):
         related_trigger_log = make_trigger_log_for_model(connected_model)
-        unrelated_trigger_log = make_trigger_log_for_model(connected_class.objects.create())
+        unrelated_trigger_log = make_trigger_log_for_model(
+            connected_class.objects.create()
+        )
         trigger_log.save()
         related_trigger_log.save()
         unrelated_trigger_log.save()
@@ -47,19 +41,21 @@ class TestTriggerLog:
 
     def test_capture_update_without_record(self, hc_capture_stored_procedures):
         failed_log = make_trigger_log(
-            state=TRIGGER_LOG_STATE['FAILED'],
-            table_name='number_object__c',
+            state=TRIGGER_LOG_STATE["FAILED"],
+            table_name="number_object__c",
             record_id=666,
-            action='UPDATE',
+            action="UPDATE",
         )
         failed_log.save()
 
         with pytest.raises(TriggerLog.DoesNotExist):
             failed_log.capture_update()
 
-    def test_capture_update_wrong_update_field(self, trigger_log, hc_capture_stored_procedures):
+    def test_capture_update_wrong_update_field(
+        self, trigger_log, hc_capture_stored_procedures
+    ):
         with pytest.raises(FieldDoesNotExist):
-            trigger_log.capture_update(update_fields=('NOT A FIELD',))
+            trigger_log.capture_update(update_fields=("NOT A FIELD",))
 
     def test_capture_insert_ok(self, trigger_log, hc_capture_stored_procedures):
         trigger_log.save()
@@ -71,19 +67,21 @@ class TestTriggerLog:
 
     def test_capture_insert_without_record(self, hc_capture_stored_procedures):
         failed_log = make_trigger_log(
-            state=TRIGGER_LOG_STATE['FAILED'],
-            table_name='number_object__c',
+            state=TRIGGER_LOG_STATE["FAILED"],
+            table_name="number_object__c",
             record_id=666,
-            action='INSERT',
+            action="INSERT",
         )
         failed_log.save()
 
         with pytest.raises(TriggerLog.DoesNotExist):
             failed_log.capture_insert()
 
-    def test_capture_insert_wrong_field(self, trigger_log, hc_capture_stored_procedures):
+    def test_capture_insert_wrong_field(
+        self, trigger_log, hc_capture_stored_procedures
+    ):
         with pytest.raises(FieldDoesNotExist):
-            trigger_log.capture_insert(exclude_fields=('NOT A FIELD',))
+            trigger_log.capture_insert(exclude_fields=("NOT A FIELD",))
 
     def test_queryset(self, connected_class, trigger_log, archived_trigger_log):
         trigger_log.save()
@@ -92,7 +90,9 @@ class TestTriggerLog:
         assert list(TriggerLogArchive.objects.all()) == [archived_trigger_log]
 
         connected_model = connected_class.objects.create()
-        failed = make_trigger_log_for_model(connected_model, state=TRIGGER_LOG_STATE['FAILED'])
+        failed = make_trigger_log_for_model(
+            connected_model, state=TRIGGER_LOG_STATE["FAILED"]
+        )
         failed.save()
         assert set(TriggerLog.objects.failed()) == {failed}
         assert TriggerLog.objects.all().count() == 2

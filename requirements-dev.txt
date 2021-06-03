@@ -8,6 +8,7 @@ httpretty
 isort
 pre-commit
 psycopg2-binary
+pydocstyle
 pyenchant
 pytest
 pytest-django

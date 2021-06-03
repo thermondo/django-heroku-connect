@@ -8,18 +8,19 @@ from django.utils import timezone
 
 from heroku_connect.db.models.base import READ_WRITE, HerokuConnectModel
 from heroku_connect.models import (
-    TRIGGER_LOG_ACTION, TRIGGER_LOG_STATE, TriggerLog, TriggerLogArchive
+    TRIGGER_LOG_ACTION,
+    TRIGGER_LOG_STATE,
+    TriggerLog,
+    TriggerLogArchive,
 )
-from heroku_connect.utils import (
-    get_connected_model_for_table_name, get_unique_connection_write_mode
-)
+from heroku_connect.utils import get_unique_connection_write_mode
 from tests import fixtures
 
 
 def make_trigger_log_for_model(model, *, is_archived=False, **kwargs):
-    kwargs.setdefault('table_name', model.get_heroku_connect_table_name())
-    kwargs.setdefault('record_id', model.id)
-    kwargs.setdefault('created_at', timezone.now())
+    kwargs.setdefault("table_name", model.get_heroku_connect_table_name())
+    kwargs.setdefault("record_id", model.id)
+    kwargs.setdefault("created_at", timezone.now())
     log = make_trigger_log(is_archived=is_archived, **kwargs)
     return log
 
@@ -37,10 +38,10 @@ def make_trigger_log(*, is_archived=False, **attrs):
         is False or True.
     """
     model_cls = TriggerLogArchive if is_archived else TriggerLog
-    attrs.setdefault('state', TRIGGER_LOG_STATE['NEW'])
-    attrs.setdefault('action', TRIGGER_LOG_ACTION['INSERT'])
-    attrs.setdefault('table_name', 'SOME_TABLE')
-    attrs.setdefault('record_id', 12345)
+    attrs.setdefault("state", TRIGGER_LOG_STATE["NEW"])
+    attrs.setdefault("action", TRIGGER_LOG_ACTION["INSERT"])
+    attrs.setdefault("table_name", "SOME_TABLE")
+    attrs.setdefault("record_id", 12345)
     return model_cls(**attrs)
 
 
@@ -52,7 +53,8 @@ def hc_capture_stored_procedures(db, settings):
     # parameters following https://dataedo.com/kb/query/postgresql/list-stored-procedure-parameters
 
     with connection.cursor() as cursor:
-        cursor.execute(f"""
+        cursor.execute(
+            f"""
             CREATE OR REPLACE FUNCTION {settings.HEROKU_CONNECT_SCHEMA}.hc_capture_insert_from_row
                 (source_row hstore, table_name text, excluded_cols text[] default ARRAY[]::text[])
             RETURNS int
@@ -83,9 +85,11 @@ def hc_capture_stored_procedures(db, settings):
                 RETURN retval;
             END;
             $$
-        """)
+        """
+        )
 
-        cursor.execute(f"""
+        cursor.execute(
+            f"""
             CREATE OR REPLACE FUNCTION {settings.HEROKU_CONNECT_SCHEMA}.hc_capture_update_from_row
             (source_row hstore, table_name text, columns_to_include text[] default ARRAY[]::text[])
             RETURNS int
@@ -122,12 +126,13 @@ def hc_capture_stored_procedures(db, settings):
                 RETURN retval;
                 END;
             $$
-        """)
+        """
+        )
 
 
 @pytest.fixture()
 def connected_class():
-    """Get a HerokuConnectedModel subclass"""
+    """Get a HerokuConnectedModel subclass."""
     # The class definition is hidden in a fixture to keep the app registry and database table space
     # clean for other tests.
     global __ConnectedTestModel
@@ -138,11 +143,11 @@ def connected_class():
     except NameError:
         # define the class only once, or django will warn about redefining models
         class ConnectedTestModel(HerokuConnectModel):
-            sf_object_name = 'CONNECTED_TEST_MODEL'
+            sf_object_name = "CONNECTED_TEST_MODEL"
             sf_access = READ_WRITE
 
             class Meta:
-                app_label = 'tests'
+                app_label = "tests"
 
         cls = __ConnectedTestModel = ConnectedTestModel
         meta = cls._meta
@@ -182,9 +187,9 @@ def archived_trigger_log(connected_model):
 
 @pytest.fixture()
 def failed_trigger_log(connected_model):
-    return make_trigger_log_for_model(connected_model,
-                                      is_archived=False,
-                                      state=TRIGGER_LOG_STATE['FAILED'])
+    return make_trigger_log_for_model(
+        connected_model, is_archived=False, state=TRIGGER_LOG_STATE["FAILED"]
+    )
 
 
 @pytest.yield_fixture
@@ -193,10 +198,10 @@ def set_write_mode_merge():
     with httpretty.enabled():
         httpretty.register_uri(
             httpretty.GET,
-            'https://connect-eu.heroku.com/api/v3/connections',
+            "https://connect-eu.heroku.com/api/v3/connections",
             body=json.dumps(fixtures.connections),
             status=200,
-            content_type='application/json',
+            content_type="application/json",
         )
         yield
 
@@ -205,14 +210,14 @@ def set_write_mode_merge():
 def set_write_mode_ordered():
     get_unique_connection_write_mode.cache_clear()
     connections = copy.deepcopy(fixtures.connections)
-    connections['results'][0]['features'] = dict(poll_db_no_merge=True)
+    connections["results"][0]["features"] = dict(poll_db_no_merge=True)
 
     with httpretty.enabled():
         httpretty.register_uri(
             httpretty.GET,
-            'https://connect-eu.heroku.com/api/v3/connections',
+            "https://connect-eu.heroku.com/api/v3/connections",
             body=json.dumps(connections),
             status=200,
-            content_type='application/json',
+            content_type="application/json",
         )
         yield
