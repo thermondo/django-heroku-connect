@@ -9,6 +9,7 @@ from django.utils import timezone
 
 from heroku_connect.db import models as hc_models
 from heroku_connect.db.exceptions import WriteNotSupportedError
+from tests.testapp.models import NumberModel
 
 
 class TestHerokuConnectModelMixin:
@@ -233,7 +234,7 @@ class TestHerokuConnectModelMixin:
             None,
         )
 
-    def test_check_sf_object_name(self):
+    def test_check_sf_object_name_abstract(self):
         class MyModel(hc_models.HerokuConnectModel):
             class Meta:
                 app_label = "test"
@@ -248,14 +249,18 @@ class TestHerokuConnectModelMixin:
             not in errors
         )
 
-        class MyModel(hc_models.HerokuConnectModel):
-            class Meta:
-                app_label = "test"
+    def test_check_sf_object_name_concrete(self):
+        # the check for concrete models breaks when we try to use a
+        # temporary `MyClass`, because `model._meta.app_config` is
+        # invalid when just definiting `Meta.app_label`.
+        # So for this test we just use an existing model and break
+        # it.
+        setattr(NumberModel, "sf_object_name", None)
 
-        errors = MyModel.check()
+        errors = NumberModel.check()
         assert errors == [
             checks.Error(
-                'test.MyModel must define a "sf_object_name".',
+                'testapp.NumberModel must define a "sf_object_name".',
                 id="heroku_connect.E001",
             )
         ]
@@ -401,7 +406,6 @@ class TestHerokuConnectModelMixin:
 
             class Meta:
                 app_label = "test"
-                abstract = True
 
         data_instance = MyReadOnlyModel(date=timezone.now())
         with pytest.raises(WriteNotSupportedError) as e:
