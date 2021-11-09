@@ -13,11 +13,58 @@ env:
   DATABASE_PASSWORD: postgres
 
 jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install package dependencies
+      run: |
+        sudo apt-get install -y gdal-bin
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+
+    - name: restore pip download cache
+      uses: syphar/restore-pip-download-cache@v1
+
+    - name: Install Python dependencies
+      uses: py-actions/py-dependency-install@v2.1.0
+      with:
+        path: "requirements-dev.txt"
+
+    - name: try building docs, check spelling
+      run: |
+        python setup.py build_sphinx -b spelling
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install package dependencies
+      run: |
+        sudo apt-get install -y gdal-bin
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+
+    - name: restore pip download cache
+      uses: syphar/restore-pip-download-cache@v1
+
+    - name: Install Python dependencies
+      uses: py-actions/py-dependency-install@v2.1.0
+      with:
+        path: "requirements-dev.txt"
+
+    - name: run linters via pre-commit
+      run: |
+        pre-commit run --all --show-diff-on-failure --color=always
+
   tests:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.7, 3.8, 3.9]
+        python-version: [3.7, 3.8, 3.9, "3.10"]
+        django-version: [2.2, 3.1, 3.2]
 
     services:
       postgresql:
@@ -41,13 +88,26 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install tox tox-gh-actions
+    - name: Install Python dependencies
+      uses: py-actions/py-dependency-install@v2.1.0
+      with:
+        path: "requirements-dev.txt"
 
-    - name: Test with tox
-      run: tox
+    - name: override initial django installation
+      run: |
+        pip install Django~=${{ matrix.django-version }}
+
+    - name: override psycopg2 for django 2.2
+      # see
+      # https://github.com/psycopg/psycopg2/issues/1293#issuecomment-862835147
+      # https://code.djangoproject.com/ticket/32856#ticket
+      if: ${{ matrix.django-version == '2.2' }}
+      run: |
+        pip install "psycopg2-binary>=2.8,<2.9"
+
+    - name: run tests
+      run: |
+        coverage run --source=heroku_connect -m 'pytest'
 
     - name: installing coveragepy for codecov upload
       # the codecov github action needs this package to find the reports
