@@ -60,7 +60,7 @@ Example:
                                         to_field='external_id', parent_link=True,
                                         db_constraint=False)
         more_data = models.TextField()
-        
+
         class Meta:
             managed = True
 
