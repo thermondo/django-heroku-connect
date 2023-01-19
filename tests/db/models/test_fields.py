@@ -2,7 +2,16 @@ import uuid
 from decimal import Decimal
 
 import pytest
-import pytz
+
+try:
+    import zoneinfo
+
+    NEW_YORK_TZ = zoneinfo.ZoneInfo("America/New_York")
+except ModuleNotFoundError:
+    import pytz
+
+    NEW_YORK_TZ = pytz.timezone("America/New_York")
+
 from django import forms
 from django.db import connection, models
 from django.utils import timezone
@@ -98,8 +107,7 @@ class TestDateTime:
         datetime_model.save()
 
         assert datetime_model.a_datetime is None
-        new_york_tz = pytz.timezone("America/New_York")
-        now_in_new_york_tz = timezone.now().replace(tzinfo=new_york_tz)
+        now_in_new_york_tz = timezone.now().replace(tzinfo=NEW_YORK_TZ)
         datetime_model.a_datetime = now_in_new_york_tz
         datetime_model.save()
 

@@ -127,7 +127,6 @@ class TestAdminActions:
         set_write_mode_ordered,
         hc_capture_stored_procedures,
     ):
-
         assert get_unique_connection_write_mode() == WriteAlgorithm.ORDERED_WRITES
 
         testrecord = NumberModel.objects.create()
@@ -219,7 +218,6 @@ class TestAdminActions:
         set_write_mode_ordered,
         hc_capture_stored_procedures,
     ):
-
         assert get_unique_connection_write_mode() == WriteAlgorithm.ORDERED_WRITES
 
         testrecord = NumberModel.objects.create()
