@@ -156,7 +156,7 @@ class TriggerLogAbstract(models.Model):
             model_cls = get_connected_model_for_table_name(table_name)
             exclude_cols = cls._fieldnames_to_colnames(model_cls, exclude_fields)
 
-        composable_query = sql.SQL(
+        composed_query = sql.SQL(
             """
             SELECT {schema}.hc_capture_insert_from_row(
               hstore({schema}.{table_name}.*),
@@ -174,9 +174,8 @@ class TriggerLogAbstract(models.Model):
             ),
         )
         params = {"record_id": record_id, "table_name": table_name}
-        raw_sql = cls._compile_sql(TriggerLog, composable_query)
+        raw_sql = cls._compile_sql(TriggerLog, composed_query)
         result_qs = TriggerLog.objects.raw(raw_sql, params)
-
         if not result_qs:
             raise TriggerLog.DoesNotExist(
                 "TriggerLog was not created after re-capturing INSERT"
@@ -216,7 +215,7 @@ class TriggerLogAbstract(models.Model):
             model_cls = get_connected_model_for_table_name(table_name)
             include_cols.update(cls._fieldnames_to_colnames(model_cls, update_fields))
 
-        composable_query = sql.SQL(
+        composed_query = sql.SQL(
             """
             SELECT {schema}.hc_capture_update_from_row(
               hstore({schema}.{table_name}.*),
@@ -235,7 +234,7 @@ class TriggerLogAbstract(models.Model):
             "table_name": table_name,
             "include_cols": list(include_cols),
         }
-        raw_sql = cls._compile_sql(TriggerLog, composable_query)
+        raw_sql = cls._compile_sql(TriggerLog, composed_query)
         result_qs = TriggerLog.objects.raw(raw_sql, params)
         if not result_qs:
             raise TriggerLog.DoesNotExist(
@@ -324,10 +323,10 @@ class TriggerLogAbstract(models.Model):
         return {f.column for f in fields}
 
     @staticmethod
-    def _compile_sql(model_cls, composable_query):
+    def _compile_sql(model_cls, composed_query):
         db_name = router.db_for_read(model_cls)
         with connections[db_name].cursor().cursor as cursor:
-            return composable_query.as_string(cursor)
+            return composed_query.as_string(cursor)
 
 
 class TriggerLog(TriggerLogAbstract):
