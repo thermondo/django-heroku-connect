@@ -1,5 +1,6 @@
 import pytest
 from django.core.exceptions import FieldDoesNotExist
+from psycopg2 import sql
 
 from heroku_connect.models import TRIGGER_LOG_STATE, TriggerLog, TriggerLogArchive
 from tests.conftest import make_trigger_log, make_trigger_log_for_model
@@ -107,3 +108,16 @@ class TestTriggerLog:
     def test_str(self, trigger_log, archived_trigger_log):
         assert str(trigger_log)
         assert str(archived_trigger_log)
+
+    def test_compile_sql(self):
+        composed_query = sql.SQL(
+            "SELECT {column_name} FROM {table_name} WHERE {column_name} = %(something)"
+        ).format(
+            table_name=sql.Identifier("the_table"),
+            column_name=sql.Identifier("the_column"),
+        )
+        raw_sql = TriggerLog._compile_sql(TriggerLog, composed_query)
+        assert (
+            raw_sql.strip()
+            == 'SELECT "the_column" FROM "the_table" WHERE "the_column" = %(something)'
+        )
