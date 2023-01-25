@@ -330,7 +330,6 @@ class TriggerLogAbstract(models.Model):
             return composable_query.as_string(cursor)
 
 
-
 class TriggerLog(TriggerLogAbstract):
     """
     Represents entries in the Heroku Connect trigger log.
