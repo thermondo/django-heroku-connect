@@ -110,10 +110,6 @@ jobs:
       run: |
         coverage run --source=heroku_connect -m 'pytest'
 
-    - name: installing coveragepy for codecov upload
-      # the codecov github action needs this package to find the reports
-      run: pip install coverage
-
-    - uses: codecov/codecov-action@v3
-      with:
-        fail_ci_if_error: true
+    - name: upload coverage to codecov
+      if: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.user.login == 'dependabot[bot]') }}
+      run: codecov --token=${{ secrets.CODECOV_TOKEN }} --required --tries 10

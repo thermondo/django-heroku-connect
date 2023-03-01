@@ -2,6 +2,7 @@
 bandit!=1.6.3,!=1.7.0
 black
 coverage
+codecov
 django-health-check
 flake8
 httpretty
