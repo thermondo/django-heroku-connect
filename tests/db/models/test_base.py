@@ -61,8 +61,18 @@ class TestHerokuConnectModelMixin:
         ) as f:
             migration = f.read()
         shutil.rmtree(os.path.join(settings.BASE_DIR, "testapp/migrations"))
-        assert "'managed': False," in migration
-        assert "'db_table': 'salesforce\".\"number_object__c'," in migration
+        assert (
+            # older django versions, use `'`
+            "'managed': False," in migration
+            # newer django versions, use `"`
+            or '"managed": False,' in migration
+        )
+        assert (
+            # older django versions, use `'`
+            "'db_table': 'salesforce\".\"number_object__c'," in migration
+            # newer django versions, use `"`
+            or '"db_table": \'salesforce"."number_object__c\',' in migration
+        )
 
     def test_empty_mapping(self):
         class MyModel(hc_models.HerokuConnectModel):
@@ -412,7 +422,7 @@ class TestHerokuConnectModelMixin:
             data_instance.save()
         assert "is a read-only model." in str(e.value)
 
-        data_instance = MyReadOnlyModel(date=timezone.now())
+        data_instance = MyReadOnlyModel(id=42, date=timezone.now())
         with pytest.raises(WriteNotSupportedError) as e:
             data_instance.delete()
         assert "is a read-only model." in str(e.value)
