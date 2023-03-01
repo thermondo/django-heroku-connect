@@ -23,6 +23,8 @@ jobs:
 
     - name: Set up Python
       uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
 
     - name: restore pip download cache
       uses: syphar/restore-pip-download-cache@v1
@@ -46,6 +48,8 @@ jobs:
 
     - name: Set up Python
       uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
 
     - name: restore pip download cache
       uses: syphar/restore-pip-download-cache@v1
