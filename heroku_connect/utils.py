@@ -11,6 +11,8 @@ from psycopg2.extras import HstoreAdapter
 
 from heroku_connect.conf import settings
 
+HEROKU_REQUEST_TIMEOUT = 30
+
 
 class ConnectionStates:
     IDLE = "IDLE"
@@ -193,7 +195,12 @@ def get_connections(app):
     """
     payload = {"app": app}
     url = os.path.join(settings.HEROKU_CONNECT_API_ENDPOINT, "connections")
-    response = requests.get(url, params=payload, headers=_get_authorization_headers())
+    response = requests.get(
+        url,
+        timeout=HEROKU_REQUEST_TIMEOUT,
+        params=payload,
+        headers=_get_authorization_headers(),
+    )
     response.raise_for_status()
     return response.json()["results"]
 
@@ -256,7 +263,12 @@ def get_connection(connection_id, deep=False):
         settings.HEROKU_CONNECT_API_ENDPOINT, "connections", connection_id
     )
     payload = {"deep": deep}
-    response = requests.get(url, params=payload, headers=_get_authorization_headers())
+    response = requests.get(
+        url,
+        timeout=HEROKU_REQUEST_TIMEOUT,
+        params=payload,
+        headers=_get_authorization_headers(),
+    )
     response.raise_for_status()
     return response.json()
 
@@ -295,7 +307,10 @@ def import_mapping(connection_id, mapping):
     )
 
     response = requests.post(
-        url=url, json=mapping, headers=_get_authorization_headers()
+        url=url,
+        json=mapping,
+        headers=_get_authorization_headers(),
+        timeout=HEROKU_REQUEST_TIMEOUT,
     )
     response.raise_for_status()
 
@@ -309,7 +324,9 @@ def link_connection_to_account(app):
     url = os.path.join(
         settings.HEROKU_CONNECT_API_ENDPOINT, "users", "me", "apps", app, "auth"
     )
-    response = requests.post(url=url, headers=_get_authorization_headers())
+    response = requests.post(
+        url=url, timeout=HEROKU_REQUEST_TIMEOUT, headers=_get_authorization_headers()
+    )
     response.raise_for_status()
 
 
