@@ -111,7 +111,11 @@ jobs:
     - name: run tests
       run: |
         coverage run --source=heroku_connect -m 'pytest'
+        coverage xml
 
     - name: upload coverage to codecov
       if: ${{ !github.event.pull_request.head.repo.fork && !(github.event_name == 'pull_request' && github.event.pull_request.user.login == 'dependabot[bot]') }}
-      run: codecov --token=${{ secrets.CODECOV_TOKEN }} --required --tries 10
+      uses: codecov/codecov-action@v3
+      with:
+        fail_ci_if_error: true
+        files: coverage.xml
