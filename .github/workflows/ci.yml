@@ -114,5 +114,5 @@ jobs:
       if: ${{ !github.event.pull_request.head.repo.fork && !(github.event_name == 'pull_request' && github.event.pull_request.user.login == 'dependabot[bot]') }}
       uses: codecov/codecov-action@v3
       with:
-        fail_ci_if_error: true
+        fail_ci_if_error: false
         files: coverage.xml
