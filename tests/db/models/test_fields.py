@@ -212,13 +212,13 @@ class TestTextArea:
     def test_formfield(self):
         field = field_factory(hc_models.TextArea)
         form_field = field.formfield()
-        assert type(form_field.widget) == forms.Textarea
+        assert isinstance(form_field.widget, forms.Textarea)
         assert form_field.max_length == 255
 
         choice = (1, 1)
         field = field_factory(hc_models.TextArea, choices=[choice])
         form_field = field.formfield()
-        assert type(form_field.widget) == forms.Select
+        assert isinstance(form_field.widget, forms.Select)
         assert form_field.choices == [("", "---------"), choice]
 
 
