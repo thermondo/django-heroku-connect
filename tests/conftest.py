@@ -192,7 +192,7 @@ def failed_trigger_log(connected_model):
     )
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def set_write_mode_merge():
     get_unique_connection_write_mode.cache_clear()
     with httpretty.enabled():
@@ -206,7 +206,7 @@ def set_write_mode_merge():
         yield
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def set_write_mode_ordered():
     get_unique_connection_write_mode.cache_clear()
     connections = copy.deepcopy(fixtures.connections)
