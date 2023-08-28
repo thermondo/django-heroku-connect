@@ -14,6 +14,3 @@ Note:
 
 .. _`django-health-check`: https://github.com/KristianOellegaard/django-health-check
 """
-default_app_config = (
-    "heroku_connect.contrib.heroku_connect_health_check.apps.HealthCheckConfig"
-)
