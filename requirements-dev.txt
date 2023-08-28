@@ -12,5 +12,5 @@ pydocstyle
 pyenchant
 pytest
 pytest-django
-sphinx
+sphinx>=7
 sphinx_rtd_theme
