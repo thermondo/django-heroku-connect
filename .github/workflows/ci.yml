@@ -79,7 +79,7 @@ jobs:
 
       - name: override initial django installation
         run: |
-          pip install Django~=${{ matrix.django-version }}
+          poetry run pip install Django~=${{ matrix.django-version }}
 
       - name: run tests
         run: |
