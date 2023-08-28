@@ -29,7 +29,7 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          pipx install poetry~=1.6
+          pip install pipx && pipx install poetry~=1.6
           poetry install --no-interaction
 
       - name: run linters via pre-commit
@@ -68,7 +68,7 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          pipx install poetry~=1.6
+          pip install pipx && pipx install poetry~=1.6
           poetry install --no-interaction
 
       - name: override initial django installation
