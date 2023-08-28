@@ -21,15 +21,18 @@ jobs:
         run: |
           sudo apt-get install -y gdal-bin
 
+      - name: install poetry
+        run: |
+          pip install pipx && pipx install poetry~=1.6
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.11"
           cache: poetry
 
-      - name: Install Python dependencies
+      - name: install python dependencies
         run: |
-          pip install pipx && pipx install poetry~=1.6
           poetry install --no-interaction
 
       - name: run linters via pre-commit
@@ -60,15 +63,18 @@ jobs:
         run: |
           sudo apt-get install -y gdal-bin
 
+      - name: install poetry
+        run: |
+          pip install pipx && pipx install poetry~=1.6
+
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
           cache: poetry
 
-      - name: Install Python dependencies
+      - name: install python dependencies
         run: |
-          pip install pipx && pipx install poetry~=1.6
           poetry install --no-interaction
 
       - name: override initial django installation
