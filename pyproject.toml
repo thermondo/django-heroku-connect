@@ -24,13 +24,11 @@ classifiers = [
 ]
 packages = [{ include = "heroku_connect" }]
 
-
 [tool.poetry.dependencies]
 python = ">=3.8,<4.0"
 django = ">=3.2,<4.3"
 django-appconf = "~1"
 requests = "~2"
-
 
 [tool.poetry.group.dev.dependencies]
 bandit = "!=1.6.3,!=1.7.0"
@@ -43,11 +41,19 @@ isort = "*"
 pre-commit = "*"
 psycopg2-binary = "*"
 pydocstyle = "*"
-pyenchant = "*"
 pytest = "*"
 pytest-django = "*"
-sphinx = ">=7"
-sphinx_rtd_theme = ">=1"
+
+[tool.poetry.group.docs]
+optional = true
+
+[tool.poetry.group.docs.dependencies]
+sphinx = { version = ">=7", python = ">=3.9" }
+sphinx_rtd_theme = { version = ">=1", python = ">3.9" }
+
+[tool.poetry-dynamic-versioning]
+enable = true
+pattern = "^(?P<base>\\d+(\\.\\d+)*)" # tag without `v` prefix
 
 [build-system]
 requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning"]
