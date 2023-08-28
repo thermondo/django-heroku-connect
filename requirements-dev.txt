@@ -13,4 +13,4 @@ pyenchant
 pytest
 pytest-django
 sphinx>=7
-sphinx_rtd_theme
+sphinx_rtd_theme>=1
