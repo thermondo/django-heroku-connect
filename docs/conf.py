@@ -17,7 +17,6 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx.ext.intersphinx",
     "sphinx.ext.githubpages",
-    "sphinxcontrib.spelling",
     "sphinx.ext.linkcode",
 ]
 
@@ -74,9 +73,6 @@ intersphinx_mapping = {
         "https://docs.djangoproject.com/en/stable/_objects/",
     ),
 }
-
-spelling_word_list_filename = "spelling_wordlist.txt"
-spelling_show_suggestions = True
 
 inheritance_graph_attrs = dict(
     rankdir="TB", size='"6.0, 8.0"', fontsize=14, ratio="compress"
