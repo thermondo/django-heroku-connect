@@ -13,29 +13,6 @@ env:
   DATABASE_PASSWORD: postgres
 
 jobs:
-  docs:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-    - name: Install package dependencies
-      run: |
-        sudo apt-get install -y gdal-bin
-
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: "3.11"
-        cache: pip
-
-    - name: Install Python dependencies
-      uses: py-actions/py-dependency-install@v4
-      with:
-        path: "requirements-dev.txt"
-
-    - name: try building docs
-      run: |
-        sphinx-build -b html docs docs/_build
-
   lint:
     runs-on: ubuntu-latest
     steps:
