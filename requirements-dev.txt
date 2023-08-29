@@ -9,9 +9,7 @@ isort
 pre-commit
 psycopg2-binary
 pydocstyle
-pyenchant
 pytest
 pytest-django
-sphinx
-sphinx_rtd_theme
-sphinxcontrib-spelling
+sphinx>=7
+sphinx_rtd_theme>=1
