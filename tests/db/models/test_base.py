@@ -12,6 +12,14 @@ from heroku_connect.db.exceptions import WriteNotSupportedError
 from tests.testapp.models import NumberModel
 
 
+class MyReadOnlyModel(hc_models.HerokuConnectModel):
+    sf_object_name = "My_Object__c"
+    date = hc_models.DateTime(sf_field_name="Date1__c")
+
+    class Meta:
+        app_label = "test"
+
+
 class TestHerokuConnectModelMixin:
     def test_meta(self, settings):
         class MyModel(hc_models.HerokuConnectModel):
@@ -410,13 +418,6 @@ class TestHerokuConnectModelMixin:
         }
 
     def test_qs_methods_on_read_only_model(self):
-        class MyReadOnlyModel(hc_models.HerokuConnectModel):
-            sf_object_name = "My_Object__c"
-            date = hc_models.DateTime(sf_field_name="Date1__c")
-
-            class Meta:
-                app_label = "test"
-
         data_instance = MyReadOnlyModel(date=timezone.now())
         with pytest.raises(WriteNotSupportedError) as e:
             data_instance.save()
@@ -428,13 +429,6 @@ class TestHerokuConnectModelMixin:
         assert "is a read-only model." in str(e.value)
 
     def test_write_methods_on_read_only_model(self):
-        class MyReadOnlyModel(hc_models.HerokuConnectModel):
-            sf_object_name = "My_Object__c"
-            date = hc_models.DateTime(sf_field_name="Date1__c")
-
-            class Meta:
-                app_label = "test"
-
         with pytest.raises(WriteNotSupportedError) as e:
             MyReadOnlyModel.objects.update(date=timezone.now())
         assert "is a read-only model." in str(e.value)
