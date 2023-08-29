@@ -43,6 +43,7 @@ psycopg2-binary = "*"
 pydocstyle = "*"
 pytest = "*"
 pytest-django = "*"
+pytz = "*"
 
 [tool.poetry.group.docs]
 optional = true
