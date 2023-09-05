@@ -16,25 +16,27 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: Install package dependencies
-      run: |
-        sudo apt-get install -y gdal-bin
+      - uses: actions/checkout@v4
+      - name: Install package dependencies
+        run: |
+          sudo apt-get install -y gdal-bin
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: "3.11"
-        cache: pip
+      - name: install poetry
+        run: |
+          pip install pipx && pipx install poetry~=1.6
 
-    - name: Install Python dependencies
-      uses: py-actions/py-dependency-install@v4
-      with:
-        path: "requirements-dev.txt"
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
 
-    - name: run linters via pre-commit
-      run: |
-        pre-commit run --all --show-diff-on-failure --color=always
+      - name: install python dependencies
+        run: |
+          poetry install --no-interaction
+
+      - name: run linters via pre-commit
+        run: |
+          poetry run pre-commit run --all --show-diff-on-failure --color=always
 
   tests:
     runs-on: ubuntu-latest
@@ -51,38 +53,40 @@ jobs:
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: heroku_connect_test
         ports:
-        - 5432:5432
+          - 5432:5432
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Install package dependencies
-      run: |
-        sudo apt-get install -y gdal-bin
+      - name: Install package dependencies
+        run: |
+          sudo apt-get install -y gdal-bin
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-version }}
-        cache: pip
+      - name: install poetry
+        run: |
+          pip install pipx && pipx install poetry~=1.6
 
-    - name: Install Python dependencies
-      uses: py-actions/py-dependency-install@v4
-      with:
-        path: "requirements-dev.txt"
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
 
-    - name: override initial django installation
-      run: |
-        pip install Django~=${{ matrix.django-version }}
+      - name: install python dependencies
+        run: |
+          poetry install --no-interaction
 
-    - name: run tests
-      run: |
-        coverage run --source=heroku_connect -m 'pytest'
-        coverage xml
+      - name: override initial django installation
+        run: |
+          poetry run pip install Django~=${{ matrix.django-version }}
 
-    - name: upload coverage to codecov
-      if: ${{ !github.event.pull_request.head.repo.fork && !(github.event_name == 'pull_request' && github.event.pull_request.user.login == 'dependabot[bot]') }}
-      uses: codecov/codecov-action@v3
-      with:
-        fail_ci_if_error: false
-        files: coverage.xml
+      - name: run tests
+        run: |
+          poetry run coverage run --source=heroku_connect -m 'pytest'
+          poetry run coverage xml
+
+      - name: upload coverage to codecov
+        if: ${{ !github.event.pull_request.head.repo.fork && !(github.event_name == 'pull_request' && github.event.pull_request.user.login == 'dependabot[bot]') }}
+        uses: codecov/codecov-action@v3
+        with:
+          fail_ci_if_error: false
+          files: coverage.xml

@@ -8,20 +8,24 @@ jobs:
   package_release:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: 3.x
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.x
 
-    - name: Build package
-      run: |
-        pip install wheel
-        python setup.py sdist bdist_wheel
+      - name: Install Python dependencies
+        run: python -m pip install -U pip setuptools wheel twine
 
-    - name: Publish package
-      uses: pypa/gh-action-pypi-publish@release/v1
-      with:
-        user: __token__
-        password: ${{ secrets.pypi_token }}
+      - name: install poetry and poetry-dynamic-versioning
+        run: python -m pip install -U poetry poetry-dynamic-versioning
+
+      - name: building package
+        run: poetry build
+
+      - name: Upload packages
+        run: "python -m twine upload dist/*"
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.pypi_token }}

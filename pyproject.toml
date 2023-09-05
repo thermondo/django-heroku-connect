@@ -1,0 +1,61 @@
+[tool.poetry]
+name = "django-heroku-connect"
+# just a dummy version
+# will be overwritten from the git tag,
+# see https://github.com/mtkennerly/poetry-dynamic-versioning
+version = "0.0.0"
+description = "Django integration Salesforce using Heroku Connect."
+authors = ["thermondo <opensource@thermondo.de>"]
+readme = "README.rst"
+repository = "https://github.com/thermondo/django-heroku-connect"
+documentation = "https://django-heroku-connect.readthedocs.io/"
+license = "Apache-2.0"
+keywords = ["heroku", "salesforce", "django"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Information Technology",
+  "License :: OSI Approved :: Apache Software License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Framework :: Django",
+]
+packages = [{ include = "heroku_connect" }]
+
+[tool.poetry.dependencies]
+python = ">=3.8,<4.0"
+django = ">=3.2,<4.3"
+django-appconf = "~1"
+requests = "~2"
+
+[tool.poetry.group.dev.dependencies]
+bandit = "!=1.6.3,!=1.7.0"
+black = "*"
+coverage = "*"
+django-health-check = "*"
+flake8 = "*"
+httpretty = "*"
+isort = "*"
+pre-commit = "*"
+psycopg2-binary = "*"
+pydocstyle = "*"
+pytest = "*"
+pytest-django = "*"
+pytz = "*"
+
+[tool.poetry.group.docs]
+optional = true
+
+[tool.poetry.group.docs.dependencies]
+sphinx = { version = ">=7", python = ">=3.9" }
+sphinx_rtd_theme = { version = ">=1", python = ">3.9" }
+
+[tool.poetry-dynamic-versioning]
+enable = true
+pattern = "^(?P<base>\\d+(\\.\\d+)*)" # tag without `v` prefix
+
+[build-system]
+requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning"]
+build-backend = "poetry.core.masonry.api"
