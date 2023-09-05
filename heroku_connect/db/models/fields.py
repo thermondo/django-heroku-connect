@@ -9,10 +9,11 @@ See Heroku Connect's `mapped data types`_.
 
 """
 import uuid
+from datetime import timezone
 
 from django import forms
 from django.db import models
-from django.utils import timezone
+from django.utils import timezone as django_timezone
 
 __all__ = (
     "HerokuConnectFieldMixin",
@@ -195,7 +196,7 @@ class DateTime(HerokuConnectFieldMixin, models.DateTimeField):
         if value is None:
             return value
         else:
-            return timezone.make_aware(value, timezone.utc)
+            return django_timezone.make_aware(value, timezone.utc)
 
 
 class Email(HerokuConnectFieldMixin, models.EmailField):
