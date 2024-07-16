@@ -3,4 +3,22 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+    reviewers:
+      - "thermondo/platform"
+
+  - package-ecosystem: pip
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: "monday"
+      time: "06:00"
+    reviewers:
+      - "thermondo/platform"
+    open-pull-requests-limit: 20
+    allow:
+      - dependency-type: direct
+      - dependency-type: indirect
+    rebase-strategy: disabled
