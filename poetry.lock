@@ -437,19 +437,19 @@ testing = ["covdefaults (>=2.3)", "coverage (>=7.2.7)", "diff-cover (>=7.5)", "p
 
 [[package]]
 name = "flake8"
-version = "5.0.4"
-description = "the modular source code checker: pep8 pyflakes and co"
+version = "2.5.5"
+description = "the modular source code checker: pep8, pyflakes and co"
 optional = false
-python-versions = ">=3.6.1"
+python-versions = "*"
 files = [
-    {file = "flake8-5.0.4-py2.py3-none-any.whl", hash = "sha256:7a1cf6b73744f5806ab95e526f6f0d8c01c66d7bbe349562d22dfca20610b248"},
-    {file = "flake8-5.0.4.tar.gz", hash = "sha256:6fbe320aad8d6b95cec8b8e47bc933004678dc63095be98528b7bdd2a9f510db"},
+    {file = "flake8-2.5.5-py2.py3-none-any.whl", hash = "sha256:80a66cd9bd66b0679da030fc930c0a4d09237dd72f354d899427b5c6718223b9"},
+    {file = "flake8-2.5.5.tar.gz", hash = "sha256:326a54ace7878a5ad1538110f2145bc6a134df43fff290475fd4e7ba38a6deea"},
 ]
 
 [package.dependencies]
-mccabe = ">=0.7.0,<0.8.0"
-pycodestyle = ">=2.9.0,<2.10.0"
-pyflakes = ">=2.5.0,<2.6.0"
+mccabe = ">=0.2.1,<0.5"
+pep8 = ">=1.5.7,<1.6.0 || >1.6.0,<1.6.1 || >1.6.1,<1.6.2 || >1.6.2"
+pyflakes = ">=0.8.1,<1.1"
 
 [[package]]
 name = "gitdb"
@@ -684,13 +684,13 @@ files = [
 
 [[package]]
 name = "mccabe"
-version = "0.7.0"
+version = "0.4.0"
 description = "McCabe checker, plugin for flake8"
 optional = false
-python-versions = ">=3.6"
+python-versions = "*"
 files = [
-    {file = "mccabe-0.7.0-py2.py3-none-any.whl", hash = "sha256:6c2d30ab6be0e4a46919781807b4f0d834ebdd6c6e3dca0bda5a15f863427b6e"},
-    {file = "mccabe-0.7.0.tar.gz", hash = "sha256:348e0240c33b60bbdf4e523192ef919f28cb2c3d7d5c7794f74009290f236325"},
+    {file = "mccabe-0.4.0-py2.py3-none-any.whl", hash = "sha256:cbc2938f6c01061bc6d21d0c838c2489664755cb18676f0734d7617f4577d09e"},
+    {file = "mccabe-0.4.0.tar.gz", hash = "sha256:9a2b12ebd876e77c72e41ebf401cc2e7c5b566649d50105ca49822688642207b"},
 ]
 
 [[package]]
@@ -760,6 +760,17 @@ python-versions = ">=2.6"
 files = [
     {file = "pbr-5.11.1-py2.py3-none-any.whl", hash = "sha256:567f09558bae2b3ab53cb3c1e2e33e726ff3338e7bae3db5dc954b3a44eef12b"},
     {file = "pbr-5.11.1.tar.gz", hash = "sha256:aefc51675b0b533d56bb5fd1c8c6c0522fe31896679882e1c4c63d5e4a0fccb3"},
+]
+
+[[package]]
+name = "pep8"
+version = "1.7.1"
+description = "Python style guide checker"
+optional = false
+python-versions = "*"
+files = [
+    {file = "pep8-1.7.1-py2.py3-none-any.whl", hash = "sha256:b22cfae5db09833bb9bd7c8463b53e1a9c9b39f12e304a8d0bba729c501827ee"},
+    {file = "pep8-1.7.1.tar.gz", hash = "sha256:fe249b52e20498e59e0b5c5256aa52ee99fc295b26ec9eaa85776ffdb9fe6374"},
 ]
 
 [[package]]
@@ -881,13 +892,13 @@ files = [
 
 [[package]]
 name = "pycodestyle"
-version = "2.9.1"
+version = "2.12.0"
 description = "Python style guide checker"
 optional = false
-python-versions = ">=3.6"
+python-versions = ">=3.8"
 files = [
-    {file = "pycodestyle-2.9.1-py2.py3-none-any.whl", hash = "sha256:d1735fc58b418fd7c5f658d28d943854f8a849b01a5d0a1e6f3f3fdd0166804b"},
-    {file = "pycodestyle-2.9.1.tar.gz", hash = "sha256:2c9607871d58c76354b697b42f5d57e1ada7d261c261efac224b664affdc5785"},
+    {file = "pycodestyle-2.12.0-py2.py3-none-any.whl", hash = "sha256:949a39f6b86c3e1515ba1787c2022131d165a8ad271b11370a8819aa070269e4"},
+    {file = "pycodestyle-2.12.0.tar.gz", hash = "sha256:442f950141b4f43df752dd303511ffded3a04c2b6fb7f65980574f0c31e6e79c"},
 ]
 
 [[package]]
@@ -909,13 +920,13 @@ toml = ["tomli (>=1.2.3)"]
 
 [[package]]
 name = "pyflakes"
-version = "2.5.0"
+version = "1.0.0"
 description = "passive checker of Python programs"
 optional = false
-python-versions = ">=3.6"
+python-versions = "*"
 files = [
-    {file = "pyflakes-2.5.0-py2.py3-none-any.whl", hash = "sha256:4579f67d887f804e67edb544428f264b7b24f435b263c4614f384135cea553d2"},
-    {file = "pyflakes-2.5.0.tar.gz", hash = "sha256:491feb020dca48ccc562a8c0cbe8df07ee13078df59813b83959cbdada312ea3"},
+    {file = "pyflakes-1.0.0-py2.py3-none-any.whl", hash = "sha256:071d121e9e7b33058aa1ba5de7bce9b97bfa3149cfe1acbb6587c21fc1c8eda1"},
+    {file = "pyflakes-1.0.0.tar.gz", hash = "sha256:f39e33a4c03beead8774f005bd3ecf0c3f2f264fa0201de965fce0aff1d34263"},
 ]
 
 [[package]]
