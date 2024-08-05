@@ -344,13 +344,13 @@ files = [
 
 [[package]]
 name = "django"
-version = "4.2.4"
+version = "4.2.14"
 description = "A high-level Python web framework that encourages rapid development and clean, pragmatic design."
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "Django-4.2.4-py3-none-any.whl", hash = "sha256:860ae6a138a238fc4f22c99b52f3ead982bb4b1aad8c0122bcd8c8a3a02e409d"},
-    {file = "Django-4.2.4.tar.gz", hash = "sha256:7e4225ec065e0f354ccf7349a22d209de09cc1c074832be9eb84c51c1799c432"},
+    {file = "Django-4.2.14-py3-none-any.whl", hash = "sha256:3ec32bc2c616ab02834b9cac93143a7dc1cdcd5b822d78ac95fc20a38c534240"},
+    {file = "Django-4.2.14.tar.gz", hash = "sha256:fc6919875a6226c7ffcae1a7d51e0f2ceaf6f160393180818f6c95f51b1e7b96"},
 ]
 
 [package.dependencies]
@@ -889,17 +889,6 @@ files = [
     {file = "psycopg2_binary-2.9.7-cp39-cp39-musllinux_1_1_x86_64.whl", hash = "sha256:2b04da24cbde33292ad34a40db9832a80ad12de26486ffeda883413c9e1b1d5e"},
     {file = "psycopg2_binary-2.9.7-cp39-cp39-win32.whl", hash = "sha256:18f12632ab516c47c1ac4841a78fddea6508a8284c7cf0f292cb1a523f2e2379"},
     {file = "psycopg2_binary-2.9.7-cp39-cp39-win_amd64.whl", hash = "sha256:eb3b8d55924a6058a26db69fb1d3e7e32695ff8b491835ba9f479537e14dcf9f"},
-]
-
-[[package]]
-name = "pycodestyle"
-version = "2.12.0"
-description = "Python style guide checker"
-optional = false
-python-versions = ">=3.8"
-files = [
-    {file = "pycodestyle-2.12.0-py2.py3-none-any.whl", hash = "sha256:949a39f6b86c3e1515ba1787c2022131d165a8ad271b11370a8819aa070269e4"},
-    {file = "pycodestyle-2.12.0.tar.gz", hash = "sha256:442f950141b4f43df752dd303511ffded3a04c2b6fb7f65980574f0c31e6e79c"},
 ]
 
 [[package]]
