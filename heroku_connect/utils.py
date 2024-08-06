@@ -1,4 +1,5 @@
 """Utility methods for Django Heroku Connect."""
+
 import os
 from enum import Enum
 from functools import lru_cache
@@ -48,14 +49,19 @@ def get_mapping(version=1, exported_at=None, app_name=None):
     Return Heroku Connect mapping for the entire project.
 
     Args:
+    ----
         version (int): Version of the Heroku Connect mapping, default: ``1``.
-        exported_at (datetime.datetime): Time the export was created, default is ``now()``.
-        app_name (str): Name of Heroku application associated with Heroku Connect the add-on.
+        exported_at (datetime.datetime): Time the export was created, default is
+            ``now()``.
+        app_name (str): Name of Heroku application associated with Heroku Connect the
+            add-on.
 
     Returns:
+    -------
         dict: Heroku Connect mapping.
 
     Note:
+    ----
         The version does not need to be incremented. Exports from the Heroku Connect
         website will always have the version number ``1``.
 
@@ -80,7 +86,8 @@ def get_heroku_connect_models():
     """
     Return all registered Heroku Connect Models.
 
-    Returns:
+    Returns
+    -------
         (Iterator):
             All registered models that are subclasses of `.HerokuConnectModel`.
             Abstract models are excluded, since they are not registered.
@@ -101,11 +108,14 @@ def get_heroku_connect_models():
 
 @lru_cache(maxsize=128)
 def get_connected_model_for_table_name(table_name):
-    """Return a connected model's table name (which read and written to by Heroku Connect)."""
+    """
+    Return a connected model's table name (which read and written to by
+    Heroku Connect).
+    """
     for connected_model in get_heroku_connect_models():
         if connected_model.get_heroku_connect_table_name() == table_name:
             return connected_model
-    raise LookupError("No connected model found for table %r" % (table_name,))
+    raise LookupError(f"No connected model found for table {table_name!r}")
 
 
 _SCHEMA_EXISTS_QUERY = """
@@ -122,14 +132,17 @@ def create_heroku_connect_schema(using=DEFAULT_DB_ALIAS):
     Create Heroku Connect schema.
 
     Note:
+    ----
         This function is only meant to be used for local development.
         In a production environment the schema will be created by
         Heroku Connect.
 
     Args:
+    ----
         using (str): Alias for database connection.
 
     Returns:
+    -------
         bool: ``True`` if the schema was created, ``False`` if the
             schema already exists.
 
@@ -148,7 +161,8 @@ def create_heroku_connect_schema(using=DEFAULT_DB_ALIAS):
         for model in get_heroku_connect_models():
             editor.create_model(model)
 
-        # Needs PostgreSQL and database superuser privileges (which is the case on Heroku):
+        # Needs PostgreSQL and database superuser privileges (which is the case on
+        # Heroku):
         editor.execute('CREATE EXTENSION IF NOT EXISTS "hstore";')
 
         from heroku_connect.models import TriggerLog, TriggerLogArchive
@@ -159,7 +173,7 @@ def create_heroku_connect_schema(using=DEFAULT_DB_ALIAS):
 
 
 def _get_authorization_headers():
-    return {"Authorization": "Bearer %s" % settings.HEROKU_AUTH_TOKEN}
+    return {"Authorization": f"Bearer {settings.HEROKU_AUTH_TOKEN}"}
 
 
 def get_connections(app):
@@ -183,12 +197,16 @@ def get_connections(app):
         }
 
     Args:
+    ----
         app (str): Heroku application name.
 
     Returns:
-        List[dict]: List of all Heroku Connect connections associated with the Heroku application.
+    -------
+        List[dict]: List of all Heroku Connect connections associated with the Heroku
+            application.
 
     Raises:
+    ------
         requests.HTTPError: If an error occurred when accessing the connections API.
         ValueError: If response is not a valid JSON.
 
@@ -247,15 +265,19 @@ def get_connection(connection_id, deep=False):
         }
 
     Args:
+    ----
         connection_id (str): ID for Heroku Connect's connection.
         deep (bool): Return information about the connection’s mappings,
             in addition to the connection itself. Defaults to ``False``.
 
     Returns:
+    -------
         dict: Heroku Connection connection information.
 
     Raises:
-        requests.HTTPError: If an error occurred when accessing the connection detail API.
+    ------
+        requests.HTTPError: If an error occurred when accessing the connection detail
+            API.
         ValueError: If response is not a valid JSON.
 
     """
@@ -277,7 +299,7 @@ def get_connection_write_mode(connection_id):
     return _write_algorithm_from_connection_info(get_connection(connection_id))
 
 
-@lru_cache()
+@lru_cache
 def get_unique_connection_write_mode(app_name=None):
     app_name = app_name or settings.HEROKU_CONNECT_APP_NAME
     (mode,) = set(get_all_connections_write_modes(app_name).values())
@@ -290,10 +312,12 @@ def import_mapping(connection_id, mapping):
     Import Heroku Connection mapping for given connection.
 
     Args:
+    ----
         connection_id (str): Heroku Connection connection ID.
         mapping (dict): Heroku Connect mapping.
 
     Raises:
+    ------
         requests.HTTPError: If an error occurs uploading the mapping.
         ValueError: If the mapping is not JSON serializable.
 

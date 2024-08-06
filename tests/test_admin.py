@@ -21,7 +21,7 @@ class TestGenericLogModelAdmin:
 
     @pytest.fixture
     def admin_list_url(self):
-        route_name = "admin:{0.app_label}_{0.model_name}".format(TriggerLog._meta)
+        route_name = f"admin:{TriggerLog._meta.app_label}_{TriggerLog._meta.model_name}"
         return reverse(route_name + "_changelist")
 
     def test_table_name_link(self, admin, admin_list_url):
@@ -52,9 +52,7 @@ class TestAdminActions:
     @staticmethod
     def admin_changelist_url(model):
         return reverse(
-            "admin:{meta.app_label}_{meta.model_name}_changelist".format(
-                meta=model._meta
-            )
+            f"admin:{model._meta.app_label}_{model._meta.model_name}_changelist"
         )
 
     @staticmethod

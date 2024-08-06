@@ -30,12 +30,12 @@ def make_trigger_log(*, is_archived=False, **attrs):
     Make an unsaved trigger log instance from given attributes.
 
     Args:
-        is_archived (bool): Make a TriggerLog instance if ``True``, a TriggerLogArchive otherwise
-        **attrs: Attributes of the trigger log instance
+        is_archived (bool): Make a TriggerLog instance if ``True``, a TriggerLogArchive
+            otherwise **attrs: Attributes of the trigger log instance
 
     Returns:
-        An unsaved TriggerLog or TriggerLogArchive instance, depending on whether `is_archived`
-        is False or True.
+        An unsaved TriggerLog or TriggerLogArchive instance, depending on whether
+            `is_archived` is False or True.
     """
     model_cls = TriggerLogArchive if is_archived else TriggerLog
     attrs.setdefault("state", TRIGGER_LOG_STATE["NEW"])
@@ -55,8 +55,12 @@ def hc_capture_stored_procedures(db, settings):
     with connection.cursor() as cursor:
         cursor.execute(
             f"""
-            CREATE OR REPLACE FUNCTION {settings.HEROKU_CONNECT_SCHEMA}.hc_capture_insert_from_row
-                (source_row hstore, table_name text, excluded_cols text[] default ARRAY[]::text[])
+            CREATE OR REPLACE FUNCTION
+                {settings.HEROKU_CONNECT_SCHEMA}.hc_capture_insert_from_row (
+                    source_row hstore,
+                    table_name text,
+                    excluded_cols text[] default ARRAY[]::text[]
+                )
             RETURNS int
             LANGUAGE plpgsql
             AS $$
@@ -74,7 +78,9 @@ def hc_capture_stored_procedures(db, settings):
                 END IF;
 
                 excluded_cols_standard := array_remove(
-                    array_remove(excluded_cols, 'id'), 'sfid') || excluded_cols_standard;
+                    array_remove(excluded_cols, 'id'), 'sfid'
+                ) || excluded_cols_standard;
+
                 INSERT INTO "salesforce"."_trigger_log" (
                     action, table_name, txid, created_at, state, record_id, values)
                 VALUES (
@@ -90,8 +96,12 @@ def hc_capture_stored_procedures(db, settings):
 
         cursor.execute(
             f"""
-            CREATE OR REPLACE FUNCTION {settings.HEROKU_CONNECT_SCHEMA}.hc_capture_update_from_row
-            (source_row hstore, table_name text, columns_to_include text[] default ARRAY[]::text[])
+            CREATE OR REPLACE FUNCTION
+                {settings.HEROKU_CONNECT_SCHEMA}.hc_capture_update_from_row (
+                    source_row hstore,
+                    table_name text,
+                    columns_to_include text[] default ARRAY[]::text[]
+                )
             RETURNS int
             LANGUAGE plpgsql
             AS $$
@@ -117,7 +127,9 @@ def hc_capture_stored_procedures(db, settings):
                 END IF;
                 excluded_cols_standard := excluded_cols || excluded_cols_standard;
                 INSERT INTO "salesforce"."_trigger_log" (
-                   action, table_name, txid, created_at, state, record_id, sfid, values, old)
+                   action, table_name, txid, created_at, state,
+                   record_id, sfid, values, old
+                )
                 VALUES (
                    'UPDATE', table_name, txid_current(), clock_timestamp(), 'NEW',
                    (source_row -> 'id')::int, source_row -> 'sfid',
@@ -133,8 +145,8 @@ def hc_capture_stored_procedures(db, settings):
 @pytest.fixture()
 def connected_class():
     """Get a HerokuConnectedModel subclass."""
-    # The class definition is hidden in a fixture to keep the app registry and database table space
-    # clean for other tests.
+    # The class definition is hidden in a fixture to keep the app registry and database
+    # table space clean for other tests.
     global __ConnectedTestModel
     try:
         cls = __ConnectedTestModel

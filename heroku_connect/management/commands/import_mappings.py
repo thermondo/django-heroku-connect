@@ -60,7 +60,7 @@ class Command(BaseCommand):
             if len(connections) == 0:
                 msg = self.style.WARNING(
                     "No associated connections found for the current user"
-                    " with the app %r." % app_name
+                    f" with the app {app_name!r}."
                 )
                 self.stdout.write(msg)
                 try:
@@ -80,13 +80,13 @@ class Command(BaseCommand):
             if len(connections) == 0:
                 raise CommandError(
                     "No associated connections found"
-                    " for the current user with the app %r." % app_name
+                    f" for the current user with the app {app_name!r}."
                 )
             elif len(connections) > 1:
                 raise CommandError(
                     "More than one associated connections found"
-                    " for the current user with the app %r."
-                    " Please specify the connection ID." % app_name
+                    f" for the current user with the app {app_name!r}."
+                    " Please specify the connection ID."
                 )
             connection_id = connections[0]["id"]
 
@@ -106,10 +106,12 @@ class Command(BaseCommand):
         Wait until connection state is no longer ``IMPORT_CONFIGURATION``.
 
         Args:
+        ----
             connection_id (str): Heroku Connect connection to monitor.
             wait_interval (int): How frequently to poll in seconds.
 
         Raises:
+        ------
             CommandError: If fetch connection information fails.
 
         """

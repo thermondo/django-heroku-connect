@@ -15,6 +15,7 @@ class Command(BaseCommand):
         heroku connect:import hc_mappings.json
 
     Note:
+    ----
         For the example to work you will need the
         `Heroku Connect CLI Plugin`_.
 

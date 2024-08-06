@@ -23,7 +23,8 @@ class Command(BaseCommand):
             action="store",
             dest="database",
             default=DEFAULT_DB_ALIAS,
-            help='Nominates a database to synchronize. Defaults to the "default" database.',
+            help='Nominates a database to synchronize. Defaults to the "default" '
+            "database.",
         )
 
     def handle(self, *args, **options):
@@ -33,7 +34,7 @@ class Command(BaseCommand):
         if force:
             connection = connections[db]
             with connection.cursor() as cursor:
-                cursor.execute("DROP SCHEMA IF EXISTS %s CASCADE;" % schema)
+                cursor.execute(f"DROP SCHEMA IF EXISTS {schema} CASCADE;")
         if not create_heroku_connect_schema(using=db):
-            raise CommandError("Schema %s already exists." % schema)
-        self.stdout.write("Schema %s created." % schema)
+            raise CommandError(f"Schema {schema} already exists.")
+        self.stdout.write(f"Schema {schema} created.")

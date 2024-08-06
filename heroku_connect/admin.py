@@ -11,9 +11,11 @@ from heroku_connect.models import TRIGGER_LOG_STATE, TriggerLog, TriggerLogArchi
 
 def _replaced(__values, **__replacements):
     """
-    Replace elements in iterable with values from an alias dict, suppressing empty values.
+    Replace elements in iterable with values from an alias dict, suppressing empty
+    values.
 
-    Used to consistently enhance how certain fields are displayed in list and detail pages.
+    Used to consistently enhance how certain fields are displayed in list and detail
+    pages.
     """
     return tuple(o for o in (__replacements.get(name, name) for name in __values) if o)
 
@@ -22,19 +24,22 @@ def _get_admin_route_name(model_or_instance):
     """
     Get the base name of the admin route for a model or model instance.
 
-    For use with :func:`django.urls.reverse`, although it still needs the specific route suffix
-    appended, for example ``_changelist``.
+    For use with :func:`django.urls.reverse`, although it still needs the specific route
+    suffix appended, for example ``_changelist``.
     """
     model = (
         model_or_instance
         if isinstance(model_or_instance, type)
         else type(model_or_instance)
     )
-    return "admin:{meta.app_label}_{meta.model_name}".format(meta=model._meta)
+    return f"admin:{model._meta.app_label}_{model._meta.model_name}"
 
 
 def _build_admin_filter_url(model, filters):
-    """Build a filter URL to an admin changelist of all objects with similar field values."""
+    """
+    Build a filter URL to an admin changelist of all objects with similar field
+    values.
+    """
     url = reverse(_get_admin_route_name(model) + "_changelist")
     parts = urlsplit(url)
     query = parse_qs(parts.query)
@@ -44,7 +49,10 @@ def _build_admin_filter_url(model, filters):
 
 
 def _make_admin_link_to_similar(primary_field, *fields, name=None):
-    """Create a function that links to a changelist of all objects with similar field values."""
+    """
+    Create a function that links to a changelist of all objects with similar field
+    values.
+    """
     fields = (primary_field,) + fields
     url_template = '<a href="{url}">{name_or_value}</a>'
 
@@ -73,9 +81,11 @@ def _retry_failed_log(failed_trigger_log):
     """
     Try to re-apply a failed trigger log action.
 
-    Makes sure the argument trigger log is in a FAILED state and acquires a row lock on it.
+    Makes sure the argument trigger log is in a FAILED state and acquires a row lock on
+    it.
 
-    Returns:
+    Returns
+    -------
           True if the operation succeeded
 
     """
@@ -105,7 +115,7 @@ class GenericLogModelAdmin(admin.ModelAdmin):
     date_hierarchy = "created_at"
     list_display = _replaced(
         ("created_at", "action", "table_name", "record_id", "sf_message", "state"),
-        **field_overrides
+        **field_overrides,
     )
     list_filter = ("action", "state", "table_name")
     list_per_page = 100
@@ -116,7 +126,7 @@ class GenericLogModelAdmin(admin.ModelAdmin):
     # DETAIL
     readonly_fields = _replaced(
         [field.name for field in TriggerLog._meta.get_fields() if not field.editable],
-        **field_overrides
+        **field_overrides,
     )
     save_as = True
     save_on_top = True
