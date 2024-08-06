@@ -43,7 +43,7 @@ def _check_foreign_key_target(field):
     if field.target_field.name == "id":
         errors.append(
             Error(
-                "%s should point to an External ID or the 'sf_id', not 'id'." % field,
+                f"{field} should point to an External ID or the 'sf_id', not 'id'.",
                 hint="Specify the 'to_field' argument.",
                 id="heroku_connect.E005",
             )
@@ -56,7 +56,7 @@ def _check_many_to_many_target(field):
     if field.target_field.name == "id":
         errors.append(
             Error(
-                "%s should point to an External ID or the 'sf_id', not 'id'." % field,
+                f"{field} should point to an External ID or the 'sf_id', not 'id'.",
                 hint="Specify the 'to_field' argument.",
                 id="heroku_connect.E005",
             )
@@ -68,14 +68,13 @@ def _check_foreign_key_constraint(field):
     if field.db_constraint:
         return [
             Warning(
-                "%s should not have database constraints to a Heroku Connect model."
-                % field,
+                f"{field} should not have database constraints to a "
+                "Heroku Connect model.",
                 hint="Set 'db_constraint' to False.",
                 id="heroku_connect.W001",
             ),
             Error(
-                "%s may not have database constraints to a Heroku Connect model."
-                % field,
+                f"{field} may not have database constraints to a Heroku Connect model.",
                 hint="Set 'db_constraint' to False.",
                 id="heroku_connect.E008",
             ),
@@ -89,8 +88,8 @@ def _check_many_to_many_constraint(field):
     if field.remote_field.db_constraint:
         warnings.append(
             Warning(
-                "%s should not have database constraints to a Heroku Connect model."
-                % field,
+                f"{field} should not have database constraints to a "
+                "Heroku Connect model.",
                 hint="Set 'db_constraint' to False.",
                 id="heroku_connect.W001",
             )
@@ -109,8 +108,8 @@ def _check_unique_sf_object_name(app_configs, **kwargs):
             for model in models:
                 errors.append(
                     Error(
-                        "%s.%s.sf_object_name '%s' clashes with another model."
-                        % (model._meta.app_label, model.__name__, sf_object_name),
+                        f"{model._meta.app_label}.{model.__name__}.sf_object_name "
+                        f"'{sf_object_name}' clashes with another model.",
                         hint="Make sure your 'sf_object_name' is correct.",
                         id="heroku_connect.E006",
                         obj=model,

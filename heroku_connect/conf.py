@@ -31,8 +31,8 @@ class HerokuConnectAppConf(AppConf):
     ``HEROKU_CONNECT_ORGANIZATION_ID``.
 
     Note:
-        This is not preset on your Heroku application. You will need to either add a setting
-        or set the environment variable manually.
+        This is not preset on your Heroku application. You will need to either add a
+        setting or set the environment variable manually.
 
     .. _`Salesforce Organization ID`: https://help.salesforce.com/articleView?id=000006019
 

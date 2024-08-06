@@ -110,7 +110,8 @@ class TestImportMapping:
         ) in str(e.value)
         assert console == (
             "Fetching connections.\n"
-            "No associated connections found for the current user with the app 'ninja'.\n"
+            "No associated connections found for the current user with the app "
+            "'ninja'.\n"
             "Linking the current user with Heroku Connect.\n"
             "Fetching connections.\n"
         )
@@ -146,7 +147,8 @@ class TestImportMapping:
         assert "Authentication failed" in str(e.value)
         assert console == (
             "Fetching connections.\n"
-            "No associated connections found for the current user with the app 'ninja'.\n"
+            "No associated connections found for the current user with the app "
+            "'ninja'.\n"
             "Linking the current user with Heroku Connect.\n"
         )
 

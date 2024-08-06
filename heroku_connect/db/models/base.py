@@ -25,11 +25,12 @@ class HerokuConnectModelBase(models.base.ModelBase):
     Custom model base class to set ``Meta`` attributes.
 
     Sets :attr:`Meta.managed<django.db.models.Options.managed>` to ``False``
-    and sets a default value for :attr:`Meta.db_table<django.db.models.Options.db_table>`.
+    and sets a default value for
+    :attr:`Meta.db_table<django.db.models.Options.db_table>`.
     """
 
     def __new__(mcs, name, bases, attrs):
-        super_new = super(HerokuConnectModelBase, mcs).__new__
+        super_new = super().__new__
         has_abstract_parent = any(
             base._meta.abstract
             for base in bases
@@ -73,9 +74,11 @@ def get_heroku_connect_table_name(model_cls):
     Return the table name (without schema) associated with a model class.
 
     Args:
+    ----
         model_cls: A connected model class object
 
     Raises:
+    ------
         LookupError: if no table name is associated with the given class
 
     """
@@ -100,20 +103,25 @@ class HerokuConnectModel(
             custom_date = hc_models.DateTime(sf_field_name='Custom_Date__c')
 
     Note:
-        Subclasses have :attr:`Meta.managed<django.db.models.Options.managed>` set to ``False``.
+    ----
+        Subclasses have :attr:`Meta.managed<django.db.models.Options.managed>` set to
+        ``False``.
 
-        A default value for :attr:`Meta.db_table<django.db.models.Options.db_table>` is set based
-        on :attr:`settings.HEROKU_CONNECT_SCHEMA<.HerokuConnectAppConf.HEROKU_CONNECT_SCHEMA>`
+        A default value for :attr:`Meta.db_table<django.db.models.Options.db_table>` is
+        set based on
+        :attr:`settings.HEROKU_CONNECT_SCHEMA<.HerokuConnectAppConf.HEROKU_CONNECT_SCHEMA>`
         and :attr:`.sf_object_name`.
 
     Note:
+    ----
         A model mixin must inherit from :class:`Meta.managed<django.db.models.Model>`
         not `.HerokuConnectModel`. Only the final (not abstract) models should inherit
         from `.HerokuConnectModel` otherwise build-in fields will clash.
 
     Warning:
-        The Salesforce `User`_ and `RecordType`_ objects have no ``IsDeleted`` field. Therefore
-        if :attr:`.sf_object_name` is set to ``User`` or ``RecordType``
+    -------
+        The Salesforce `User`_ and `RecordType`_ objects have no ``IsDeleted`` field.
+        Therefore if :attr:`.sf_object_name` is set to ``User`` or ``RecordType``
         the Django ORM representation does not have this field either.
         You can add the ``IsActive`` field to your
         User or RecordType object, but it is not required by Heroku Connect.
@@ -171,14 +179,15 @@ class HerokuConnectModel(
         max_length=32,
         null=True,
         editable=False,
-        help_text="Indicates the last sync operation Heroku Connect performed on the record",
+        help_text="Indicates the last sync operation Heroku Connect performed on "
+        "the record",
     )
     _hc_err = models.TextField(
         max_length=1024,
         null=True,
         editable=False,
-        help_text="If the last sync operation by Heroku Connect resulted in an error then this"
-        " column will contain a JSON object containing more"
+        help_text="If the last sync operation by Heroku Connect resulted in an error "
+        "then this column will contain a JSON object containing more"
         " information about the error",
     )
 
@@ -242,8 +251,8 @@ class HerokuConnectModel(
         if not (cls._meta.abstract or cls.sf_object_name):
             return [
                 checks.Error(
-                    '%s.%s must define a "sf_object_name".'
-                    % (cls._meta.app_label, cls.__name__),
+                    f"{cls._meta.app_label}.{cls.__name__} must define a "
+                    '"sf_object_name".',
                     id="heroku_connect.E001",
                 )
             ]
@@ -255,8 +264,8 @@ class HerokuConnectModel(
         if cls.sf_access not in allowed_access_types:
             return [
                 checks.Error(
-                    "%s.%s.sf_access must be one of %s"
-                    % (cls._meta.app_label, cls.__name__, allowed_access_types),
+                    f"{cls._meta.app_label}.{cls.__name__}.sf_access must be one "
+                    f"of {allowed_access_types}",
                     hint=cls.sf_access,
                     id="heroku_connect.E002",
                 )
@@ -274,8 +283,8 @@ class HerokuConnectModel(
         if duplicates:
             return [
                 checks.Error(
-                    "%s.%s has duplicate Salesforce field names."
-                    % (cls._meta.app_label, cls.__name__),
+                    f"{cls._meta.app_label}.{cls.__name__} has duplicate Salesforce "
+                    "field names.",
                     hint=duplicates,
                     id="heroku_connect.E003",
                 )
@@ -290,8 +299,8 @@ class HerokuConnectModel(
         if len(upsert_fields) > 1:
             return [
                 checks.Error(
-                    "%s.%s can only have a single upsert field."
-                    % (cls._meta.app_label, cls.__name__),
+                    f"{cls._meta.app_label}.{cls.__name__} can only have a single "
+                    "upsert field.",
                     hint=upsert_fields,
                     id="heroku_connect.E004",
                 )
@@ -308,8 +317,8 @@ class HerokuConnectModel(
             if not upsert_fields:
                 errors.append(
                     checks.Error(
-                        "%s.%s does not have an upsert field."
-                        % (cls._meta.app_label, cls.__name__),
+                        f"{cls._meta.app_label}.{cls.__name__} does not have an upsert "
+                        "field.",
                         hint="Read-write models need an upsert field.",
                         id="heroku_connect.E007",
                     )

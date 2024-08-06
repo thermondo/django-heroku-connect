@@ -27,13 +27,14 @@ class HerokuConnectRouter:
         """
         Prevent write actions on read-only tables.
 
-        Raises:
+        Raises
+        ------
             WriteNotSupportedError: If models.sf_access is ``read_only``.
 
         """
         try:
             if model.sf_access == READ_ONLY:
-                raise WriteNotSupportedError("%r is a read-only model." % model)
+                raise WriteNotSupportedError(f"{model!r} is a read-only model.")
         except AttributeError:
             pass
         return None

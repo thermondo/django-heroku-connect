@@ -8,6 +8,7 @@ See Heroku Connect's `mapped data types`_.
     https://devcenter.heroku.com/articles/heroku-connect-database-tables#mapped-data-types
 
 """
+
 import uuid
 from datetime import timezone
 
@@ -99,6 +100,7 @@ class ExternalID(HerokuConnectFieldMixin, models.UUIDField):
     new records only in your application.
 
     Note:
+    ----
         Django does not use Database defaults, should you create new records
         on Salesforce, you need to make sure Salesforce inserts UUIDs or
         handle empty External ID fields in your Django application.
@@ -184,9 +186,9 @@ class DateTime(HerokuConnectFieldMixin, models.DateTimeField):
     """
     Salesforce ``DateTime`` field.
 
-    Heroku connect create tables with time stamp fields but without time zones, and when it syncs
-    to Salesforce it treats them as UTC. This field will be always making sure that the dates are
-    aware and UTC.
+    Heroku connect create tables with time stamp fields but without time zones, and
+    when it syncs to Salesforce it treats them as UTC. This field will be always
+    making sure that the dates are aware and UTC.
     """
 
     def db_type(self, connection):

@@ -3,7 +3,7 @@ name = "django-heroku-connect"
 # just a dummy version
 # will be overwritten from the git tag,
 # see https://github.com/mtkennerly/poetry-dynamic-versioning
-version = "3.0.0.post34.dev0+38ecac4"
+version = "0.0.0"
 description = "Django integration Salesforce using Heroku Connect."
 authors = ["thermondo <opensource@thermondo.de>"]
 readme = "README.rst"
@@ -73,7 +73,7 @@ sphinx = { version = ">=7", python = ">=3.9" }
 sphinx_rtd_theme = { version = ">=1", python = ">3.9" }
 
 [tool.poetry-dynamic-versioning]
-enable = false
+enable = true
 pattern = "^(?P<base>\\d+(\\.\\d+)*)" # tag without `v` prefix
 
 [build-system]

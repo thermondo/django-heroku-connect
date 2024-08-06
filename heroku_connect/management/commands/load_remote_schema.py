@@ -64,7 +64,7 @@ class Command(BaseCommand):
             run_args += ["-a", heroku_app]
 
         try:
-            output = subprocess.check_output(run_args)  # nosec
+            output = subprocess.check_output(run_args)  # noqa: S603
         except subprocess.SubprocessError as e:
             raise CommandError("Please provide the correct Heroku app name.") from e
         else:
@@ -98,7 +98,7 @@ class Command(BaseCommand):
         ]
 
         try:
-            output = subprocess.check_output(run_args, env=env)  # nosec
+            output = subprocess.check_output(run_args, env=env)  # noqa: S603
         except subprocess.SubprocessError as e:
             raise CommandError("Schema not found.") from e
         else:

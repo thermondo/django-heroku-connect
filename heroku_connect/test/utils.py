@@ -1,4 +1,5 @@
 """Test utilities for Django and Heroku Connect."""
+
 import copy
 import os
 import shlex
@@ -32,6 +33,7 @@ def heroku_cli(stdout="", stderr="", exit_code=0):
         assert process.stderr == b'warning\n'
 
     Args:
+    ----
         stdout (str): String the command writes to ``stdout``.
         stderr (str): String the command writes to ``stderr``.
         exit_code (int): Code that the command will exit with, default ``1``.

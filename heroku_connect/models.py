@@ -19,7 +19,10 @@ class TriggerLogQuerySet(models.QuerySet):
         return self.filter(state=TRIGGER_LOG_STATE["FAILED"])
 
     def related_to(self, instance):
-        """Filter for all log objects of the same connected model as the given instance."""
+        """
+        Filter for all log objects of the same connected model as the given
+        instance.
+        """
         return self.filter(table_name=instance.table_name, record_id=instance.record_id)
 
 
@@ -60,18 +63,18 @@ class TriggerLogAbstract(models.Model):
     """
     Support for accessing the Heroku Connect Trigger Log data and related actions.
 
-    Heroku Connect uses a Trigger Log table to track local changes to connected models (that is,
-    in the Heroku database. Such changes are recorded as rows in the trigger log and, for
-    read-write mappings, eventually written back to Salesforce.
+    Heroku Connect uses a Trigger Log table to track local changes to connected models
+    (that is, in the Heroku database. Such changes are recorded as rows in the trigger
+    log and, for read-write mappings, eventually written back to Salesforce.
 
-    Old logs are moved to an archive table (after being processed), from where they are purged
-    eventually (currently 30 days for paid plans, 7 days for demo). Recent logs are modeled by
-    :class:`TriggerLog`; archived logs by :class:`TriggerLogArchive`.
+    Old logs are moved to an archive table (after being processed), from where they are
+    purged eventually (currently 30 days for paid plans, 7 days for demo). Recent logs
+    are modeled by :class:`TriggerLog`; archived logs by :class:`TriggerLogArchive`.
 
-    The data represented by these models is maintained entirely by Heroku Connect, and is
-    instrumental to its operations; it should therefore not be modified. A possible exception is
-    the ``state`` field, which may be changed as detailed in the `error handling`_ section in the
-    Heroku Connect documentation.
+    The data represented by these models is maintained entirely by Heroku Connect, and
+    is instrumental to its operations; it should therefore not be modified. A possible
+    exception is the ``state`` field, which may be changed as detailed in the
+    `error handling`_ section in the Heroku Connect documentation.
 
     .. seealso::
         - :class:`.TriggerLogQuerySet`
@@ -86,13 +89,13 @@ class TriggerLogAbstract(models.Model):
 
     # I18N / TRANSLATIONS:
     #
-    # Field names and choices don't use translations, because they refer to (English) technical
-    # terms in Heroku Connect's manual. That connection should be preserved. Trigger Log Models
-    # are for technical folks and not intended to be user-facing.
+    # Field names and choices don't use translations, because they refer to (English)
+    # technical terms in Heroku Connect's manual. That connection should be preserved.
+    # Trigger Log Models are for technical folks and not intended to be user-facing.
 
     # read-only fields
-    # `id` is a BigAutoField for testing convenience;  in a real environment, id management
-    # is up to Heroku Connect.
+    # `id` is a BigAutoField for testing convenience;  in a real environment, id
+    # management is up to Heroku Connect.
     id = models.BigAutoField(primary_key=True, editable=False)
     txid = models.BigIntegerField(editable=False, null=True)
     created_at = models.DateTimeField(editable=False, null=True)
@@ -139,15 +142,19 @@ class TriggerLogAbstract(models.Model):
         corresponding object in Salesforce.
 
         Args:
-            table_name (str): The name of the table backing the connected model (without schema)
+        ----
+            table_name (str): The name of the table backing the connected model (without
+                schema)
             record_id (int): The primary id of the connected model
-            exclude_fields (Iterable[str]): The names of fields that will not be included in the
-                write record
+            exclude_fields (Iterable[str]): The names of fields that will not be
+                included in the write record
 
         Returns:
+        -------
             A list of the created TriggerLog entries (usually one).
 
         Raises:
+        ------
             LookupError: if ``table_name`` does not belong to a connected model
 
         """
@@ -161,7 +168,7 @@ class TriggerLogAbstract(models.Model):
             SELECT {schema}.hc_capture_insert_from_row(
               hstore({schema}.{table_name}.*),
               %(table_name)s,
-              ARRAY[{exclude_cols}]::text[]  -- cast to type expected by stored procedure
+              ARRAY[{exclude_cols}]::text[] -- cast to type expected by stored procedure
             ) AS id
             FROM {schema}.{table_name}
             WHERE id = %(record_id)s
@@ -192,21 +199,26 @@ class TriggerLogAbstract(models.Model):
         """
         Create a fresh update record from the current model state in the database.
 
-        For read-write connected models, this will lead to the attempted update of the values of
-        a corresponding object in Salesforce.
+        For read-write connected models, this will lead to the attempted update of the
+        values of a corresponding object in Salesforce.
 
         Args:
-            table_name (str): The name of the table backing the connected model (without schema)
+        ----
+            table_name (str): The name of the table backing the connected model (without
+                schema)
             record_id (int): The primary id of the connected model
-            update_fields (Iterable[str]): If given, the names of fields that will be included in
-                the write record. These will be converted into database column names.
-            update_columns (Iterable[str]): If given, the names of database column names that will
-                be included in the write record.
+            update_fields (Iterable[str]): If given, the names of fields that will be
+                included in the write record. These will be converted into database
+                column names.
+            update_columns (Iterable[str]): If given, the names of database column names
+                that will be included in the write record.
 
         Returns:
+        -------
             A list of the created TriggerLog entries (usually one).
 
         Raises:
+        ------
             LookupError: if ``table_name`` does not belong to a connected model
 
         """
@@ -247,23 +259,18 @@ class TriggerLogAbstract(models.Model):
     def __str__(self):
         created_at = self.created_at
         if created_at:
-            created_at = "{:%Y-%m-%d %a %H:%M%z}".format(created_at)
+            created_at = f"{created_at:%Y-%m-%d %a %H:%M%z}"
         return (
-            "#{id} {action} {table_name}|{record_id} [{created_at}] [{state}]"
-        ).format(
-            id=self.id,
-            action=self.action,
-            table_name=self.table_name,
-            record_id=self.record_id,
-            created_at=created_at,
-            state=self.state,
+            f"#{self.id} {self.action} {self.table_name}|{self.record_id} "
+            "[{created_at}] [{self.state}]"
         )
 
     def get_model(self):
         """
         Fetch the instance of the connected model referenced by this log record.
 
-        Returns:
+        Returns
+        -------
             The connected instance, or ``None`` if it does not exists.
 
         """
@@ -275,7 +282,9 @@ class TriggerLogAbstract(models.Model):
         Get a QuerySet for all trigger log objects for the same connected model.
 
         Args:
+        ----
             exclude_self (bool): Whether to exclude this log object from the result list
+
         """
         manager = type(self)._default_manager
         queryset = manager.related_to(self)
@@ -339,9 +348,7 @@ class TriggerLog(TriggerLogAbstract):
     is_archived = False
 
     class Meta(TriggerLogAbstract.Meta):
-        db_table = '{schema}"."_trigger_log'.format(
-            schema=settings.HEROKU_CONNECT_SCHEMA
-        )
+        db_table = f'{settings.HEROKU_CONNECT_SCHEMA}"."_trigger_log'
         verbose_name = _("Trigger Log")
 
     @transaction.atomic()
@@ -351,7 +358,8 @@ class TriggerLog(TriggerLogAbstract):
 
         This MAY create new TriggerLog instances, or save changes to this instance.
 
-        Returns:
+        Returns
+        -------
             A TriggerLog instance that represents the re-application; possibly ``self``.
 
         """
@@ -375,9 +383,7 @@ class TriggerLogArchive(TriggerLogAbstract):
     is_archived = True
 
     class Meta(TriggerLogAbstract.Meta):
-        db_table = '{schema}"."_trigger_log_archive'.format(
-            schema=settings.HEROKU_CONNECT_SCHEMA
-        )
+        db_table = f'{settings.HEROKU_CONNECT_SCHEMA}"."_trigger_log_archive'
         verbose_name = _("Trigger Log (archived)")
         verbose_name_plural = _("Trigger Logs (archived)")
 
@@ -386,13 +392,15 @@ class TriggerLogArchive(TriggerLogAbstract):
         """
         Re-sync the change recorded in this trigger log.
 
-        Creates a ``NEW`` live trigger log from the data in this archived trigger log and sets
-        the state of this archived instance to ``REQUEUED``.
+        Creates a ``NEW`` live trigger log from the data in this archived trigger log
+        and sets the state of this archived instance to ``REQUEUED``.
 
         .. seealso:: :meth:`.TriggerLog.redo`
 
-        Returns:
-            The :class:`.TriggerLog` instance that was created from the data of this archived log.
+        Returns
+        -------
+            The :class:`.TriggerLog` instance that was created from the data of this
+                archived log.
 
         """
         if get_unique_connection_write_mode() == WriteAlgorithm.ORDERED_WRITES:
@@ -411,10 +419,12 @@ class TriggerLogArchive(TriggerLogAbstract):
         Make a new, non-archived :class:`.TriggerLog` instance with duplicate data.
 
         Args:
-            **kwargs: Set as attributes of the new instance, overriding what would otherwise be
-                copied from ``self``.
+        ----
+            **kwargs: Set as attributes of the new instance, overriding what would
+                otherwise be copied from ``self``.
 
         Returns:
+        -------
             The new (unpersisted) :class:`TriggerLog` instance.
 
         """

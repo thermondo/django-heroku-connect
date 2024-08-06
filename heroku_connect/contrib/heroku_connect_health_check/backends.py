@@ -41,7 +41,8 @@ class HerokuConnectHealthCheck(BaseHealthCheckBackend):
             if connection["state"] not in utils.ConnectionStates.OK_STATES:
                 self.add_error(
                     ServiceUnavailable(
-                        "Connection state for '%s' is '%s'"
-                        % (connection["name"], connection["state"])
+                        "Connection state for '{}' is '{}'".format(
+                            connection["name"], connection["state"]
+                        )
                     )
                 )
