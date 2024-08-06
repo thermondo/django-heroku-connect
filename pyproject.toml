@@ -3,7 +3,7 @@ name = "django-heroku-connect"
 # just a dummy version
 # will be overwritten from the git tag,
 # see https://github.com/mtkennerly/poetry-dynamic-versioning
-version = "0.0.0"
+version = "3.0.0.post34.dev0+38ecac4"
 description = "Django integration Salesforce using Heroku Connect."
 authors = ["thermondo <opensource@thermondo.de>"]
 readme = "README.rst"
@@ -31,19 +31,39 @@ django-appconf = "~1"
 requests = "~2"
 
 [tool.poetry.group.dev.dependencies]
-bandit = "!=1.6.3,!=1.7.0"
-black = "*"
 coverage = "*"
 django-health-check = "*"
-flake8 = "*"
 httpretty = "*"
-isort = "*"
 pre-commit = "*"
 psycopg2-binary = "*"
-pydocstyle = "*"
 pytest = "*"
 pytest-django = "*"
 pytz = "*"
+ruff = "*"
+
+[tool.ruff]
+line-length = 88
+target-version = "py38"
+
+[tool.ruff.format]
+
+[tool.ruff.lint]
+unfixable = ["F841", "F401"]
+select = [
+  "D",  # pydocstyle
+  "E",  # pycodestyle
+  "F",  # pyflakes
+  "I",  # isort
+  "S",  # bandit
+  "UP", # pyupgrade
+  "W",  # pycodestyle
+]
+ignore = ["D1", "D203", "D205", "D212"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S", "D"]
+"*/migrations/*" = ["S", "E", "F", "W"]
+"conftest.py" = ["S"]
 
 [tool.poetry.group.docs]
 optional = true
@@ -53,7 +73,7 @@ sphinx = { version = ">=7", python = ">=3.9" }
 sphinx_rtd_theme = { version = ">=1", python = ">3.9" }
 
 [tool.poetry-dynamic-versioning]
-enable = true
+enable = false
 pattern = "^(?P<base>\\d+(\\.\\d+)*)" # tag without `v` prefix
 
 [build-system]
