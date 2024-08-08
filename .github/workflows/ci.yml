@@ -44,15 +44,18 @@ jobs:
       matrix:
         python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
         django-version: ["4.2", "5.0"]
+        postgres-version: ["12-2.5", "13-3.4"]
         exclude:
           - django-version: "5.0"
             python-version: "3.8"
+          - django-version: "5.0"
+            postgres-version: "12-2.5"
           - django-version: "5.0"
             python-version: "3.9"
 
     services:
       postgresql:
-        image: postgis/postgis:12-2.5
+        image: postgis/postgis:${{ matrix.postgres-version }}
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
