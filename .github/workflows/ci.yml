@@ -54,6 +54,8 @@ jobs:
             python-version: "3.9"
           - django-version: "5.0"
             postgres-version: "12-2.5"
+          - django-version: "5.1"
+            postgres-version: "12-2.5"
           - django-version: "5.0"
             python-version: "3.9"
 
