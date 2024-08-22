@@ -5,8 +5,6 @@ from django.utils.translation import gettext_lazy as _
 
 from heroku_connect.db import models as hc_models
 
-__all__ = ("NumberModel", "OtherModel")
-
 
 def frozen_uuid_generator():
     return uuid.UUID(hex="653d1c6863404b9689b75fa930c9d0a0")
