@@ -5,8 +5,6 @@ from django.utils.translation import gettext_lazy as _
 
 from heroku_connect.db import models as hc_models
 
-__all__ = ("NumberModel", "OtherModel")
-
 
 def frozen_uuid_generator():
     return uuid.UUID(hex="653d1c6863404b9689b75fa930c9d0a0")
@@ -47,3 +45,36 @@ class DateTimeModel(hc_models.HerokuConnectModel):
 class ReadOnlyModel(hc_models.HerokuConnectModel):
     sf_object_name = "ReadOnly__c"
     sf_access = hc_models.READ_ONLY
+
+
+class NormalAbstractModel(hc_models.HerokuConnectModel):
+    sf_object_name = "Test__c"
+
+    class Meta:
+        app_label = "tests.testapp"
+        abstract = True
+
+
+class NormalModelWithObjectAndApp(hc_models.HerokuConnectModel):
+    sf_object_name = "Test__c"
+
+    class Meta:
+        app_label = "tests.testapp"
+
+
+class MyRegularModel(models.Model):
+    class Meta:
+        app_label = "tests.testapp"
+
+
+class AbstractHCModel(hc_models.HerokuConnectModel):
+    sf_object_name = "My_Other_Object__c"
+
+    class Meta:
+        app_label = "tests.testapp"
+        abstract = False
+
+
+class RegularModel(AbstractHCModel):
+    class Meta:
+        app_label = "tests.testapp"

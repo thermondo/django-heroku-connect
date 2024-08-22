@@ -273,15 +273,19 @@ class TestHerokuConnectModelMixin:
         # invalid when just definiting `Meta.app_label`.
         # So for this test we just use an existing model and break
         # it.
-        setattr(NumberModel, "sf_object_name", None)
+        old_name = NumberModel.sf_object_name
+        try:
+            setattr(NumberModel, "sf_object_name", None)
 
-        errors = NumberModel.check()
-        assert errors == [
-            checks.Error(
-                'testapp.NumberModel must define a "sf_object_name".',
-                id="heroku_connect.E001",
-            )
-        ]
+            errors = NumberModel.check()
+            assert errors == [
+                checks.Error(
+                    'testapp.NumberModel must define a "sf_object_name".',
+                    id="heroku_connect.E001",
+                )
+            ]
+        finally:
+            setattr(NumberModel, "sf_object_name", old_name)
 
     def test_check_sf_access(self):
         class MyModel(hc_models.HerokuConnectModel):
