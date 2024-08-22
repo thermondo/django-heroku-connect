@@ -12,57 +12,55 @@ from heroku_connect.db.models import HerokuConnectModel
 from . import fixtures
 
 
-# def test_get_heroku_connect_models():
-#     try:
+def test_get_heroku_connect_models():
+    try:
 
-#         class MyModel(HerokuConnectModel):
-#             sf_object_name = "Test__c"
+        class MyModel(HerokuConnectModel):
+            sf_object_name = "Test__c"
 
-#             class Meta:
-#                 app_label = "tests.testapp"
-#                 abstract = True
+            class Meta:
+                app_label = "tests.testapp"
+                abstract = True
 
-#         assert MyModel not in list(utils.get_heroku_connect_models())
+        assert MyModel not in list(utils.get_heroku_connect_models())
 
-#         class MyModel(HerokuConnectModel):
-#             sf_object_name = "Test__c"
+        class MyModel(HerokuConnectModel):
+            sf_object_name = "Test__c"
 
-#             class Meta:
-#                 app_label = "tests.testapp"
+            class Meta:
+                app_label = "tests.testapp"
 
-#         assert MyModel in list(utils.get_heroku_connect_models())
+        assert MyModel in list(utils.get_heroku_connect_models())
 
-#         class MyRegularModel(models.Model):
-#             class Meta:
-#                 app_label = "tests.testapp"
+        class MyRegularModel(models.Model):
+            class Meta:
+                app_label = "tests.testapp"
 
-#         assert MyRegularModel not in list(utils.get_heroku_connect_models())
+        assert MyRegularModel not in list(utils.get_heroku_connect_models())
 
-#         class AbstratHCModel(HerokuConnectModel):
-#             sf_object_name = "My_Object__c"
+        class AbstratHCModel(HerokuConnectModel):
+            sf_object_name = "My_Object__c"
 
-#             class Meta:
-#                 app_label = "tests.testapp"
-#                 abstract = False
+            class Meta:
+                app_label = "tests.testapp"
+                abstract = False
 
-#         class RegularModel(AbstratHCModel):
-#             class Meta:
-#                 app_label = "tests.testapp"
+        class RegularModel(AbstratHCModel):
+            class Meta:
+                app_label = "tests.testapp"
 
-#         assert RegularModel not in list(utils.get_heroku_connect_models())
+        assert RegularModel not in list(utils.get_heroku_connect_models())
 
-#     finally:
-#         from django.apps import apps
+    finally:
+        from django.apps import apps
 
-#         apps.all_models["tests.testapp"] = {}
+        apps.all_models["tests.testapp"] = {}
 
 
 def test_get_mapping(settings):
     settings.HEROKU_CONNECT_APP_NAME = "ninja"
     settings.HEROKU_CONNECT_ORGANIZATION_ID = "1234567890"
     exported_at = datetime.datetime(2001, 5, 24)
-
-    __import__("pdb").set_trace()
 
     mapping = utils.get_mapping(exported_at=exported_at)
     assert mapping["connection"] == {
