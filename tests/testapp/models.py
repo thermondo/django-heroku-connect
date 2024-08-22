@@ -47,3 +47,36 @@ class DateTimeModel(hc_models.HerokuConnectModel):
 class ReadOnlyModel(hc_models.HerokuConnectModel):
     sf_object_name = "ReadOnly__c"
     sf_access = hc_models.READ_ONLY
+
+
+class NormalAbstractModel(hc_models.HerokuConnectModel):
+    sf_object_name = "Test__c"
+
+    class Meta:
+        app_label = "tests.testapp"
+        abstract = True
+
+
+class NormalModelWithObjectAndApp(hc_models.HerokuConnectModel):
+    sf_object_name = "Test__c"
+
+    class Meta:
+        app_label = "tests.testapp"
+
+
+class MyRegularModel(models.Model):
+    class Meta:
+        app_label = "tests.testapp"
+
+
+class AbstractHCModel(hc_models.HerokuConnectModel):
+    sf_object_name = "My_Other_Object__c"
+
+    class Meta:
+        app_label = "tests.testapp"
+        abstract = False
+
+
+class RegularModel(AbstractHCModel):
+    class Meta:
+        app_label = "tests.testapp"

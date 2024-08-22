@@ -4,57 +4,23 @@ import json
 import httpretty
 import pytest
 import requests
-from django.db import models
 
 from heroku_connect import utils
-from heroku_connect.db.models import HerokuConnectModel
+from tests.testapp.models import (
+    MyRegularModel,
+    NormalAbstractModel,
+    NormalModelWithObjectAndApp,
+    RegularModel,
+)
 
 from . import fixtures
 
 
 def test_get_heroku_connect_models():
-    try:
-
-        class MyModel(HerokuConnectModel):
-            sf_object_name = "Test__c"
-
-            class Meta:
-                app_label = "tests.testapp"
-                abstract = True
-
-        assert MyModel not in list(utils.get_heroku_connect_models())
-
-        class MyModel(HerokuConnectModel):
-            sf_object_name = "Test__c"
-
-            class Meta:
-                app_label = "tests.testapp"
-
-        assert MyModel in list(utils.get_heroku_connect_models())
-
-        class MyRegularModel(models.Model):
-            class Meta:
-                app_label = "tests.testapp"
-
-        assert MyRegularModel not in list(utils.get_heroku_connect_models())
-
-        class AbstratHCModel(HerokuConnectModel):
-            sf_object_name = "My_Object__c"
-
-            class Meta:
-                app_label = "tests.testapp"
-                abstract = False
-
-        class RegularModel(AbstratHCModel):
-            class Meta:
-                app_label = "tests.testapp"
-
-        assert RegularModel not in list(utils.get_heroku_connect_models())
-
-    finally:
-        from django.apps import apps
-
-        apps.all_models["tests.testapp"] = {}
+    assert NormalAbstractModel not in list(utils.get_heroku_connect_models())
+    assert NormalModelWithObjectAndApp in list(utils.get_heroku_connect_models())
+    assert MyRegularModel not in list(utils.get_heroku_connect_models())
+    assert RegularModel not in list(utils.get_heroku_connect_models())
 
 
 def test_get_mapping(settings):
