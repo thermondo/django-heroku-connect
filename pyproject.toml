@@ -25,7 +25,7 @@ classifiers = [
 packages = [{ include = "heroku_connect" }]
 
 [tool.poetry.dependencies]
-python = ">=3.8,<4.0"
+python = ">=3.9,<4.0"
 django = ">=4.2,<5.2"
 django-appconf = "~1"
 requests = "~2"
