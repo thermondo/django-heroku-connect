@@ -7,8 +7,7 @@ from functools import lru_cache
 import requests
 from django.db import DEFAULT_DB_ALIAS, connections
 from django.utils import timezone
-from psycopg2.extensions import AsIs
-from psycopg2.extras import HstoreAdapter
+from psycopg import sql
 
 from heroku_connect.conf import settings
 
@@ -155,7 +154,11 @@ def create_heroku_connect_schema(using=DEFAULT_DB_ALIAS):
         if schema_exists:
             return False
 
-        cursor.execute("CREATE SCHEMA %s;", [AsIs(settings.HEROKU_CONNECT_SCHEMA)])
+        cursor.execute(
+            sql.SQL("CREATE SCHEMA {};").format(
+                sql.Identifier(settings.HEROKU_CONNECT_SCHEMA)
+            )
+        )
 
     with connection.schema_editor() as editor:
         for model in get_heroku_connect_models():
@@ -352,7 +355,3 @@ def link_connection_to_account(app):
         url=url, timeout=HEROKU_REQUEST_TIMEOUT, headers=_get_authorization_headers()
     )
     response.raise_for_status()
-
-
-def hstore_text_to_dict(text):
-    return HstoreAdapter.parse(text, None)

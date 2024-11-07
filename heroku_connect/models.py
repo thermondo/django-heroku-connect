@@ -1,13 +1,12 @@
 from django.conf import settings
 from django.db import connections, models, router, transaction
 from django.utils.translation import gettext_lazy as _
-from psycopg2 import sql
+from psycopg import sql
 
 from heroku_connect.utils import (
     WriteAlgorithm,
     get_connected_model_for_table_name,
     get_unique_connection_write_mode,
-    hstore_text_to_dict,
 )
 
 
@@ -131,7 +130,7 @@ class TriggerLogAbstract(models.Model):
 
     @property
     def values_as_dict(self):
-        return hstore_text_to_dict(self.values)
+        return self.values
 
     @classmethod
     def capture_insert_from_model(cls, table_name, record_id, *, exclude_fields=()):

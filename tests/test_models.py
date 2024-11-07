@@ -1,6 +1,6 @@
 import pytest
 from django.core.exceptions import FieldDoesNotExist
-from psycopg2 import sql
+from psycopg import sql
 
 from heroku_connect.models import TRIGGER_LOG_STATE, TriggerLog, TriggerLogArchive
 from tests.conftest import make_trigger_log, make_trigger_log_for_model
