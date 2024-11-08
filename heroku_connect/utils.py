@@ -8,6 +8,7 @@ import requests
 from django.db import DEFAULT_DB_ALIAS, connections
 from django.utils import timezone
 from psycopg import sql
+from psycopg.types.hstore import Hstore, HstoreLoader
 
 from heroku_connect.conf import settings
 
@@ -357,5 +358,6 @@ def link_connection_to_account(app):
     response.raise_for_status()
 
 
-def hstore_text_to_dict(text):
-    return HstoreAdapter.parse(text, None)
+def hstore_text_to_dict(text: str) -> Hstore:
+    loader = HstoreLoader(oid=0, context=None)
+    return loader.load(text.encode())
