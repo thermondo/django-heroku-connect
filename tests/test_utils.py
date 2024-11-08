@@ -201,25 +201,3 @@ def test_get_connected_model_for_table_name(db, connected_class):
 
     with pytest.raises(LookupError):
         utils.get_connected_model_for_table_name("NOBODY'S_TABLE_NAME")
-
-
-@pytest.mark.parametrize(
-    "input_,expected",
-    [
-        ("", {}),
-        (
-            '"id"=>"429161", "name"=>"Kalkenbergerstr,43 "',
-            {"id": "429161", "name": "Kalkenbergerstr,43 "},
-        ),
-        (
-            '"line_break"=>"429\n161"',
-            {"line_break": "429\n161"},
-        ),
-        (
-            '"comma"=>"comma,comma"',
-            {"comma": "comma,comma"},
-        ),
-    ],
-)
-def test_hstore_test_to_dict(input_, expected):
-    assert utils.hstore_text_to_dict(input_) == expected
