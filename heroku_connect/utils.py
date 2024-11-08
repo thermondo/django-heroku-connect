@@ -355,3 +355,7 @@ def link_connection_to_account(app):
         url=url, timeout=HEROKU_REQUEST_TIMEOUT, headers=_get_authorization_headers()
     )
     response.raise_for_status()
+
+
+def hstore_text_to_dict(text):
+    return HstoreAdapter.parse(text, None)
