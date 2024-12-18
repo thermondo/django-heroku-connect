@@ -1,3 +1,4 @@
+import copy
 import json
 import secrets
 
@@ -12,11 +13,58 @@ from tests import fixtures
 
 
 @httpretty.activate
+def test_check_status_mapping():
+    httpretty.register_uri(
+        httpretty.GET,
+        "https://connect-eu.heroku.com/api/v3/connections",
+        body=json.dumps(fixtures.connections),
+        status=200,
+        content_type="application/json",
+    )
+    httpretty.register_uri(
+        httpretty.GET,
+        "https://connect-eu.heroku.com/api/v3/connections/1?deep=true",
+        body=json.dumps(fixtures.connection),
+        status=200,
+        content_type="application/json",
+    )
+    hc = HerokuConnectHealthCheck()
+    hc.check_status()
+    assert not hc.errors
+
+    failed_connection = copy.deepcopy(fixtures.connection)
+    failed_connection["mappings"][0]["state"] = "BAD_CONFIG"
+
+    httpretty.register_uri(
+        httpretty.GET,
+        "https://connect-eu.heroku.com/api/v3/connections/1?deep=true",
+        body=json.dumps(failed_connection),
+        status=200,
+        content_type="application/json",
+    )
+
+    hc = HerokuConnectHealthCheck()
+    hc.check_status()
+    assert hc.errors
+    assert (
+        hc.errors[0].message
+        == "mapping Account on connection sample name is in state BAD_CONFIG"
+    )
+
+
+@httpretty.activate
 def test_check_status():
     httpretty.register_uri(
         httpretty.GET,
         "https://connect-eu.heroku.com/api/v3/connections",
         body=json.dumps(fixtures.connections),
+        status=200,
+        content_type="application/json",
+    )
+    httpretty.register_uri(
+        httpretty.GET,
+        "https://connect-eu.heroku.com/api/v3/connections/1?deep=true",
+        body=json.dumps(fixtures.connection),
         status=200,
         content_type="application/json",
     )
@@ -76,6 +124,13 @@ def test_health_check_url(client):
         httpretty.GET,
         "https://connect-eu.heroku.com/api/v3/connections",
         body=json.dumps(fixtures.connections),
+        status=200,
+        content_type="application/json",
+    )
+    httpretty.register_uri(
+        httpretty.GET,
+        "https://connect-eu.heroku.com/api/v3/connections/1?deep=true",
+        body=json.dumps(fixtures.connection),
         status=200,
         content_type="application/json",
     )

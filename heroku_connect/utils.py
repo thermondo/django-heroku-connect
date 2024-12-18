@@ -1,7 +1,7 @@
 """Utility methods for Django Heroku Connect."""
 
 import os
-from enum import Enum
+from enum import Enum, unique
 from functools import lru_cache
 
 import requests
@@ -30,6 +30,70 @@ class ConnectionStates:
         IMPORT_CONFIGURATION,
         BUSY,
     )
+
+
+@unique
+class MappingState(str, Enum):
+    # https://devcenter.heroku.com/articles/mapping-states-reference#list-of-mapping-states
+    DATA_SYNCED = "DATA_SYNCED"
+    INITIAL = "INITIAL"
+    RESYNC = "RESYNC"
+    RELOAD_TABLE = "RELOAD_TABLE"
+    SCHEMA_CHANGED = "SCHEMA_CHANGED"
+    POLLING_SF_CHANGES = "POLLING_SF_CHANGES"
+    POLLING_SF_BULK = "POLLING_SF_BULK"
+    POLLING_SF_FOR_DELETES = "POLLING_SF_FOR_DELETES"
+    WAIT_BULK_LOAD = "WAIT_BULK_LOAD"
+    LOADING_BULK_JOB = "LOADING_BULK_JOB"
+    RESOLVE_EXTERNAL_IDS = "RESOLVE_EXTERNAL_IDS"
+    BULK_LOAD_ERROR = "BULK_LOAD_ERROR"
+    WAIT_BULK_UPDATE = "WAIT_BULK_UPDATE"
+    APPLYING_BULK_UPDATE = "APPLYING_BULK_UPDATE"
+    POLL_EXTERNAL_IDS = "POLL_EXTERNAL_IDS"
+    RECOVERY = "RECOVERY"
+    ABORTED = "ABORTED"
+    SYSTEM_ERROR = "SYSTEM_ERROR"
+    DB_UNAVAILABLE = "DB_UNAVAILABLE"
+    BAD_CONFIG = "BAD_CONFIG"
+    SYNC_REMOVED = "SYNC_REMOVED"
+    INACTIVE_ORG = "INACTIVE_ORG"
+    UNAUTHORIZED = "UNAUTHORIZED"
+
+
+OK_MAPPING_STATES = (
+    MappingState.DATA_SYNCED,
+    MappingState.RESYNC,
+    MappingState.RELOAD_TABLE,
+    MappingState.POLLING_SF_CHANGES,
+    MappingState.POLLING_SF_BULK,
+    MappingState.POLLING_SF_FOR_DELETES,
+    MappingState.WAIT_BULK_LOAD,
+    MappingState.LOADING_BULK_JOB,
+    MappingState.RESOLVE_EXTERNAL_IDS,
+    MappingState.WAIT_BULK_UPDATE,
+    MappingState.APPLYING_BULK_UPDATE,
+    MappingState.POLL_EXTERNAL_IDS,
+    MappingState.ABORTED,
+)
+
+# mapping states that mean that the sync is not working, but will typically resolve
+# itself
+TEMPORARY_ERROR_MAPPING_STATES = (
+    MappingState.INITIAL,
+    MappingState.SCHEMA_CHANGED,
+    MappingState.RECOVERY,
+)
+
+# mapping states that are permanent errors
+ERROR_MAPPING_STATES = (
+    MappingState.BULK_LOAD_ERROR,
+    MappingState.SYSTEM_ERROR,
+    MappingState.DB_UNAVAILABLE,
+    MappingState.BAD_CONFIG,
+    MappingState.SYNC_REMOVED,
+    MappingState.INACTIVE_ORG,
+    MappingState.UNAUTHORIZED,
+)
 
 
 class WriteAlgorithm(Enum):
