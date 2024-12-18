@@ -48,7 +48,7 @@ def linkcode_resolve(domain, info):
             pass
         try:
             lines, first_line = inspect.getsourcelines(item)
-            lineno = "#L%d-L%s" % (first_line, first_line + len(lines) - 1)
+            lineno = f"#L{first_line:d}-L{first_line + len(lines) - 1}"
         except (OSError, TypeError):
             pass
     return (
