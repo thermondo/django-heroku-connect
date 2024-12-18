@@ -46,3 +46,20 @@ class HerokuConnectHealthCheck(BaseHealthCheckBackend):
                         )
                     )
                 )
+
+            connection_state = utils.get_connection(connection["id"], deep=True)
+
+            for mapping in connection_state["mappings"]:
+                object_name = mapping["object_name"]
+                state = mapping["state"]
+
+                if (
+                    state in utils.ERROR_MAPPING_STATES
+                    or state in utils.TEMPORARY_ERROR_MAPPING_STATES
+                ):
+                    self.add_error(
+                        ServiceUnavailable(
+                            f"mapping {object_name} on connection {connection['name']} "
+                            f"is in state {state}"
+                        )
+                    )
