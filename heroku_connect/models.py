@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.db import connections, models, router, transaction
 from django.utils.translation import gettext_lazy as _
-from psycopg2 import sql
+from psycopg import sql
 
 from heroku_connect.utils import (
     WriteAlgorithm,

@@ -35,7 +35,7 @@ coverage = "*"
 django-health-check = "*"
 httpretty = "*"
 pre-commit = "*"
-psycopg2-binary = "*"
+psycopg = { version = "*", extras = ["binary"] }
 pytest = "*"
 pytest-django = "*"
 pytz = "*"
