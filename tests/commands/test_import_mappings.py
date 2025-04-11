@@ -105,8 +105,7 @@ class TestImportMapping:
             stdout.seek(0)
             console = stdout.read()
         assert (
-            "No associated connections found"
-            " for the current user with the app 'ninja'."
+            "No associated connections found for the current user with the app 'ninja'."
         ) in str(e.value)
         assert console == (
             "Fetching connections.\n"

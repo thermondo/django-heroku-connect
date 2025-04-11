@@ -43,7 +43,7 @@ def heroku_cli(stdout="", stderr="", exit_code=0):
     path = os.environ.get("PATH", "")
     os.environ["PATH"] = ":".join([bin_dir, path])
     exec_name = os.path.join(bin_dir, "heroku")
-    script = "#!/bin/bash\n" "echo %s 1>&1\n" "echo %s 1>&2\n" "exit %i\n"
+    script = "#!/bin/bash\necho %s 1>&1\necho %s 1>&2\nexit %i\n"
     script %= (shlex.quote(stdout), shlex.quote(stderr), exit_code)
     with open(exec_name, "wb+") as f:
         f.seek(0)
