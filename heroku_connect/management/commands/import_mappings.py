@@ -52,7 +52,7 @@ class Command(BaseCommand):
         wait_interval = options.get("wait_interval", 10)
         if not (connection_id or app_name):
             raise CommandError(
-                "You need ether specify the application name or " "the connection ID."
+                "You need ether specify the application name or the connection ID."
             )
         if connection_id is None:
             self.stdout.write(self.style.NOTICE("Fetching connections."))

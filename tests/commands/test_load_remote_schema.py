@@ -87,10 +87,10 @@ class TestLoadRemoteSchema:
 
         database_url = (
             "postgres://"
-            f'{self.db["USER"]}:{self.db["PASSWORD"]}'
-            f'@{self.db["HOST"]}'
-            f':{self.db["PORT"]}'
-            f'/{self.db["NAME"]}'
+            f"{self.db['USER']}:{self.db['PASSWORD']}"
+            f"@{self.db['HOST']}"
+            f":{self.db['PORT']}"
+            f"/{self.db['NAME']}"
         )
         with heroku_cli(database_url, exit_code=0):
             with StringIO() as sql:
