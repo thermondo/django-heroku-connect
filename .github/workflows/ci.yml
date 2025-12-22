@@ -47,6 +47,8 @@ jobs:
         django-version: ["4.2", "5.2", "6.0"]
         postgres-version: ["12-2.5", "13-3.4", "16-3.5"]
         exclude:
+          - django-version: "4.2"
+            python-version: "3.14"
           - django-version: "5.2"
             postgres-version: "12-2.5"
           - django-version: "5.2"
