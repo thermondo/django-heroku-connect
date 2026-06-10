@@ -136,4 +136,6 @@ def test_health_check_url(client):
     )
     response = client.get("/ht/")
     assert response.status_code == 200
-    assert b"<td>Heroku Connect</td>" in response.content
+    # The exact markup differs between django-health-check versions, so just
+    # assert the check's identifier is rendered on the status page.
+    assert b"Heroku Connect" in response.content

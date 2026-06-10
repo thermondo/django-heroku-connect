@@ -8,14 +8,14 @@ from heroku_connect import utils
 from heroku_connect.conf import settings
 
 try:
-    from health_check.backends import BaseHealthCheckBackend
+    from health_check.backends import HealthCheck
     from health_check.exceptions import (
         ServiceReturnedUnexpectedResult,
         ServiceUnavailable,
     )
 except ImportError as e:
     raise ImportError(
-        "django-health-check is needed for this featue, see \
+        "django-health-check is needed for this feature, see \
         http://django-heroku-connect.readthedocs.io/en/latest/contrib.html"
     ) from e
 
@@ -23,8 +23,8 @@ except ImportError as e:
 logger = logging.getLogger("health-check")
 
 
-class HerokuConnectHealthCheck(BaseHealthCheckBackend):
-    def identifier(self):
+class HerokuConnectHealthCheck(HealthCheck):
+    def __repr__(self):
         return "Heroku Connect"
 
     def check_status(self):
