@@ -17,8 +17,10 @@ def _check_foreign_key(app_configs, **kwargs):
     for model in all_models:
         opts = model._meta
         fks_to_hc_model = filter(
-            lambda f: isinstance(f, (ForeignKey, ManyToManyField))
-            and issubclass(f.remote_field.model, HerokuConnectModel),
+            lambda f: (
+                isinstance(f, (ForeignKey, ManyToManyField))
+                and issubclass(f.remote_field.model, HerokuConnectModel)
+            ),
             opts.local_fields,
         )
 

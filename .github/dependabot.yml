@@ -18,3 +18,9 @@ updates:
       - dependency-type: direct
       - dependency-type: indirect
     rebase-strategy: disabled
+    ignore:
+      # django-health-check v4 is a breaking async API rewrite (no plugin_dir,
+      # check_status -> async run()). Stay on the maintained 3.x line; 3.x
+      # patch/minor and security updates still flow.
+      - dependency-name: "django-health-check"
+        update-types: ["version-update:semver-major"]
