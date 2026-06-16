@@ -32,7 +32,7 @@ requests = "~2"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "*"
-django-health-check = ">=3.21,<4"  # v4 is a breaking async rewrite; stay on the 3.x line
+django-health-check = ">=3.21,<5"  # v4 is a breaking async rewrite; stay on the 3.x line
 httpretty = "*"
 pre-commit = "*"
 psycopg2-binary = "*"
