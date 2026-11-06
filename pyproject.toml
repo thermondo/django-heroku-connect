@@ -29,6 +29,8 @@ python = ">=3.10,<4.0"
 django = ">=4.2,<6.1,!=5.0.*,!=5.1.*"
 django-appconf = "~1"
 requests = "~2"
+# requests pulls in certifi; older bundles trust the compromised emSign ECC Root CA - G3
+certifi = ">=2026.10.18"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "*"
